@@ -1,0 +1,34 @@
+# 环境变量
+.env
+.env.local
+SECRET.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# 向量数据库
+data/chroma_db/
+*.db
+
+# 模型/索引文件
+*.pkl
+*.bin
+faiss_index/
+
+# 测试
+.pytest_cache/
+htmlcov/
+
+# 系统
+.DS_Store
+Thumbs.db

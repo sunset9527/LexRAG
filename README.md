@@ -4,7 +4,7 @@
 
 ## 项目介绍
 
-通用 RAG 在法律场景下存在"幻觉法条"的严重问题——模型可能编造不存在的法条编号或内容。LexRAG 通过以下三个核心设计解决这一问题：
+  通用 RAG 在法律场景下存在"幻觉法条"的严重问题——模型可能编造不存在的法条编号或内容。LexRAG 通过以下三个核心设计解决这一问题：
 
 1. **法律原生文档解析**：按"编→章→节→条→款→项"六级层级切分，而非通用按字符数 chunking
 2. **混合检索管线**：语义检索 + BM25 关键词检索 + CrossEncoder 重排序，兼顾语义理解和编号精确匹配
@@ -80,22 +80,29 @@
 | 自校验 | 模型可能编造法条 | 独立校验 Agent，提取引用→检索原文→比对 |
 | 版本管理 | 法条有修订历史 | VersionManager + 生效日期过滤 |
 
-## 演示
+[//]: # (## 演示)
 
-> 以下为系统实际运行效果截图，点击查看完整交互流程。
+[//]: # ()
+[//]: # (<table>)
 
-<table>
-<tr>
-<td align="center"><b>法律问答</b><br><img src="docs/gifs/query.gif" width="400"/><br><i>输入法律问题，Agent自主选择工具检索并回答</i></td>
-<td align="center"><b>法条溯源</b><br><img src="docs/gifs/citation.gif" width="400"/><br><i>每条回答标注法条出处，点击查看原文</i></td>
-</tr>
-<tr>
-<td align="center"><b>文档上传</b><br><img src="docs/gifs/upload.gif" width="400"/><br><i>上传法律文档，自动解析切分建索引</i></td>
-<td align="center"><b>知识图谱</b><br><img src="docs/gifs/graph.gif" width="400"/><br><i>法条引用关系图谱，支持多跳检索</i></td>
-</tr>
-</table>
+[//]: # (<tr>)
 
-> 💡 如需录制演示 GIF，推荐使用 [ScreenToGif](https://www.screentogif.com/)（Windows 免费开源），录制后放入 `docs/gifs/` 目录。
+[//]: # (<td align="center"><b>法律问答</b><br><img src="docs/gifs/query.gif" width="400"/><br><i>输入法律问题，Agent自主选择工具检索并回答</i></td>)
+
+[//]: # (<td align="center"><b>法条溯源</b><br><img src="docs/gifs/citation.gif" width="400"/><br><i>每条回答标注法条出处，点击查看原文</i></td>)
+
+[//]: # (</tr>)
+
+[//]: # (<tr>)
+
+[//]: # (<td align="center"><b>文档上传</b><br><img src="docs/gifs/upload.gif" width="400"/><br><i>上传法律文档，自动解析切分建索引</i></td>)
+
+[//]: # (<td align="center"><b>知识图谱</b><br><img src="docs/gifs/graph.gif" width="400"/><br><i>法条引用关系图谱，支持多跳检索</i></td>)
+
+[//]: # (</tr>)
+
+[//]: # (</table>)
+
 
 ## 技术栈
 
@@ -291,8 +298,7 @@ LexRAG/
 │   ├── laws/                     # 示例法律文档
 │   ├── cases/                    # 示例案例
 │   └── chroma_db/                # 向量数据库（运行时生成）
-├── docs/
-│   └── blog-legal-rag.md         # 技术分享文章
+│  
 └── tests/                        # 测试
     ├── test_structured_chunking.py
     ├── test_intent_router.py
@@ -300,46 +306,13 @@ LexRAG/
     └── test_self_verify.py
 ```
 
-## Roadmap
-
-### 已完成
-
-- [x] **v1.0** — 法律文档六级层级解析 + 结构化切分
-- [x] **v1.1** — ChromaDB 向量检索 + BM25 混合检索
-- [x] **v1.2** — 意图路由器（4 类法律意图分类）
-- [x] **v1.3** — 法条引用知识图谱（NetworkX）+ 多跳 BFS 检索
-- [x] **v1.4** — ReAct Agent 工作流（LangGraph）+ 4 工具
-- [x] **v1.5** — 法条自校验 + 修正重试机制
-- [x] **v1.6** — Streamlit 三栏布局 + FastAPI 7 端点
-- [x] **v1.7** — Docker Compose 一键部署
-
-### 进行中
-
-- [ ] **v1.8** — 流式输出（SSE），改善长回答等待体验
-- [ ] **v1.8** — 对话历史持久化（SQLite）
-
-### 规划中
-
-| 版本 | 季度 | 内容 |
-|------|------|------|
-| **v2.0** | 2026 Q3 | PDF/Word 法律文档直接上传解析；法条修订历史对比 |
-| **v2.1** | 2026 Q4 | 裁判文书网数据接入，扩充案例检索覆盖面 |
-| **v2.2** | 2027 Q1 | 多语言法律文本支持；类案检索与推荐 |
-| **v3.0** | 2027 Q2 | 法律文书自动生成（起诉状/答辩状）；本地模型部署（vLLM） |
-
 ## Release
 
-### v1.7.0 (2026-06-29)
+### v1.6.0 (2026-06-29)
 
 - ✨ Docker Compose 一键部署支持
 - 📝 技术博客：法律 RAG 自校验设计实践
 - 📖 README 重构：架构图 / API 文档 / 项目目录
-
-### v1.6.0 (2026-06-20)
-
-- ✨ Streamlit 三栏布局（对话 | 检索过程 | 法条溯源）
-- ✨ FastAPI 7 端点 + Lifespan 资源管理
-- 🐛 修复长文本截断和暗色模式 CSS 错乱
 
 ### v1.5.0 (2026-06-05)
 
@@ -378,6 +351,3 @@ LexRAG/
 - ✨ ChromaDB 向量索引
 - ✨ 基础问答 + FastAPI + Streamlit
 
-## License
-
-MIT License

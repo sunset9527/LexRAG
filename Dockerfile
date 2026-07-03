@@ -21,6 +21,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 FROM base AS dependencies
 
+# 使用国内 PyPI 镜像加速（阿里云）
+ENV PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
+    PIP_TRUSTED_HOST=mirrors.aliyun.com
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

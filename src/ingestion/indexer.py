@@ -60,21 +60,16 @@ class LawIndexer:
     
     def _initialize_vectorstore(self):
         """初始化向量存储"""
-        try:
-            self.vectorstore = Chroma(
-                persist_directory=self.persist_directory,
-                embedding_function=self.embeddings,
-                collection_name=self.collection_name
-            )
-            logger.info(f"向量存储已初始化: {self.persist_directory}")
-        except Exception as e:
-            logger.warning(f"初始化向量存储失败: {e}，将创建新的向量存储")
-            self.vectorstore = Chroma(
-                persist_directory=self.persist_directory,
-                embedding_function=self.embeddings,
-                collection_name=self.collection_name,
-                create_collection_if_not_exists=True
-            )
+        import os
+        # 确保持久化目录存在且有正确权限
+        os.makedirs(self.persist_directory, exist_ok=True)
+
+        self.vectorstore = Chroma(
+            persist_directory=self.persist_directory,
+            embedding_function=self.embeddings,
+            collection_name=self.collection_name
+        )
+        logger.info(f"向量存储已初始化: {self.persist_directory}")
     
     def _chunk_to_document(self, chunk: LawChunk) -> Document:
         """
