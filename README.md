@@ -384,7 +384,7 @@ LexRAG/
 - 🔧 Reranker 暂禁（国内镜像不兼容，BGE-M3 混合检索替代）
 - 🗑️ 删除 Streamlit 前端，删除 Agent 推理面板
 
-### v1.7.0 (2026-07-27) — 产品地基
+### v1.7.0 (2026-07-11) — 产品地基
 
 - ✨ JWT 认证系统（OAuth2PasswordBearer + bcrypt）
 - ✨ MySQL + SQLAlchemy + Alembic 数据库迁移
