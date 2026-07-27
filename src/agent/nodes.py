@@ -10,8 +10,10 @@ import uuid
 from typing import Dict, Any, Callable, List, Optional, Tuple
 from datetime import datetime
 
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+
+# v1.7: Langfuse 可观测工厂
+from app.services.langfuse_helper import create_llm
 
 from .state import WorkflowState, WorkflowStatus, Citation, RetrievalContext
 from ..retrieval.intent_router import IntentRouter, IntentType
@@ -84,11 +86,11 @@ class WorkflowNodes:
         self.self_verifier = self_verifier or SelfVerifier(
             api_key=api_key, base_url=base_url, model=model
         )
-        self.llm = ChatOpenAI(
+        self.llm = create_llm(
             api_key=api_key,
             base_url=base_url,
             model=model,
-            temperature=0.1
+            temperature=0.1,
         )
     
     def initialize_state(self, state: WorkflowState) -> Dict[str, Any]:

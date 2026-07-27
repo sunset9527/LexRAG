@@ -9,12 +9,12 @@ import hashlib
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
-from langchain_community.embeddings import ZhipuAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
 
 from config import settings
 from .chunker import LawChunk, StructuredLawChunker
+from ..utils.embedding_factory import create_embeddings
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +48,11 @@ class LawIndexer:
         self.persist_directory = persist_directory
         self.collection_name = collection_name
         
-        # 初始化嵌入模型（智谱AI Embedding API）
-        self.embeddings = ZhipuAIEmbeddings(
-            model=embedding_model,
-            api_key=settings.zhipuai_api_key,
+        # 使用 Embedding 工厂：优先本地 BGE-M3 → 智谱API 回退
+        self.embeddings = create_embeddings(
+            model_path=settings.local_embedding_model_path,
+            zhipuai_api_key=settings.zhipuai_api_key,
+            zhipuai_model=embedding_model,
         )
         
         # 初始化向量存储
@@ -142,26 +143,26 @@ class LawIndexer:
         if self.vectorstore is None:
             self._initialize_vectorstore()
 
-        # 分批添加（智谱AI Embedding API 限制每次最多64条，加限流延迟）
+        # 分批添加（智谱AI 免费 Key 限流严格：QPS=1，每次最多4条）
         import time
-        batch_size = 32
+        batch_size = 4         # 极小批次，避免触发限流
         total = len(documents)
         for i in range(0, total, batch_size):
             batch = documents[i:i + batch_size]
-            # 重试最多3次
-            for attempt in range(3):
+            # 重试最多5次，逐次增加等待
+            for attempt in range(5):
                 try:
                     self.vectorstore.add_documents(batch)
                     break
                 except Exception as e:
-                    if attempt < 2:
-                        wait = (attempt + 1) * 5
+                    if attempt < 4:
+                        wait = (attempt + 1) * 8  # 8s, 16s, 24s, 32s
                         logger.warning(f"批次 {i//batch_size + 1} 失败({e})，{wait}s 后重试...")
                         time.sleep(wait)
                     else:
                         raise
             logger.info(f"索引进度: {min(i + batch_size, total)}/{total}")
-            time.sleep(1)  # 批次间延迟，避免触发限流
+            time.sleep(3)  # 批次间延迟3s，确保不超过 QPS 限制
 
         self.vectorstore.persist()
 

@@ -11,7 +11,8 @@ from enum import Enum
 from dataclasses import dataclass
 from pydantic import BaseModel, Field
 
-from langchain_openai import ChatOpenAI
+# v1.7: Langfuse 可观测工厂
+from app.services.langfuse_helper import create_llm
 
 logger = logging.getLogger(__name__)
 
@@ -123,11 +124,11 @@ class IntentRouter:
             base_url: API基础URL
             model: 模型名称
         """
-        self.llm = ChatOpenAI(
+        self.llm = create_llm(
             api_key=api_key,
             base_url=base_url,
             model=model,
-            temperature=0.1
+            temperature=0.1,
         )
     
     def classify_intent(self, query: str) -> QueryIntent:

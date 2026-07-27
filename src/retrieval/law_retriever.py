@@ -8,10 +8,12 @@ import logging
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 
 from .intent_router import QueryIntent, IntentType
+
+# v1.7: 使用 Langfuse 可观测工厂
+from app.services.langfuse_helper import create_llm
 
 logger = logging.getLogger(__name__)
 
@@ -73,11 +75,11 @@ class LawRetriever:
             model: 模型名称
         """
         self.vectorstore = vectorstore
-        self.llm = ChatOpenAI(
+        self.llm = create_llm(
             api_key=api_key,
             base_url=base_url,
             model=model,
-            temperature=0.0
+            temperature=0.0,
         )
     
     def retrieve(

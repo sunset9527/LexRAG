@@ -9,7 +9,9 @@ import json
 from typing import Optional, List, Dict, Any
 
 from langchain.tools import tool
-from langchain_openai import ChatOpenAI
+
+# v1.7: 使用 Langfuse 可观测工厂
+from app.services.langfuse_helper import create_llm
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +43,11 @@ def init_tools(
     _retriever_registry["reranker"] = reranker
     _retriever_registry["query_rewriter"] = query_rewriter
     _retriever_registry["context_compressor"] = context_compressor
-    _retriever_registry["llm"] = ChatOpenAI(
+    _retriever_registry["llm"] = create_llm(
         api_key=api_key,
         base_url=base_url,
         model=model,
         temperature=0.0,
-        request_timeout=30,
-        max_retries=1
     )
 
 

@@ -2,7 +2,8 @@
 import logging
 from typing import List, Dict, Any
 
-from langchain_openai import ChatOpenAI
+# v1.7: Langfuse 可观测工厂
+from app.services.langfuse_helper import create_llm
 
 logger = logging.getLogger(__name__)
 
@@ -35,11 +36,11 @@ class ContextCompressor:
         model="deepseek-chat",
         max_tokens_per_doc: int = 500
     ):
-        self.llm = ChatOpenAI(
+        self.llm = create_llm(
             api_key=api_key,
             base_url=base_url,
             model=model,
-            temperature=0.0
+            temperature=0.0,
         )
         self.max_tokens_per_doc = max_tokens_per_doc
     

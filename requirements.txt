@@ -16,12 +16,24 @@ networkx>=3.0
 # Web Framework
 fastapi>=0.109.0
 uvicorn[standard]>=0.27.0
-streamlit>=1.30.0
-
 # Configuration
 pydantic>=2.0.0
 pydantic-settings>=2.0.0
 python-dotenv>=1.0.0
+
+# Database (v1.7+)
+sqlalchemy>=2.0.0
+alembic>=1.13.0
+psycopg2-binary>=2.9.0
+pgvector>=0.2.0
+
+# Auth (v1.7+)
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.0.0
+
+# Observability (v1.7+)
+langfuse>=2.0.0
 
 # Testing
 pytest>=7.4.0

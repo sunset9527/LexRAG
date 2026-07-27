@@ -12,9 +12,9 @@ from datetime import datetime
 
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import create_react_agent
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 
+from config import settings
 from .state import WorkflowState, WorkflowStatus, QueryResult, Citation, ReasoningTrace
 from .tools import init_tools, get_all_tools
 from ..retrieval.intent_router import IntentRouter, IntentType
@@ -22,6 +22,9 @@ from ..retrieval.law_retriever import LawRetriever
 from ..retrieval.case_retriever import CaseRetriever
 from ..retrieval.graph_retriever import GraphRetriever
 from ..reasoning.self_verify import SelfVerifier, VerificationStatus
+
+# v1.7: 使用 Langfuse 可观测工厂
+from app.services.langfuse_helper import create_llm
 
 logger = logging.getLogger(__name__)
 
@@ -85,14 +88,12 @@ class LegalRAGWorkflow:
             model=model
         )
         
-        # 初始化LLM
-        self.llm = ChatOpenAI(
+        # 初始化LLM（v1.7: 使用 Langfuse 可观测工厂）
+        self.llm = create_llm(
             api_key=api_key,
             base_url=base_url,
             model=model,
             temperature=0.1,
-            request_timeout=30,
-            max_retries=1
         )
         
         # 初始化自校验器
@@ -115,21 +116,41 @@ class LegalRAGWorkflow:
     def query(self, question: str, config: Optional[Dict[str, Any]] = None) -> QueryResult:
         """
         执行查询
-        
+
         Args:
             question: 用户问题
-            config: 配置参数
-            
+            config: 配置参数，可包含 user_api_key（用户自己的 LLM API Key）
+
         Returns:
             QueryResult对象
         """
         logger.info(f"开始处理查询: {question}")
         query_id = str(uuid.uuid4())
         created_at = datetime.now().isoformat()
-        
+
+        # v1.8: 用户自定义 API Key / Model / Base URL 优先级高于服务端默认
+        user_api_key = config.get("user_api_key") if config else None
+        user_model = config.get("user_model") if config else None
+        user_base_url = config.get("user_base_url") if config else None
+
         try:
             reasoning_trace = []
-            
+
+            # v1.8: 如果用户提供了 Key，立刻替换 QueryRewriter/IntentRouter 的 LLM
+            if (user_api_key or user_base_url) and (
+                self.query_rewriter and hasattr(self.query_rewriter, 'llm')
+            ):
+                eff_base = user_base_url or settings.deepseek_base_url
+                rewriter_llm = create_llm(
+                    api_key=user_api_key,
+                    base_url=eff_base,
+                    model=self.query_rewriter.llm.model_name if hasattr(self.query_rewriter.llm, 'model_name') else settings.deepseek_model,
+                    temperature=0.1,
+                )
+                self.query_rewriter.llm = rewriter_llm
+                if self.intent_router and hasattr(self.intent_router, 'llm'):
+                    self.intent_router.llm = rewriter_llm  # 复用同一个 LLM
+
             # 1. 查询增强（如果启用）
             enhanced_query = question
             if self.query_rewriter:
@@ -179,9 +200,37 @@ class LegalRAGWorkflow:
             
             # 3. ReAct Agent执行
             messages = [HumanMessage(content=question)]
-            agent_result = self.agent.invoke(
+
+            # v1.8: 如果用户提供了自己的设置，用用户设置创建 LLM
+            if user_api_key or user_model or user_base_url:
+                eff_api_key = user_api_key or (
+                    self.llm.openai_api_key if hasattr(self.llm, 'openai_api_key') else None
+                )
+                eff_base_url = user_base_url or (
+                    self.llm.openai_api_base if hasattr(self.llm, 'openai_api_base') else None
+                )
+                user_llm = create_llm(
+                    api_key=eff_api_key,
+                    base_url=eff_base_url,
+                    model=user_model or self.llm.model_name,
+                    temperature=0.1,
+                )
+                # 重新初始化工具注册表中的 LLM，确保工具也用用户的 Key
+                from .tools import _retriever_registry
+                _retriever_registry["llm"] = user_llm
+
+                user_agent = create_react_agent(
+                    model=user_llm,
+                    tools=get_all_tools(),
+                    prompt=self.SYSTEM_PROMPT,
+                )
+                agent_to_use = user_agent
+            else:
+                agent_to_use = self.agent
+
+            agent_result = agent_to_use.invoke(
                 {"messages": messages},
-                config=config or {"configurable": {"thread_id": query_id}}
+                config={"configurable": {"thread_id": query_id}}
             )
             
             # 4. 提取Agent回答和推理过程
@@ -222,9 +271,19 @@ class LegalRAGWorkflow:
             verification_status = VerificationStatus.CANNOT_VERIFY
             verification_issues = []
             verification_attempts = 0
-            
+
             try:
-                verification_result = self.self_verifier.verify(
+                # v1.8: 校验也使用用户的 API Key
+                verifier = self.self_verifier
+                if user_api_key:
+                    from ..reasoning.self_verify import SelfVerifier
+                    verifier = SelfVerifier(
+                        api_key=user_api_key,
+                        base_url=self.llm.openai_api_base if hasattr(self.llm, 'openai_api_base') else None,
+                        model=self.llm.model_name if hasattr(self.llm, 'model_name') else None,
+                    )
+
+                verification_result = verifier.verify(
                     answer,
                     law_retriever_func=lambda aid: self.law_retriever.retrieve_by_article_number(aid)
                 )
@@ -257,11 +316,11 @@ class LegalRAGWorkflow:
                 if verification_status == VerificationStatus.FAIL and self.max_verification_retries > 0:
                     for attempt in range(self.max_verification_retries):
                         verification_attempts += 1
-                        corrected = self.self_verifier.correct(answer, verification_result)
+                        corrected = verifier.correct(answer, verification_result)
                         if corrected != answer:
                             answer = corrected
                             # 重新验证
-                            verification_result = self.self_verifier.verify(
+                            verification_result = verifier.verify(
                                 answer,
                                 law_retriever_func=lambda aid: self.law_retriever.retrieve_by_article_number(aid)
                             )

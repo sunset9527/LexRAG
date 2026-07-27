@@ -4,7 +4,8 @@ import json
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 
-from langchain_openai import ChatOpenAI
+# v1.7: Langfuse 可观测工厂
+from app.services.langfuse_helper import create_llm
 
 logger = logging.getLogger(__name__)
 
@@ -52,11 +53,11 @@ class QueryRewriter:
         base_url: str = "https://api.deepseek.com/v1",
         model: str = "deepseek-chat"
     ):
-        self.llm = ChatOpenAI(
+        self.llm = create_llm(
             api_key=api_key,
             base_url=base_url,
             model=model,
-            temperature=0.1
+            temperature=0.1,
         )
     
     def rewrite(self, query: str) -> RewrittenQuery:

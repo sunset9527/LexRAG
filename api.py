@@ -1,8 +1,13 @@
 """
-FastAPI 后端服务
+FastAPI 后端服务 — LexRAG API
 
-提供RESTful API接口
+提供 RESTful API 接口
+v1.7: 新增认证系统、Prompt 管理、数据库、Langfuse 可观测性
 """
+
+# ⚠️ HF_ENDPOINT 必须在所有 import 之前设置，否则 sentence_transformers 会直连 huggingface.co
+import os
+os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
 
 import logging
 import uuid
@@ -11,12 +16,14 @@ from typing import Optional, List, Dict, Any
 from pathlib import Path
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, Request, Header
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from fastapi.responses import JSONResponse
 
 from config import settings, get_project_root
+from src.utils.embedding_factory import create_embeddings
 from src.agent.workflow import LegalRAGWorkflow
 from src.agent.state import QueryResult
 from src.retrieval.intent_router import IntentRouter
@@ -31,6 +38,15 @@ from src.retrieval.context_compressor import ContextCompressor
 from src.retrieval.case_retriever import CaseRetriever
 from src.ingestion.law_parser import LawParser
 from src.ingestion.chunker import StructuredLawChunker
+
+# v1.7: 新增模块
+from app.db.session import init_db
+from app.api.auth import router as auth_router
+from app.api.prompts import router as prompts_router
+from app.services.langfuse_helper import flush_langfuse
+from app.services.prompt_service import seed_default_prompts
+from app.models.chat_history import ChatHistory
+from app.db.session import SessionLocal
 
 # 配置日志
 logging.basicConfig(
@@ -123,10 +139,10 @@ def initialize_components():
             from langchain_community.vectorstores import Chroma
             case_db_path = Path(settings.chroma_persist_directory) / "cases"
             if case_db_path.exists():
-                from langchain_community.embeddings import ZhipuAIEmbeddings
-                case_embeddings = ZhipuAIEmbeddings(
-                    model=settings.embedding_model,
-                    api_key=settings.zhipuai_api_key,
+                case_embeddings = create_embeddings(
+                    model_path=settings.local_embedding_model_path,
+                    zhipuai_api_key=settings.zhipuai_api_key,
+                    zhipuai_model=settings.embedding_model,
                 )
                 case_vectorstore = Chroma(
                     collection_name=settings.case_collection_name,
@@ -250,18 +266,53 @@ def initialize_components():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用生命周期"""
-    logger.info("启动应用...")
+    logger.info("启动 LexRAG 应用...")
+
+    # v1.7: 设置 HuggingFace 镜像（国内加速）
+    import os
+    if settings.hf_endpoint and not os.environ.get("HF_ENDPOINT"):
+        os.environ["HF_ENDPOINT"] = settings.hf_endpoint
+        logger.info(f"HuggingFace 镜像已设置: {settings.hf_endpoint}")
+
+    # v1.7: 初始化数据库
+    try:
+        init_db()
+        logger.info("数据库已就绪")
+    except Exception as e:
+        logger.error(f"数据库初始化失败: {e}")
+
+    # 初始化检索组件
     initialize_components()
+
+    # v1.7: 初始化默认 Prompt 模板
+    try:
+        from app.db.session import SessionLocal
+        if SessionLocal:
+            db = SessionLocal()
+            try:
+                seed_default_prompts(db)
+            finally:
+                db.close()
+    except Exception as e:
+        logger.warning(f"默认 Prompt 初始化失败（非致命）: {e}")
+
+    # 打印 Embedding 来源
+    from src.utils.embedding_factory import get_embedding_source
+    logger.info(f"Embedding 来源: {get_embedding_source()}")
+
     yield
-    logger.info("关闭应用...")
+
+    # v1.7: 刷新 Langfuse 缓冲区
+    flush_langfuse()
+    logger.info("LexRAG 应用已关闭")
 
 
 # ==================== 创建应用 ====================
 
 app = FastAPI(
-    title="法律RAG智能体API",
-    description="基于结构化RAG + 多跳推理 + 法条自校验的法律问答系统API",
-    version="1.0.0",
+    title="LexRAG 法律智能知识平台 API",
+    description="基于结构化RAG + Multi-Agent + 法条自校验的法律智能知识平台API",
+    version="1.7.0",
     lifespan=lifespan
 )
 
@@ -274,6 +325,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# v1.7: 注册新路由
+app.include_router(auth_router)
+app.include_router(prompts_router)
+
 
 # ==================== API端点 ====================
 
@@ -281,8 +336,8 @@ app.add_middleware(
 async def root():
     """根路径"""
     return {
-        "message": "法律RAG智能体API",
-        "version": "1.0.0",
+        "message": "LexRAG 法律智能知识平台 API",
+        "version": "1.7.0",
         "docs": "/docs"
     }
 
@@ -293,7 +348,7 @@ async def health_check():
     return HealthResponse(
         status="healthy" if components else "initializing",
         timestamp=datetime.now().isoformat(),
-        version="1.0.0",
+        version="1.7.0",
         components={
             "workflow": "ready" if components.get("workflow") else "not_ready",
             "law_indexer": "ready" if components.get("law_indexer") else "not_ready",
@@ -303,39 +358,53 @@ async def health_check():
 
 
 @app.post("/query", response_model=QueryResponse)
-async def query(request: QueryRequest):
+async def query(
+    request: QueryRequest,
+    x_api_key: str | None = Header(None, alias="X-API-Key"),
+    x_model: str | None = Header(None, alias="X-Model"),
+    x_base_url: str | None = Header(None, alias="X-Base-URL"),
+):
     """
     法律问答接口
-    
-    Args:
-        request: 查询请求
-        
-    Returns:
-        查询响应
+
+    支持通过自定义 Header 传入用户配置：
+    - X-API-Key: 用户自己的 LLM API Key
+    - X-Base-URL: 用户选择的 API 基础 URL
+    - X-Model: 用户选择的模型名称
     """
     if not components.get("workflow"):
         raise HTTPException(status_code=503, detail="系统未初始化")
-    
+
     try:
         logger.info(f"处理查询: {request.query}")
-        
+
+        # 构建运行时配置（用户设置优先于服务端默认）
+        runtime_config = {
+            "configurable": {"thread_id": request.session_id or str(uuid.uuid4())},
+        }
+        if x_api_key:
+            runtime_config["user_api_key"] = x_api_key
+        if x_base_url:
+            runtime_config["user_base_url"] = x_base_url
+        if x_model:
+            runtime_config["user_model"] = x_model
+
         # 执行查询
         workflow = components["workflow"]
         result = workflow.query(
             request.query,
-            config={"configurable": {"thread_id": request.session_id or str(uuid.uuid4())}}
+            config=runtime_config,
         )
-        
-        # 保存结果
-        query_results[result.metadata.get("query_id", request.session_id or str(uuid.uuid4()))] = result
-        
-        # 转换为响应格式
-        return QueryResponse(
-            query_id=result.metadata.get("query_id", ""),
-            query=result.query,
-            answer=result.answer,
-            intent=result.intent,
-            citations=[c.to_dict() for c in result.citations] if hasattr(result.citations[0], 'to_dict') else [
+
+        # 保存结果到内存
+        query_id = result.metadata.get("query_id", request.session_id or str(uuid.uuid4()))
+        query_results[query_id] = result
+
+        # 处理引文格式
+        if result.citations and hasattr(result.citations[0], 'to_dict'):
+            citations_safe = [c.to_dict() for c in result.citations]
+        else:
+            citations_safe = [
                 {
                     "article_id": c.article_id if hasattr(c, 'article_id') else str(c),
                     "citation_text": c.citation_text if hasattr(c, 'citation_text') else "",
@@ -343,7 +412,37 @@ async def query(request: QueryRequest):
                     "is_verified": c.is_verified if hasattr(c, 'is_verified') else False
                 }
                 for c in result.citations
-            ],
+            ]
+
+        # v1.7: 持久化聊天历史
+        try:
+            if SessionLocal:
+                db = SessionLocal()
+                try:
+                    chat = ChatHistory(
+                        user_id=1,  # 默认匿名用户（v1.8 Vue 3 前端接入 auth 后改为真实 user_id）
+                        session_id=query_id,
+                        question=request.query,
+                        answer=result.answer,
+                        intent=result.intent,
+                        citations=citations_safe,
+                        verification_status=result.verification_status,
+                        metadata_=result.metadata,
+                    )
+                    db.add(chat)
+                    db.commit()
+                finally:
+                    db.close()
+        except Exception as e:
+            logger.warning(f"聊天历史保存失败（非致命）: {e}")
+
+        # 转换为响应格式
+        return QueryResponse(
+            query_id=query_id,
+            query=result.query,
+            answer=result.answer,
+            intent=result.intent,
+            citations=citations_safe,
             verification_status=result.verification_status,
             verification_issues=result.verification_issues,
             sub_questions=result.sub_questions,
@@ -408,10 +507,26 @@ async def get_graph():
     
     try:
         graph = components["law_graph"]
+        raw = graph.visualize_data()
+
+        # 转译为前端 ECharts 格式
+        nodes = []
+        for n in raw.get("nodes", []):
+            in_deg = n.get("citation_count", 0)
+            nodes.append({
+                "name": n.get("id", n.get("label", "")),
+                "symbolSize": max(18, 20 + in_deg * 4),
+                "category": 0,
+            })
+        links = [
+            {"source": e["from"], "target": e["to"]}
+            for e in raw.get("edges", [])
+        ]
+
         return {
             "statistics": graph.get_statistics(),
             "most_cited": graph.get_most_cited(top_n=10),
-            "visualization_data": graph.visualize_data()
+            "visualization_data": {"nodes": nodes, "links": links}
         }
         
     except Exception as e:
