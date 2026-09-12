@@ -19,7 +19,7 @@ class MockLLM:
     def invoke(self, prompt):
         response = MagicMock()
         
-        if "拆解" in prompt and "复杂法律问题" in prompt:
+        if '"sub_questions"' in prompt:
             response.content = '''{
                 "sub_questions": [
                     {"id": "q1", "question": "什么是合同？", "reasoning_needed": ["合同定义"]},
@@ -41,7 +41,7 @@ class TestMultiHopReasoner:
     @pytest.fixture
     def reasoner(self):
         """创建推理器实例"""
-        with patch('src.reasoning.multi_hop.ChatOpenAI') as mock:
+        with patch('src.reasoning.multi_hop.create_llm') as mock:
             mock.return_value = MockLLM()
             return MultiHopReasoner()
     

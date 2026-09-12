@@ -1,0 +1,120 @@
+{
+  "sources": [
+    {
+      "source_id": "criminal-code",
+      "original_file_name": "中华人民共和国刑事法律法规全书（含典型案例、立案及量刑标准）（2019年版）(中国法制出版社)(z-library.sk,1lib.sk,z-lib.(1).epub",
+      "original_file_path": "E:\\个人发展\\002职业\\项目1：RAG法律\\中华人民共和国刑事法律法规全书（含典型案例、立案及量刑标准）（2019年版）(中国法制出版社)(z-library.sk,1lib.sk,z-lib.(1).epub",
+      "original_file_sha256": "8a7ac9e0db45b7c668be3aae45cd77bc6e97f10823e1f8caefd5180c6b298b92",
+      "laws": [
+        "criminal-law"
+      ],
+      "extracted_at": "2026-09-10T21:33:41+08:00",
+      "extractor": "epub-html-v1",
+      "source_assertion": "user_confirmed_official"
+    },
+    {
+      "source_id": "labor-code",
+      "original_file_name": "中华人民共和国劳动法(2015)(实用版)(中国法制出版社)(z-library.sk,1lib.sk,z-lib.sk).epub",
+      "original_file_path": "E:\\个人发展\\002职业\\项目1：RAG法律\\中华人民共和国劳动法(2015)(实用版)(中国法制出版社)(z-library.sk,1lib.sk,z-lib.sk).epub",
+      "original_file_sha256": "c6d5ec21dfc1552f7e84076b45c05ece1af1bb86cf63e5c8cc829ba7f45c0fab",
+      "laws": [
+        "labor-law",
+        "labor-contract-law"
+      ],
+      "extracted_at": "2026-09-10T21:33:41+08:00",
+      "extractor": "epub-html-v1",
+      "source_assertion": "user_confirmed_official"
+    },
+    {
+      "source_id": "company-code",
+      "original_file_name": "中华人民共和国公司法典(注释法典)(国务院法制办公室)(z-library.sk,1lib.sk,z-lib.sk)(1).epub",
+      "original_file_path": "E:\\个人发展\\002职业\\项目1：RAG法律\\中华人民共和国公司法典(注释法典)(国务院法制办公室)(z-library.sk,1lib.sk,z-lib.sk)(1).epub",
+      "original_file_sha256": "c30fcfd5bdd69c9751cb7032f671fdc089012412d92a54170831562451b145b3",
+      "laws": [
+        "company-law"
+      ],
+      "extracted_at": "2026-09-10T21:33:41+08:00",
+      "extractor": "epub-html-v1",
+      "source_assertion": "user_confirmed_official"
+    },
+    {
+      "source_id": "intellectual-property-code",
+      "original_file_name": "中华人民共和国知识产权法典(注释法典)(国务院法制办公室)(z-library.sk,1lib.sk,z-lib.sk)(1).epub",
+      "original_file_path": "E:\\个人发展\\002职业\\项目1：RAG法律\\中华人民共和国知识产权法典(注释法典)(国务院法制办公室)(z-library.sk,1lib.sk,z-lib.sk)(1).epub",
+      "original_file_sha256": "b64eda9dbba85a58092628b38eff156b496e75fc513f5523c5dfb073906033cb",
+      "laws": [
+        "patent-law",
+        "trademark-law",
+        "copyright-law"
+      ],
+      "extracted_at": "2026-09-10T21:33:41+08:00",
+      "extractor": "epub-html-v1",
+      "source_assertion": "user_confirmed_official"
+    }
+  ],
+  "laws": {
+    "criminal-law": {
+      "source_id": "criminal-code",
+      "law_name": "中华人民共和国刑法",
+      "clean_text_file": "laws\\criminal-law.txt",
+      "clean_text_sha256": "0e39e12688a665dcf2b615e9520596c84188b96b8302a3e45189f01e444ffe05",
+      "article_count": 491,
+      "first_article_number": 1,
+      "last_article_number": 452
+    },
+    "labor-law": {
+      "source_id": "labor-code",
+      "law_name": "中华人民共和国劳动法",
+      "clean_text_file": "laws\\labor-law.txt",
+      "clean_text_sha256": "d033f4134248a1e1c39c2f78b722384551d1a6f2afd4bf3e59f0589cd9e47a07",
+      "article_count": 107,
+      "first_article_number": 1,
+      "last_article_number": 107
+    },
+    "labor-contract-law": {
+      "source_id": "labor-code",
+      "law_name": "中华人民共和国劳动合同法",
+      "clean_text_file": "laws\\labor-contract-law.txt",
+      "clean_text_sha256": "682aa37b74340046336ce7f162d98876cc3254855b728089643b3fc886d0517a",
+      "article_count": 98,
+      "first_article_number": 1,
+      "last_article_number": 98
+    },
+    "company-law": {
+      "source_id": "company-code",
+      "law_name": "中华人民共和国公司法",
+      "clean_text_file": "laws\\company-law.txt",
+      "clean_text_sha256": "ee0504506473dc14ea9c912a1f74d3ffbb3babcfcd02279cc191e7dab7ff805e",
+      "article_count": 218,
+      "first_article_number": 1,
+      "last_article_number": 218
+    },
+    "patent-law": {
+      "source_id": "intellectual-property-code",
+      "law_name": "中华人民共和国专利法",
+      "clean_text_file": "laws\\patent-law.txt",
+      "clean_text_sha256": "dce83a64235b411f73388e3db411f99c5de7e82c8073aadbb99c0202d2822659",
+      "article_count": 69,
+      "first_article_number": 1,
+      "last_article_number": 69
+    },
+    "trademark-law": {
+      "source_id": "intellectual-property-code",
+      "law_name": "中华人民共和国商标法",
+      "clean_text_file": "laws\\trademark-law.txt",
+      "clean_text_sha256": "88554a300d6c2a7d89c7b92d1aae9840522b2d3a4557c38d8f983051cd0d5c05",
+      "article_count": 73,
+      "first_article_number": 1,
+      "last_article_number": 73
+    },
+    "copyright-law": {
+      "source_id": "intellectual-property-code",
+      "law_name": "中华人民共和国著作权法",
+      "clean_text_file": "laws\\copyright-law.txt",
+      "clean_text_sha256": "9c6ec45fc77150fc19802ff1c6e2030b41cdc4bdd6c33b13c72570b79a0f6f00",
+      "article_count": 61,
+      "first_article_number": 1,
+      "last_article_number": 61
+    }
+  }
+}

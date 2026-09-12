@@ -171,8 +171,8 @@ class WorkflowNodes:
                             )
                             state.retrieval_context.graph_results = result.retrieved_articles
             
-            # 默认使用法条检索
-            law_results = self.law_retriever.retrieve(
+            # 默认使用法条检索（v2.0 优化模式：加权RRF + 条号置顶 + 条款组聚合）
+            law_results, grouped_context, _ = self.law_retriever.retrieve_optimized(
                 state.query,
                 top_k=5,
                 intent=intent
@@ -180,12 +180,16 @@ class WorkflowNodes:
             
             state.retrieval_context.law_results = [r.to_dict() for r in law_results]
             
-            # 构建检索上下文
-            context_parts = []
-            for r in law_results:
-                context_parts.append(
-                    f"【{r.article_id}】\n{r.full_content}"
-                )
+            # 构建检索上下文：优先使用聚合后的章节窗口上下文（覆盖整套规则，
+            # 解决单条切片对跨条款综合题召回不全的问题）
+            if grouped_context:
+                context_parts = [grouped_context]
+            else:
+                context_parts = []
+                for r in law_results:
+                    context_parts.append(
+                        f"【{r.article_id}】\n{r.full_content}"
+                    )
             state.retrieval_context.context_text = "\n\n".join(context_parts)
             
             retrieved_docs.extend([

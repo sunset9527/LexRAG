@@ -204,26 +204,22 @@ class LawIndexer:
             logger.error("向量存储未初始化")
             return []
         
-        # 构建检索器
-        retriever = self.vectorstore.as_retriever(
-            search_kwargs={
-                "k": top_k,
-                "filter": filter_metadata
-            }
+        # 执行检索（兼容新版 LangChain：similarity_search_with_relevance_scores 返回 (doc, score)）
+        docs_with_scores = self.vectorstore.similarity_search_with_relevance_scores(
+            query,
+            k=top_k,
+            filter=filter_metadata,
         )
         
-        # 执行检索
-        docs = retriever.get_relevant_documents(query)
-        
         results = []
-        for i, doc in enumerate(docs):
+        for i, (doc, score) in enumerate(docs_with_scores):
             result = {
                 "rank": i + 1,
                 "content": doc.page_content,
                 "metadata": doc.metadata,
             }
-            if include_relevance_score and hasattr(doc, 'similarity_score'):
-                result["score"] = doc.similarity_score
+            if include_relevance_score:
+                result["score"] = float(score)
             results.append(result)
         
         return results

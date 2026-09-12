@@ -1,0 +1,36 @@
+"""知识库注册表模型。"""
+
+from datetime import datetime
+from typing import Optional
+
+from sqlalchemy import DateTime, Integer, String, Text, func
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.db.base import Base
+
+
+class KnowledgeBase(Base):
+    """一个逻辑知识库及其专属 Chroma collection 的注册记录。"""
+
+    __tablename__ = "knowledge_bases"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    slug: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    type: Mapped[str] = mapped_column(String(32), nullable=False, default="statute")
+    law_area: Mapped[str] = mapped_column(String(64), nullable=False)
+    collection_name: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="EMPTY")
+    document_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    chunk_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    last_indexed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<KnowledgeBase(id={self.id}, slug={self.slug}, status={self.status})>"

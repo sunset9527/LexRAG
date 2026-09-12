@@ -13,6 +13,7 @@ services:
       - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
       - ZHIPUAI_API_KEY=${ZHIPUAI_API_KEY:-}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       # Database (MySQL)
       - DATABASE_URL=mysql+pymysql://root:${MYSQL_ROOT_PASSWORD:-123456}@host.docker.internal:3306/lexrag?charset=utf8mb4
       # JWT
@@ -36,6 +37,26 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
+
+  worker:
+    build:
+      context: .
+      target: api
+    container_name: lexrag-worker
+    restart: unless-stopped
+    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=INFO --concurrency=1
+    environment:
+      - DATABASE_URL=mysql+pymysql://root:${MYSQL_ROOT_PASSWORD:-123456}@host.docker.internal:3306/lexrag?charset=utf8mb4
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - chroma_data:/app/data/chroma_db
+      - law_data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - lexrag-network
 
   # ==================== v1.8: Vue 3 前端 ====================
 

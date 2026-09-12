@@ -4,6 +4,9 @@
     <div class="search-hero">
       <h2 class="search-title">法律检索</h2>
       <p class="search-subtitle">搜索法条、案例、司法解释，获得结构化法律信息</p>
+      <el-select v-model="knowledgeBaseId" placeholder="选择知识库" aria-label="选择检索知识库" class="knowledge-base-select">
+        <el-option v-for="item in knowledgeBases" :key="item.slug" :label="item.name" :value="item.slug" />
+      </el-select>
       <el-input
         v-model="query"
         size="large"
@@ -78,7 +81,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { knowledgeBaseApi, type KnowledgeBase } from '@/api/knowledgeBases'
 
 interface SearchResult {
   type: 'statute' | 'case' | 'analysis'
@@ -94,6 +98,8 @@ const loading = ref(false)
 const searched = ref(false)
 const filter = ref('all')
 const results = ref<SearchResult[]>([])
+const knowledgeBases = ref<KnowledgeBase[]>([])
+const knowledgeBaseId = ref('')
 
 const hotKeywords = [
   '劳动合同解除', '违约金', '消费者权益',
@@ -116,7 +122,7 @@ async function handleSearch() {
   try {
     // 调用后端 query API（复用问答接口的结果展示为检索）
     const { queryApi } = await import('@/api/query')
-    const res = await queryApi.ask({ query: q })
+    const res = await queryApi.ask({ query: q, knowledge_base_ids: knowledgeBaseId.value ? [knowledgeBaseId.value] : undefined })
 
     results.value = []
 
@@ -147,6 +153,11 @@ async function handleSearch() {
     loading.value = false
   }
 }
+
+onMounted(() => knowledgeBaseApi.list().then(items => {
+  knowledgeBases.value = items.filter(item => item.status === 'READY')
+  knowledgeBaseId.value = knowledgeBases.value[0]?.slug || ''
+}))
 </script>
 
 <style scoped>
@@ -167,6 +178,7 @@ async function handleSearch() {
 .search-subtitle { color: #909399; margin-bottom: 20px; }
 
 .search-input { max-width: 700px; margin: 0 auto; }
+.knowledge-base-select { width: 240px; margin-bottom: 12px; }
 
 .results-section { margin-top: 24px; }
 

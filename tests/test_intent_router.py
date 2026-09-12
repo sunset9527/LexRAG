@@ -4,6 +4,7 @@
 
 import pytest
 import sys
+import re
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -18,17 +19,26 @@ class MockLLM:
     
     def invoke(self, prompt):
         response = MagicMock()
-        
-        # 根据提示词类型返回不同的响应
+
         if "意图类型" in prompt:
-            response.content = '''{
-                "intent_type": "law_article",
+            query_match = re.search(r"用户问题：(.*?)\n\n", prompt, re.DOTALL)
+            query = query_match.group(1) if query_match else ""
+            if "类似的案例" in query:
+                intent_type = "case_query"
+            elif "租房纠纷" in query:
+                intent_type = "legal_application"
+            elif "定金和订金" in query:
+                intent_type = "comparison"
+            else:
+                intent_type = "law_article"
+            response.content = f'''{{
+                "intent_type": "{intent_type}",
                 "confidence": 0.95,
                 "key_entities": ["民法典第143条"],
                 "sub_questions": [],
                 "search_keywords": ["民法典", "143条"],
                 "reasoning_chain": ["用户直接询问法条内容"]
-            }'''
+            }}'''
         elif "拆解" in prompt:
             response.content = '''{
                 "sub_questions": ["合同成立的条件是什么？"],
@@ -44,7 +54,7 @@ class TestIntentRouter:
     @pytest.fixture
     def router(self):
         """创建路由器实例"""
-        with patch('src.retrieval.intent_router.ChatOpenAI') as mock:
+        with patch('src.retrieval.intent_router.create_llm') as mock:
             mock.return_value = MockLLM()
             return IntentRouter()
     

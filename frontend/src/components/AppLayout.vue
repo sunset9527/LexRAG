@@ -35,6 +35,18 @@
           <el-icon><Reading /></el-icon>
           <span>法规浏览</span>
         </el-menu-item>
+        <el-menu-item index="/knowledge-bases">
+          <el-icon><Collection /></el-icon>
+          <span>知识库管理</span>
+        </el-menu-item>
+        <el-menu-item index="/documents">
+          <el-icon><Files /></el-icon>
+          <span>文档解析中心</span>
+        </el-menu-item>
+        <el-menu-item index="/cases">
+          <el-icon><Files /></el-icon>
+          <span>案例库</span>
+        </el-menu-item>
         <el-menu-item index="/settings">
           <el-icon><Setting /></el-icon>
           <span>设置</span>

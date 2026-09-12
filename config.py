@@ -90,6 +90,14 @@ class Settings(BaseSettings):
     # ==================== 数据路径配置 ====================
     laws_data_path: str = "./data/laws"
     cases_data_path: str = "./data/cases"
+    document_uploads_path: str = "./data/uploads"
+
+    # ==================== 异步文档任务配置 ====================
+    redis_url: str = "redis://localhost:6379/0"
+    document_uploads_path: str = "./data/uploads"
+
+    # ==================== 异步文档任务配置 ====================
+    redis_url: str = "redis://localhost:6379/0"
 
     # ==================== FastAPI 配置 ====================
     api_host: str = "0.0.0.0"
@@ -127,6 +135,8 @@ def ensure_directories():
         settings.chroma_persist_directory,
         settings.laws_data_path,
         settings.cases_data_path,
+        settings.document_uploads_path,
+        settings.document_uploads_path,
     ]
     for dir_path in dirs:
         Path(dir_path).mkdir(parents=True, exist_ok=True)

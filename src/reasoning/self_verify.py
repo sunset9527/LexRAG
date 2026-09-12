@@ -59,11 +59,23 @@ class SelfVerifier:
     """
     
     # 法条引用正则表达式
+    # 注意：根据/依据 分支的字符类排除【】，否则会截胡【第X条】引用（贪婪吃到【...】
     CITATION_PATTERN = re.compile(
-        r'【([^】]+)】|依据([^，,。\s]+)[条款项]|根据([^，,。\s]+)[条款项]|'
+        r'【([^】]+)】|依据([^，,。\s【】]+)[条款项]|根据([^，,。\s【】]+)[条款项]|'
         r'第([零一二三四五六七八九十百千\d]+)条|'
         r'(?:《([^》]+)》第([零一二三四五六七八九十百千\d]+)条)'
     )
+
+    # 从「第188条」/「民法典第188条」中提取纯数字条号（兼容 metadata.article_number 存储格式）
+    NUMBER_PATTERN = re.compile(r'(\d+)')
+
+    @staticmethod
+    def _normalize_article_id(article_id: str) -> str:
+        """把『第188条』/『民法典第188条』规范化为纯数字『188』"""
+        m = SelfVerifier.NUMBER_PATTERN.search(article_id)
+        if m:
+            return m.group(1)
+        return article_id
     
     # 验证提示词
     VERIFICATION_PROMPT = """你是一个法律专家，需要验证回答中的法条引用是否正确。
@@ -80,20 +92,20 @@ class SelfVerifier:
 3. 引用是否完整？是否遗漏了重要的条件或限制？
 
 输出JSON格式：
-{
+{{
     "is_consistent": true/false,
     "consistency_score": 0.0-1.0,
     "issues": ["发现的问题列表"],
     "suggestions": ["修正建议列表"],
     "verification_details": [
-        {
+        {{
             "cited_text": "回答中引用的内容",
             "original_text": "法条原文",
             "is_match": true/false,
             "issue": "如果不匹配，说明问题"
-        }
+        }}
     ]
-}
+}}
 
 只输出JSON，不要有其他内容。"""
     
@@ -161,12 +173,17 @@ class SelfVerifier:
                 article_id = groups[0]
             elif groups[1]:  # 依据...条
                 article_id = f"第{self._convert_number(groups[1])}条"
+            elif groups[2]:  # 根据...条
+                article_id = f"第{self._convert_number(groups[2])}条"
             elif groups[3]:  # 第...条
                 article_id = f"第{self._convert_number(groups[3])}条"
             elif groups[4] and groups[5]:  # 《法律名》第...条
                 article_id = f"{groups[4]}第{self._convert_number(groups[5])}条"
-            
+
             if article_id:
+                # 规范化为纯数字条号（匹配 metadata.article_number 存储格式），
+                # 否则 retrieve_by_article_number 永远查不到 -> 全部 cannot_verify
+                article_id = self._normalize_article_id(article_id)
                 citations.append(Citation(
                     article_id=article_id,
                     citation_text=citation_text,
@@ -220,8 +237,13 @@ class SelfVerifier:
             )
 
             response = self.llm.invoke(prompt)
-            content = response.content.strip().replace("```json", "").replace("```", "").strip()
-            result = json.loads(content)
+            content = response.content.strip()
+            # 健壮 JSON 提取：LLM 输出可能带 ```json 围栏/前后说明文字，
+            # 直接 json.loads 会因前导换行或杂文本抛异常 -> 软通过(校验失效)
+            m = re.search(r'\{.*\}', content, re.DOTALL)
+            if not m:
+                raise ValueError(f"回答中未找到 JSON 对象: {content[:100]}")
+            result = json.loads(m.group(0))
 
             is_consistent = result.get("is_consistent", False)
             citation.is_verified = is_consistent

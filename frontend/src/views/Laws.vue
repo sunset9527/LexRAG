@@ -81,43 +81,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { knowledgeBaseApi } from '@/api/knowledgeBases'
 
 interface ArticleData {
   id: string
+  article_number?: number | string
   content: string
   references?: string[]
 }
 
-const currentLaw = ref('民法典·合同编')
+const currentLaw = ref('')
 const articleSearch = ref('')
+const currentKnowledgeBaseSlug = ref('')
 
-// 示例数据（v1.9 法律数据基建完成后接入真实 API）
-const mockArticles = ref<ArticleData[]>([
-  { id: '民法典第463条', content: '本编调整因合同产生的民事关系。' },
-  { id: '民法典第464条', content: '合同是民事主体之间设立、变更、终止民事法律关系的协议。婚姻、收养、监护等有关身份关系的协议，适用有关该身份关系的法律规定；没有规定的，可以根据其性质参照适用本编规定。' },
-  { id: '民法典第465条', content: '依法成立的合同，受法律保护。依法成立的合同，仅对当事人具有法律约束力，但是法律另有规定的除外。' },
-  { id: '民法典第466条', content: '当事人对合同条款的理解有争议的，应当依据本法第一百四十二条第一款的规定，确定争议条款的含义。合同文本采用两种以上文字订立并约定具有同等效力的，对各文本使用的词句推定具有相同含义。各文本使用的词句不一致的，应当根据合同的相关条款、性质、目的以及诚信原则等予以解释。' },
-  { id: '民法典第467条', content: '本法或者其他法律没有明文规定的合同，适用本编通则的规定，并可以参照适用本编或者其他法律最相类似合同的规定。' },
-  { id: '民法典第470条', content: '合同的内容由当事人约定，一般包括下列条款：（一）当事人的姓名或者名称和住所；（二）标的；（三）数量；（四）质量；（五）价款或者报酬；（六）履行期限、地点和方式；（七）违约责任；（八）解决争议的方法。当事人可以参照各类合同的示范文本订立合同。' },
-])
+const mockArticles = ref<ArticleData[]>([])
 
 const lawTree = [
   {
     id: '民法典',
     label: '中华人民共和国民法典',
     children: [
-      { id: '总则编', label: '总则编', count: 204 },
-      { id: '物权编', label: '物权编', count: 258 },
-      { id: '合同编', label: '合同编', count: 526, children: [
-        { id: '合同编-通则', label: '通则', count: 132 },
-        { id: '合同编-典型合同', label: '典型合同', count: 384 },
-        { id: '合同编-准合同', label: '准合同', count: 10 },
+      { id: '总则编', label: '总则编', count: 204, startArticle: 1, endArticle: 204 },
+      { id: '物权编', label: '物权编', count: 258, startArticle: 205, endArticle: 462 },
+      { id: '合同编', label: '合同编', count: 526, startArticle: 463, endArticle: 988, children: [
+        { id: '合同编-通则', label: '通则', count: 132, startArticle: 463, endArticle: 594 },
+        { id: '合同编-典型合同', label: '典型合同', count: 342, startArticle: 595, endArticle: 936 },
+        { id: '合同编-准合同', label: '准合同', count: 52, startArticle: 937, endArticle: 988 },
       ]},
-      { id: '人格权编', label: '人格权编', count: 51 },
-      { id: '婚姻家庭编', label: '婚姻家庭编', count: 79 },
-      { id: '继承编', label: '继承编', count: 45 },
-      { id: '侵权责任编', label: '侵权责任编', count: 97 },
+      { id: '人格权编', label: '人格权编', count: 51, startArticle: 989, endArticle: 1039 },
+      { id: '婚姻家庭编', label: '婚姻家庭编', count: 79, startArticle: 1040, endArticle: 1118 },
+      { id: '继承编', label: '继承编', count: 44, startArticle: 1119, endArticle: 1162 },
+      { id: '侵权责任编', label: '侵权责任编', count: 98, startArticle: 1163, endArticle: 1260 },
     ],
   },
 ]
@@ -130,10 +125,28 @@ const filteredArticles = computed(() => {
 })
 
 function handleNodeClick(data: any) {
-  if (data.id && !data.children) {
-    currentLaw.value = data.label || data.id
+  if (!currentKnowledgeBaseSlug.value) return
+  articleSearch.value = ''
+  currentLaw.value = data.label || data.id
+  if (data.startArticle && data.endArticle) {
+    loadArticles({ startArticle: data.startArticle, endArticle: data.endArticle })
+  } else {
+    loadArticles()
   }
 }
+
+async function loadArticles(range?: { startArticle: number; endArticle: number }) {
+  mockArticles.value = await knowledgeBaseApi.laws(currentKnowledgeBaseSlug.value, range)
+}
+
+onMounted(async () => {
+  const knowledgeBases = await knowledgeBaseApi.list()
+  const selected = knowledgeBases.find(item => item.status === 'READY')
+  if (!selected) return
+  currentLaw.value = selected.name
+  currentKnowledgeBaseSlug.value = selected.slug
+  await loadArticles()
+})
 </script>
 
 <style scoped>

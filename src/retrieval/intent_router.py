@@ -80,15 +80,15 @@ class IntentRouter:
    - 例："什么是格式条款？"、"这条怎么理解？"
 
 请输出JSON格式的意图分析结果：
-{
+{{
     "intent_type": "意图类型",
     "confidence": 0.0-1.0的置信度,
     "key_entities": ["识别出的关键实体，如法条编号、法律术语等"],
     "sub_questions": ["如果问题复杂，拆分的子问题"],
     "search_keywords": ["用于检索的关键词"],
     "reasoning_chain": ["意图识别的简要推理过程"],
-    "metadata": {"additional_info": "其他元信息"}
-}
+    "metadata": {{"additional_info": "其他元信息"}}
+}}
 
 只输出JSON，不要有其他内容。"""
     
@@ -103,10 +103,10 @@ class IntentRouter:
 3. 按逻辑顺序排列
 
 输出JSON格式：
-{
+{{
     "sub_questions": ["子问题1", "子问题2", ...],
     "reasoning": "拆解逻辑说明"
-}
+}}
 
 请严格按照JSON格式返回，不要包含markdown代码块标记或其他内容。"""
     

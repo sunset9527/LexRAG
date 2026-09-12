@@ -58,6 +58,24 @@ const router = createRouter({
           meta: { title: '法规浏览' },
         },
         {
+          path: 'knowledge-bases',
+          name: 'KnowledgeBases',
+          component: () => import('@/views/KnowledgeBases.vue'),
+          meta: { title: '知识库管理' },
+        },
+        {
+          path: 'documents',
+          name: 'Documents',
+          component: () => import('@/views/Documents.vue'),
+          meta: { title: '文档解析中心' },
+        },
+        {
+          path: 'cases',
+          name: 'Cases',
+          component: () => import('@/views/Cases.vue'),
+          meta: { title: '案例库' },
+        },
+        {
           path: 'settings',
           name: 'Settings',
           component: () => import('@/views/Settings.vue'),
