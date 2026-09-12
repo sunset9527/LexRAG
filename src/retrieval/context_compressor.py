@@ -7,6 +7,28 @@ from app.services.langfuse_helper import create_llm
 
 logger = logging.getLogger(__name__)
 
+# ==================== 无 LLM 轻量摘要（检索/生成字段分离） ====================
+def compress_context_simple(text: str, max_chars: int = 500) -> str:
+    """
+    无 LLM 轻量摘要：保留条号 + 开头关键句 + 末尾。
+
+    法律条文常把规范要点置于句首/句中/句尾，取首尾即可覆盖绝大多数关键信息；
+    中间以省略标记连接，保证返回长度不超过 max_chars。
+    作为 ContextCompressor（LLM 压缩）的无 Key 离线 fallback，
+    用于生成阶段上下文瘦身（检索用短 chunk 全文，生成用摘要）。
+    """
+    text = (text or "").strip()
+    if not text or len(text) <= max_chars:
+        return text
+    marker = "\n……（中间省略）……\n"
+    budget = max_chars - len(marker)
+    if budget < 20:  # max_chars 过小时直接硬截断
+        return text[:max_chars]
+    head_len = budget * 3 // 5
+    tail_len = budget - head_len
+    return text[:head_len].rstrip() + marker + text[-tail_len:].lstrip()
+
+
 class ContextCompressor:
     """
     上下文压缩器

@@ -36,7 +36,7 @@ class TestLawParser:
     def test_extract_references(self):
         """测试提取法条引用"""
         parser = LawParser()
-        content = "当事人对合同条款的理解有争议的，应当依据本法第一百四十二条第一款的规定确定争议条款的含义。"
+        content = "第一条 当事人对合同条款的理解有争议的，应当依据本法第一百四十二条第一款的规定确定争议条款的含义。"
         articles = parser.parse_law_content(content, "民法典")
         
         assert len(articles) == 1

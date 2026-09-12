@@ -10,13 +10,14 @@ import os
 os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
 
 import logging
+import threading
 import uuid
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, Request, Header
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, Request, Header, Query, File, Form, UploadFile
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -41,9 +42,17 @@ from src.ingestion.chunker import StructuredLawChunker
 
 # v1.7: 新增模块
 from app.db.session import init_db
+from app.db import session as db_session
 from app.api.auth import router as auth_router
 from app.api.prompts import router as prompts_router
 from app.services.langfuse_helper import flush_langfuse
+from app.services.knowledge_base_service import KnowledgeBaseBusyError, KnowledgeBaseService
+from app.services.document_ingestion_service import DocumentIngestionService
+from app.services.case_ingestion_service import CaseIngestionService
+from src.ingestion.case_ocr import count_pdf_pages
+from src.ingestion.annual_case_indexer import AnnualCaseIndexer
+from src.retrieval.annual_case_retriever import AnnualCaseRetriever
+from app.tasks.document_tasks import process_document_task
 from app.services.prompt_service import seed_default_prompts
 from app.models.chat_history import ChatHistory
 from app.db.session import SessionLocal
@@ -63,6 +72,7 @@ class QueryRequest(BaseModel):
     query: str = Field(..., description="用户问题")
     session_id: Optional[str] = Field(None, description="会话ID")
     config: Optional[Dict[str, Any]] = Field(default_factory=dict, description="配置参数")
+    knowledge_base_ids: List[str] = Field(default_factory=list, description="限定检索的知识库 ID")
 
 
 class QueryResponse(BaseModel):
@@ -100,10 +110,25 @@ class HealthResponse(BaseModel):
     components: Dict[str, Any]
 
 
+class KnowledgeBaseCreateRequest(BaseModel):
+    """创建法规知识库的请求。"""
+
+    name: str = Field(..., min_length=1, max_length=128)
+    slug: str = Field(..., pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    law_area: str = Field(..., min_length=1, max_length=64)
+
+
+class KnowledgeBaseRebuildRequest(BaseModel):
+    """重建法规知识库的原始法条文本。"""
+
+    content: str = Field(..., min_length=1)
+
+
 # ==================== 全局组件 ====================
 
 components: Dict[str, Any] = {}
 query_results: Dict[str, QueryResult] = {}
+scoped_query_lock = threading.Lock()
 
 
 def initialize_components():
@@ -111,6 +136,30 @@ def initialize_components():
     global components
     
     try:
+        knowledge_base_service = None
+        document_ingestion_service = None
+        case_ingestion_service = None
+        annual_case_retriever = None
+        if db_session.SessionLocal is not None:
+            knowledge_base_service = KnowledgeBaseService(db_session.SessionLocal)
+            document_ingestion_service = DocumentIngestionService(
+                db_session.SessionLocal,
+                uploads_root=Path(settings.document_uploads_path),
+                task_dispatcher=lambda job_id: process_document_task.delay(job_id),
+            )
+            case_ingestion_service = CaseIngestionService(
+                db_session.SessionLocal,
+                page_counter=count_pdf_pages,
+            )
+            try:
+                annual_case_indexer = AnnualCaseIndexer()
+                annual_case_retriever = AnnualCaseRetriever(
+                    annual_case_indexer.vectorstore,
+                    case_loader=case_ingestion_service.get_case,
+                )
+            except Exception as exc:
+                logger.warning(f"年度案例检索器初始化失败: {exc}")
+
         # 初始化意图路由器
         intent_router = IntentRouter(
             api_key=settings.deepseek_api_key,
@@ -250,7 +299,11 @@ def initialize_components():
             "case_retriever": case_retriever,
             "bm25_retriever": bm25_retriever,
             "reranker": reranker,
-            "query_rewriter": query_rewriter
+            "query_rewriter": query_rewriter,
+            "knowledge_base_service": knowledge_base_service,
+            "document_ingestion_service": document_ingestion_service,
+            "case_ingestion_service": case_ingestion_service,
+            "annual_case_retriever": annual_case_retriever,
         }
         
         logger.info("组件初始化完成")
@@ -357,6 +410,219 @@ async def health_check():
     )
 
 
+@app.get("/knowledge-bases")
+async def list_knowledge_bases():
+    """返回已注册知识库及其索引状态。"""
+    service = components.get("knowledge_base_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="知识库服务未初始化")
+    return {"items": service.list_knowledge_bases()}
+
+
+@app.post("/knowledge-bases", status_code=201)
+async def create_knowledge_base(request: KnowledgeBaseCreateRequest):
+    """创建一个空的法规知识库注册记录。"""
+    service = components.get("knowledge_base_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="知识库服务未初始化")
+    return service.create_knowledge_base(
+        name=request.name,
+        slug=request.slug,
+        law_area=request.law_area,
+    )
+
+
+@app.post("/document-libraries", status_code=201)
+async def create_document_library(request: KnowledgeBaseCreateRequest):
+    """创建一个接收 PDF/Word 的自定义文档知识库。"""
+    service = components.get("knowledge_base_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="知识库服务未初始化")
+    return service.create_document_library(
+        name=request.name,
+        slug=request.slug,
+        law_area=request.law_area,
+    )
+
+
+@app.post("/document-libraries/{slug}/documents", status_code=202)
+async def upload_document(
+    slug: str,
+    file: UploadFile = File(...),
+    chunk_size: int = Form(800),
+    chunk_overlap: int = Form(120),
+):
+    """保存上传文件并投递 Celery 任务，响应不等待解析完成。"""
+    service = components.get("document_ingestion_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="文档解析服务未初始化")
+    original_filename = file.filename or "upload"
+    incoming_path = Path(settings.document_uploads_path) / ".incoming" / f"{uuid.uuid4()}_{original_filename}"
+    incoming_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        incoming_path.write_bytes(await file.read())
+        return service.submit_document(
+            knowledge_base_slug=slug,
+            source_path=incoming_path,
+            original_filename=original_filename,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+        )
+    except ValueError as exc:
+        message = str(exc)
+        status_code = 409 if "相同文件" in message else 422
+        raise HTTPException(status_code=status_code, detail=message) from exc
+    finally:
+        await file.close()
+        if incoming_path.exists():
+            incoming_path.unlink()
+
+
+@app.get("/document-libraries/{slug}/documents")
+async def list_documents(slug: str):
+    """返回某一自定义文档库的全部处理任务。"""
+    service = components.get("document_ingestion_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="文档解析服务未初始化")
+    try:
+        return {"items": service.list_documents(slug)}
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/documents/{document_id}")
+async def get_document(document_id: str):
+    """获取任务实时状态，供前端轮询。"""
+    service = components.get("document_ingestion_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="文档解析服务未初始化")
+    try:
+        return service.get_document(document_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/cases")
+async def list_cases(
+    domain: Optional[str] = Query(default=None, description="法律领域"),
+    case_cause: Optional[str] = Query(default=None, description="案由"),
+    source_id: Optional[int] = Query(default=None, ge=1, description="案例源 ID"),
+):
+    """读取独立案例库，可按领域、案由或来源筛选。"""
+    service = components.get("case_ingestion_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="案例库服务未初始化")
+    return {
+        "items": service.list_cases(
+            domain=domain,
+            case_cause=case_cause,
+            source_id=source_id,
+        )
+    }
+
+
+@app.get("/case-sources")
+async def list_case_sources(
+    domain: Optional[str] = Query(default=None, description="法律领域"),
+):
+    """返回年度案例汇编的真实来源信息和 OCR 处理进度。"""
+    service = components.get("case_ingestion_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="案例库服务未初始化")
+    return {"items": service.list_sources(domain=domain)}
+
+
+@app.get("/cases/{case_id}")
+async def get_case(case_id: str):
+    """读取单案结构化结果及其原始 PDF 页码范围。"""
+    service = components.get("case_ingestion_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="案例库服务未初始化")
+    try:
+        return service.get_case(case_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/cases/{case_id}/similar")
+async def similar_cases(
+    case_id: str,
+    top_k: int = Query(default=5, ge=1, le=20),
+):
+    """在年度案例独立向量库中检索相似案例，并对相同案由加分。"""
+    retriever = components.get("annual_case_retriever")
+    if retriever is None:
+        raise HTTPException(status_code=503, detail="年度案例检索服务未初始化")
+    try:
+        return {"items": retriever.similar_cases(case_id, top_k=top_k)}
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/documents/{document_id}/retry", status_code=202)
+async def retry_document(document_id: str):
+    """重新投递一个失败文档的原始处理任务。"""
+    service = components.get("document_ingestion_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="文档解析服务未初始化")
+    try:
+        return service.retry_document(document_id)
+    except ValueError as exc:
+        message = str(exc)
+        status_code = 409 if "仅失败" in message else 404
+        raise HTTPException(status_code=status_code, detail=message) from exc
+
+
+@app.post("/knowledge-bases/{slug}/rebuild")
+async def rebuild_knowledge_base(slug: str, request: KnowledgeBaseRebuildRequest):
+    """将法条文本解析、切分并写入指定知识库的专属 collection。"""
+    service = components.get("knowledge_base_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="知识库服务未初始化")
+    try:
+        return service.rebuild_knowledge_base(slug, content=request.content)
+    except KnowledgeBaseBusyError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/knowledge-bases/{slug}/laws")
+async def list_knowledge_base_laws(
+    slug: str,
+    start_article: Optional[int] = Query(default=None, ge=1),
+    end_article: Optional[int] = Query(default=None, ge=1),
+):
+    """读取选定法规知识库的真实法条。"""
+    service = components.get("knowledge_base_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="知识库服务未初始化")
+    try:
+        return {
+            "items": service.list_law_articles(
+                slug,
+                start_article=start_article,
+                end_article=end_article,
+            )
+        }
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.delete("/knowledge-bases/{slug}", status_code=204)
+async def delete_knowledge_base(slug: str):
+    """删除非索引中的知识库及其专属向量 collection。"""
+    service = components.get("knowledge_base_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="知识库服务未初始化")
+    try:
+        service.delete_knowledge_base(slug)
+    except KnowledgeBaseBusyError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
 @app.post("/query", response_model=QueryResponse)
 async def query(
     request: QueryRequest,
@@ -389,12 +655,45 @@ async def query(
         if x_model:
             runtime_config["user_model"] = x_model
 
-        # 执行查询
-        workflow = components["workflow"]
-        result = workflow.query(
-            request.query,
-            config=runtime_config,
-        )
+        selected_ids = request.knowledge_base_ids or ["civil-code"]
+        if len(selected_ids) != 1:
+            raise HTTPException(status_code=400, detail="当前版本一次只能选择一个知识库")
+        knowledge_base_service = components.get("knowledge_base_service")
+        if knowledge_base_service is None:
+            raise HTTPException(status_code=503, detail="知识库服务未初始化")
+        try:
+            collection_name = knowledge_base_service.get_ready_collection_name(selected_ids[0])
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+        # 每次请求使用目标 collection 构造独立检索器；工具注册表为模块级状态，
+        # 因此用锁避免并发请求在不同知识库之间交叉。
+        with scoped_query_lock:
+            scoped_indexer = LawIndexer(
+                persist_directory=settings.chroma_persist_directory,
+                embedding_model=settings.embedding_model,
+                collection_name=collection_name,
+            )
+            scoped_retriever = LawRetriever(
+                vectorstore=scoped_indexer.vectorstore,
+                api_key=settings.deepseek_api_key,
+                base_url=settings.deepseek_base_url,
+                model=settings.deepseek_model,
+            )
+            workflow = LegalRAGWorkflow(
+                intent_router=components["intent_router"],
+                law_retriever=scoped_retriever,
+                case_retriever=None,
+                bm25_retriever=None,
+                reranker=components.get("reranker"),
+                query_rewriter=components.get("query_rewriter"),
+                context_compressor=components.get("context_compressor"),
+                api_key=settings.deepseek_api_key,
+                base_url=settings.deepseek_base_url,
+                model=settings.deepseek_model,
+                max_verification_retries=settings.verification_max_retries,
+            )
+            result = workflow.query(request.query, config=runtime_config)
 
         # 保存结果到内存
         query_id = result.metadata.get("query_id", request.session_id or str(uuid.uuid4()))
@@ -449,6 +748,8 @@ async def query(
             metadata=result.metadata
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"查询处理失败: {e}")
         raise HTTPException(status_code=500, detail=str(e))

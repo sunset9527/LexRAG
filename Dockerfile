@@ -32,6 +32,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 FROM dependencies AS api
 
 COPY config.py .
+COPY app/ ./app/
 COPY src/ ./src/
 COPY api.py .
 COPY init.py .

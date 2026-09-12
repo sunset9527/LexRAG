@@ -15,10 +15,10 @@ from src.reasoning.self_verify import SelfVerifier, Citation, VerificationStatus
 
 class MockLLM:
     """模拟LLM"""
-    
+
     def invoke(self, prompt):
         response = MagicMock()
-        
+
         if "验证" in prompt:
             response.content = '''{
                 "is_consistent": true,
@@ -35,18 +35,17 @@ class MockLLM:
             }'''
         elif "修正" in prompt:
             response.content = "修正后的回答内容"
-        
+
         return response
 
 
 class TestSelfVerifier:
     """测试自校验器"""
-    
+
     @pytest.fixture
     def verifier(self):
-        """创建校验器实例"""
-        with patch('src.reasoning.self_verify.ChatOpenAI') as mock:
-            mock.return_value = MockLLM()
+        """创建校验器实例（v1.7+ 使用 create_llm 工厂，patch 工厂而非过时的 ChatOpenAI）"""
+        with patch('src.reasoning.self_verify.create_llm', return_value=MockLLM()):
             return SelfVerifier()
     
     def test_extract_citations_brackets(self, verifier):

@@ -4,7 +4,11 @@
     <div class="chat-layout">
       <!-- 左栏：对话区 -->
       <div class="chat-panel">
-        <div class="panel-header">💬 法律咨询</div>
+        <div class="panel-header">💬 法律咨询
+          <el-select v-model="knowledgeBaseId" size="small" aria-label="选择检索知识库" style="width: 190px; margin-left: 12px">
+            <el-option v-for="item in knowledgeBases" :key="item.slug" :label="item.name" :value="item.slug" />
+          </el-select>
+        </div>
 
         <div class="messages-container" ref="msgContainer">
           <div v-if="store.messages.length === 0" class="empty-chat">
@@ -119,6 +123,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { knowledgeBaseApi, type KnowledgeBase } from '@/api/knowledgeBases'
 import { useRoute } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
 import type { Citation } from '@/api/query'
@@ -130,6 +135,8 @@ const store = useChatStore()
 const inputText = ref('')
 const selectedCitation = ref<Citation | null>(null)
 const msgContainer = ref<HTMLElement>()
+const knowledgeBases = ref<KnowledgeBase[]>([])
+const knowledgeBaseId = ref('')
 
 const md = new MarkdownIt({ breaks: true, linkify: true })
 
@@ -163,7 +170,7 @@ async function handleSend() {
   const q = inputText.value.trim()
   if (!q || store.isLoading) return
   inputText.value = ''
-  await store.sendMessage(q)
+  await store.sendMessage(q, knowledgeBaseId.value)
   await nextTick()
   scrollToBottom()
 }
@@ -185,6 +192,10 @@ onMounted(() => {
   if (q) {
     inputText.value = q
   }
+  knowledgeBaseApi.list().then(items => {
+    knowledgeBases.value = items.filter(item => item.status === 'READY')
+    knowledgeBaseId.value = knowledgeBases.value[0]?.slug || ''
+  })
 })
 
 // 自动滚动

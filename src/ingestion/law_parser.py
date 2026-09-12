@@ -60,7 +60,7 @@ class LawParser:
     
     # 法条编号的正则表达式
     ARTICLE_PATTERN = re.compile(
-        r'第([一二三四五六七八九十百千零\d]+)条'
+        r'第([一二三四五六七八九十百千零\d]+)条(?:之([一二三四五六七八九十百千零\d]+))?'
     )
     
     # 款/项的正则表达式
@@ -207,71 +207,79 @@ class LawParser:
         return "法律"
     
     def _is_chapter_title(self, line: str) -> bool:
-        """判断是否为章标题"""
-        return line.startswith("第") and "章" in line and len(line) < 50
+        """判断是否为章标题（行首严格匹配，避免正文中的'章'字误判）"""
+        return bool(re.match(r"^第[一二三四五六七八九十百千零\d]+章", line)) and len(line) < 50
     
     def _extract_chapter_title(self, line: str) -> str:
         """提取章标题"""
         return line.strip()
     
     def _is_section_title(self, line: str) -> bool:
-        """判断是否为节标题"""
-        return line.startswith("第") and "节" in line and len(line) < 50
+        """判断是否为节标题（行首严格匹配，避免'节约'等词误判）"""
+        return bool(re.match(r"^第[一二三四五六七八九十百千零\d]+节", line)) and len(line) < 50
     
     def _extract_section_title(self, line: str) -> str:
         """提取节标题"""
         return line.strip()
     
     def _is_article_start(self, line: str) -> bool:
-        """判断是否法条开始"""
-        return bool(self.ARTICLE_PATTERN.search(line))
+        """判断是否法条开始（行首匹配，避免条文引用被误判为新条文）"""
+        return bool(re.match(r"^第[一二三四五六七八九十百千零\d]+条", line))
     
     def _parse_article(self, line: str) -> LawArticle:
         """解析法条"""
         match = self.ARTICLE_PATTERN.search(line)
         article_number = self._convert_chinese_number(match.group(1)) if match else "0"
+        inserted_number = self._convert_chinese_number(match.group(2)) if match and match.group(2) else None
+        storage_number = (
+            f"{article_number}-{inserted_number}"
+            if inserted_number is not None
+            else article_number
+        )
         
-        article_id = f"{self.current_context['law_name']}第{article_number}条"
+        article_id = (
+            f"{self.current_context['law_name']}第{article_number}条之{inserted_number}"
+            if inserted_number is not None
+            else f"{self.current_context['law_name']}第{article_number}条"
+        )
         
         return LawArticle(
             article_id=article_id,
             law_name=self.current_context["law_name"],
             chapter=self.current_context["chapter"],
             section=self.current_context["section"],
-            article_number=article_number,
+            article_number=storage_number,
             content=line,
         )
     
     def _convert_chinese_number(self, num_str: str) -> str:
         """将中文数字转换为阿拉伯数字"""
-        chinese_map = {
-            '零': '0', '一': '1', '二': '2', '三': '3', '四': '4',
-            '五': '5', '六': '6', '七': '7', '八': '8', '九': '9',
-            '十': '10', '百': '100', '千': '1000'
-        }
-        
+        digits = {'零': 0, '一': 1, '二': 2, '三': 3, '四': 4,
+                  '五': 5, '六': 6, '七': 7, '八': 8, '九': 9}
+        units = {'十': 10, '百': 100, '千': 1000, '万': 10000, '亿': 100000000}
+
         # 如果是纯数字
         try:
             return str(int(num_str))
         except ValueError:
             pass
-        
-        # 转换中文数字
+
+        # 转换中文数字（按位累积：一千二百六十 -> 1260）
         result = 0
         temp = 0
         for char in num_str:
-            if char == '万':
-                result = (result + temp) * 10000
-                temp = 0
-            elif char == '亿':
-                result = (result + temp) * 100000000
-                temp = 0
-            elif char in chinese_map:
-                val = int(chinese_map[char])
-                if val >= 10:
-                    temp = temp * val if temp else val
+            if char in digits:
+                temp = digits[char]
+            elif char in units:
+                unit = units[char]
+                if unit >= 10000:
+                    # 万/亿：先结算前面已累积的数值
+                    result = (result + temp) * unit
+                    temp = 0
                 else:
-                    temp += val
+                    # 十/百/千：当前数字乘以单位，累加到结果
+                    result += (temp if temp else 1) * unit
+                    temp = 0
         result += temp
         return str(result) if result else num_str
     

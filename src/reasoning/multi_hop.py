@@ -73,17 +73,17 @@ class MultiHopReasoner:
 同时，为每个子问题标注可能需要用到的法律知识领域。
 
 输出JSON格式：
-{
+{{
     "sub_questions": [
-        {
+        {{
             "id": "q1",
             "question": "子问题1",
             "reasoning_needed": ["需要的法理或知识领域"]
-        },
+        }},
         ...
     ],
     "reasoning_chain": ["推理步骤说明"]
-}
+}}
 
 只输出JSON，不要有其他内容。"""
     

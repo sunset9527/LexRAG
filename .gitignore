@@ -20,6 +20,15 @@ dist/
 data/chroma_db/
 *.db
 
+# 本地运行产物
+*.log
+data/uploads/
+data/cases/ocr/
+eval_out/
+eval_out_run.log
+reverify_run*.log
+frontend/tsconfig.tsbuildinfo
+
 # 模型/索引文件
 *.pkl
 *.bin

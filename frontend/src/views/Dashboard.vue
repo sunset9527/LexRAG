@@ -95,12 +95,13 @@
           </template>
           <div class="kb-list">
             <div v-for="kb in knowledgeBases" :key="kb.name" class="kb-item">
-              <span class="kb-name">{{ kb.name }}</span>
+              <span class="kb-name">{{ kb.name }}（{{ kb.status === 'READY' ? '可用' : kb.status === 'INDEXING' ? '索引中' : '待索引' }}）</span>
               <el-progress
-                :percentage="kb.coverage"
+                :percentage="kb.status === 'READY' ? 100 : 0"
                 :stroke-width="8"
-                :color="kb.coverage >= 80 ? '#27ae60' : kb.coverage >= 40 ? '#2d5cc5' : '#c9a84c'"
+                :color="kb.status === 'READY' ? '#27ae60' : '#c9a84c'"
               />
+              <small>{{ kb.document_count }} 条 · {{ kb.chunk_count }} chunks</small>
             </div>
           </div>
         </el-card>
@@ -110,13 +111,14 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { knowledgeBaseApi, type KnowledgeBase } from '@/api/knowledgeBases'
 
 const router = useRouter()
 
 const stats = reactive({
-  lawCount: '39',
+  lawCount: '—',
   caseCount: '0',
   verifyRate: '100',
   queryCount: '--',
@@ -131,13 +133,20 @@ const hotQuestions = [
   '借款合同没有约定利息怎么办？',
 ]
 
-const knowledgeBases = [
-  { name: '民法典·合同编', coverage: 100 },
-  { name: '民法典·总则编', coverage: 0 },
-  { name: '民法典·物权编', coverage: 0 },
-  { name: '劳动法', coverage: 0 },
-  { name: '公司法', coverage: 0 },
-]
+const knowledgeBases = ref<KnowledgeBase[]>([])
+
+onMounted(async () => {
+  try {
+    knowledgeBases.value = await knowledgeBaseApi.list()
+    stats.lawCount = String(
+      knowledgeBases.value
+        .filter(item => item.status === 'READY')
+        .reduce((total, item) => total + item.document_count, 0),
+    )
+  } catch {
+    stats.lawCount = '加载失败'
+  }
+})
 
 function goToChat(question: string) {
   router.push({ path: '/chat', query: { q: question } })

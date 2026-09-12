@@ -69,6 +69,9 @@ def init_db():
 
     # 自动创建所有表（开发便利，生产应使用 Alembic 迁移）
     from app.db.base import Base
+    import app.models.knowledge_base  # noqa: F401
+    import app.models.document_job  # noqa: F401
+    import app.models.case_source  # noqa: F401
     Base.metadata.create_all(bind=_engine)
 
     logger.info("数据库初始化完成，所有表已就绪")

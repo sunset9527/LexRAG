@@ -27,7 +27,7 @@ export const useChatStore = defineStore('chat', () => {
     return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
   }
 
-  async function sendMessage(question: string): Promise<void> {
+  async function sendMessage(question: string, knowledgeBaseId?: string): Promise<void> {
     // 添加用户消息
     const userMsg: ChatMessage = {
       id: generateId(),
@@ -43,6 +43,7 @@ export const useChatStore = defineStore('chat', () => {
       const res: QueryResponse = await queryApi.ask({
         query: question,
         session_id: currentSessionId.value || undefined,
+        knowledge_base_ids: knowledgeBaseId ? [knowledgeBaseId] : undefined,
       })
 
       // 保存 sessionId

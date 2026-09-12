@@ -7,6 +7,7 @@ export interface QueryRequest {
   query: string
   session_id?: string
   config?: Record<string, any>
+  knowledge_base_ids?: string[]
 }
 
 export interface Citation {

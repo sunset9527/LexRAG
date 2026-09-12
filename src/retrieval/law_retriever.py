@@ -2,15 +2,25 @@
 法律条文检索器
 
 基于Chroma向量检索+元数据过滤
+支持：
+- 向量相似度检索
+- 元数据过滤（法律名称、章节、法条范围）
+- 重排序
+- 引用关系增强
+- 优化模式（v2.1）：BM25+向量加权RRF融合 + 精确条号置顶 + 条款组聚合
+  + 引用图增强召回 + 检索/生成字段分离（轻量摘要控制上下文）
+  （对应滴普 HR 建议「召回颗粒度 + 重排 + 上下文瘦身」）
 """
 
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple, Set
 from dataclasses import dataclass
 
 from langchain_core.prompts import ChatPromptTemplate
 
 from .intent_router import QueryIntent, IntentType
+from .bm25_retriever import BM25Retriever
+from . import retrieval_optimizer as ropt
 
 # v1.7: 使用 Langfuse 可观测工厂
 from app.services.langfuse_helper import create_llm
@@ -63,7 +73,8 @@ class LawRetriever:
         vectorstore,
         api_key: Optional[str] = None,
         base_url: str = "https://api.deepseek.com/v1",
-        model: str = "deepseek-chat"
+        model: str = "deepseek-chat",
+        enable_optimization: bool = True
     ):
         """
         初始化检索器
@@ -73,14 +84,57 @@ class LawRetriever:
             api_key: API密钥
             base_url: API基础URL
             model: 模型名称
+            enable_optimization: 是否启用优化模式（BM25+向量加权RRF + 条号置顶 + 条款组聚合）
         """
         self.vectorstore = vectorstore
+        self.enable_optimization = enable_optimization
+        self._bm25: Optional[BM25Retriever] = None
+        self._chapter_map: Optional[Dict[str, Set[int]]] = None
+        self._article_lookup: Optional[Dict[int, str]] = None
+        self._references_map: Optional[Dict[str, Set[str]]] = None
         self.llm = create_llm(
             api_key=api_key,
             base_url=base_url,
             model=model,
             temperature=0.0,
         )
+
+    def _ensure_optimization_data(self):
+        """懒加载：从向量库拉全部文档构建 BM25 索引 + 章节映射 + 条文内容映射"""
+        if self._bm25 is not None:
+            return
+        try:
+            coll = self.vectorstore._collection
+            all_data = coll.get(include=["documents", "metadatas"])
+            metadatas = all_data["metadatas"]
+            docs_bm25 = [{
+                "id": metadatas[i].get("chunk_id", str(i)),
+                "content": all_data["documents"][i],
+                "metadata": metadatas[i],
+            } for i in range(len(all_data["documents"]))]
+            self._bm25 = BM25Retriever()
+            self._bm25.build_index(docs_bm25)
+            self._chapter_map = ropt.build_chapter_article_map(metadatas)
+            # 引用图边集合：条号 -> 被引用条号（供 expand_by_references 做引用扩展）
+            self._references_map = ropt.build_references_map(metadatas)
+            self._article_lookup = {}
+            import re as _re
+            for i, md in enumerate(metadatas):
+                an = str(md.get("article_number", ""))
+                if an.isdigit() and int(an) not in self._article_lookup:
+                    raw = md.get("full_article_content") or all_data["documents"][i]
+                    # page_content 结构：条文内容 + 【完整法条上下文】{full}
+                    # 只提取完整法条正文，避免上下文重复膨胀（上下文瘦身）
+                    m = _re.search(r'【完整法条上下文】\s*(.*)$', raw, _re.S)
+                    content = m.group(1).strip() if m else raw
+                    if content:
+                        self._article_lookup[int(an)] = content
+            logger.info(f"优化数据就绪：BM25 {len(docs_bm25)} docs, "
+                        f"{len(self._chapter_map)} 章节, {len(self._article_lookup)} 条文, "
+                        f"{len(self._references_map)} 条带引用边")
+        except Exception as e:
+            logger.warning(f"优化数据构建失败，回退纯向量检索: {e}")
+            self.enable_optimization = False
     
     def retrieve(
         self,
@@ -169,6 +223,119 @@ class LawRetriever:
             retrieval_results = self._rerank_for_case_query(retrieval_results, query)
         
         return retrieval_results
+
+    def retrieve_optimized(
+        self,
+        query: str,
+        top_k: int = 5,
+        law_name: Optional[str] = None,
+        intent: Optional[QueryIntent] = None,
+        context_max_chars: int = 500
+    ) -> Tuple[List[RetrievalResult], str, List[str]]:
+        """
+        优化检索：BM25 + 向量 加权RRF融合 -> 精确条号置顶 -> 章节窗口聚合
+        + 引用图增强召回 -> 生成上下文轻量摘要（检索/生成字段分离）
+
+        Args:
+            context_max_chars: 生成上下文单条条文最大字符数（轻量摘要上限，
+                超过则保留首尾、省略中间；传 None/极大值 = 不压缩，保留全文）
+
+        Returns:
+            (results, grouped_context, top_article_numbers)
+            - results: top_k 条 RetrievalResult（已按融合分排序、按条号去重）
+            - grouped_context: 聚合后章节窗口 + 引用扩展条文上下文（生成阶段用，
+              引用扩展的条文标注「·引用相关」，每条内容已过轻量摘要）
+            - top_article_numbers: top_k 命中条号列表
+        """
+        self._ensure_optimization_data()
+        if not self.enable_optimization or self._bm25 is None:
+            results = self.retrieve(query, top_k=top_k, law_name=law_name, intent=intent)
+            return results, "", [r.article_number for r in results]
+
+        # 1) 两路召回
+        bm25_results = self._bm25.retrieve(query, top_k=top_k * 2)
+        vec_results = self.vectorstore.similarity_search(query, k=top_k * 2)
+
+        # 2) 加权 RRF 融合
+        wb, wv = ropt.rrf_weights(query)
+        score_map: Dict[str, float] = {}
+        info: Dict[str, Dict[str, Any]] = {}
+        for rank, r in enumerate(bm25_results):
+            key = str((r.metadata or {}).get("chunk_id", "")) or r.doc_id
+            score_map[key] = score_map.get(key, 0) + wb / (60 + rank)
+            if key not in info:
+                md = r.metadata or {}
+                info[key] = {"article": str(md.get("article_number", "?")),
+                             "chapter": str(md.get("chapter", "")),
+                             "content": r.content or "",
+                             "full": md.get("full_article_content", r.content or "")}
+        for rank, d in enumerate(vec_results):
+            md = d.metadata or {}
+            key = str(md.get("chunk_id", ""))
+            score_map[key] = score_map.get(key, 0) + wv / (60 + rank)
+            if key not in info:
+                info[key] = {"article": str(md.get("article_number", "?")),
+                             "chapter": str(md.get("chapter", "")),
+                             "content": d.page_content or "",
+                             "full": md.get("full_article_content", d.page_content or "")}
+        ranked = sorted(score_map.items(), key=lambda x: -x[1])
+
+        # 3) 精确条号置顶
+        ranked = ropt.exact_article_boost(ranked, info, query)
+
+        # 4) 按条号去重，构建 RetrievalResult
+        seen: Set[str] = set()
+        results: List[RetrievalResult] = []
+        top_articles: List[str] = []
+        for key, _score in ranked:
+            val = info[key]
+            art = val["article"]
+            if art in seen or art == "?":
+                continue
+            seen.add(art)
+            top_articles.append(art)
+            results.append(RetrievalResult(
+                chunk_id=key,
+                article_id=f"{law_name or '中华人民共和国民法典'}第{art}条",
+                article_number=art,
+                law_name=law_name or "",
+                content=val["content"],
+                full_content=val["full"],
+                chapter=val["chapter"],
+                section=None,
+                score=_score,
+                metadata={"article_number": art, "chapter": val["chapter"]},
+            ))
+            if len(results) >= top_k:
+                break
+
+        # 5) 章节窗口聚合 + 引用图增强召回（top_k*2 命中条号 -> 组上下文）
+        grouped_context = ""
+        if self._chapter_map and self._article_lookup:
+            top_hits = [a for a in top_articles] + [
+                info[k]["article"] for k, _ in ranked[: top_k * 2]
+                if info[k]["article"] not in top_articles
+            ]
+            # 5a) 章节窗口聚合：命中条号 -> 所在章节 ±2 条窗口（相邻条文语义相关）
+            grouped = ropt.chapter_window_aggregate(top_hits, self._chapter_map)
+            # 5b) 引用图增强召回：沿 referenced_articles 引用边 BFS 扩展 1 跳，
+            #     补充被命中条文引用 / 引用命中条文的关联条文（如 第402条引用第395条）
+            expanded = ropt.expand_by_references(
+                top_hits, self._article_lookup,
+                references_map=self._references_map,
+                max_hops=1, max_add=3,
+            )
+            grouped = grouped | expanded
+            # 5c) 生成字段分离：每条条文先过轻量摘要（≤ context_max_chars 字）再拼接，
+            #     检索用全文命中、生成用摘要，控制生成上下文长度（上下文瘦身）
+            grouped_context = ropt.format_grouped_context(
+                grouped, self._article_lookup, law_name or "中华人民共和国民法典",
+                max_chars_per_article=context_max_chars,
+                expanded_articles=expanded,
+            )
+
+        return results, grouped_context, top_articles
+
     
     def retrieve_by_article_number(
         self, 
@@ -193,13 +360,15 @@ class LawRetriever:
             results = self.vectorstore.get(where=filter_dict)
             if results and results.get("documents"):
                 metadata = results["metadatas"][0]
+                doc_content = results["documents"][0]
                 return RetrievalResult(
                     chunk_id=metadata.get("chunk_id", ""),
                     article_id=metadata.get("article_id", ""),
                     article_number=metadata.get("article_number", ""),
                     law_name=metadata.get("law_name", ""),
-                    content=results["documents"][0],
-                    full_content=metadata.get("full_article_content", ""),
+                    content=doc_content,
+                    # metadata 无 full_article_content 时回退到文档内容（否则自校验拿到空法条原文）
+                    full_content=metadata.get("full_article_content", doc_content),
                     chapter=metadata.get("chapter", ""),
                     section=metadata.get("section", ""),
                     score=1.0,
