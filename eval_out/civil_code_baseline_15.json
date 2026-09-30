@@ -1,0 +1,236 @@
+{
+  "sample_count": 15,
+  "top_k": 5,
+  "metrics": {
+    "recall_at_k": 1.0,
+    "mrr_at_k": 0.966667,
+    "ndcg_at_k": 0.975395
+  },
+  "items": [
+    {
+      "id": "civil-001",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第17条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第17条",
+        "中华人民共和国民法典第18条",
+        "中华人民共和国民法典第21条",
+        "中华人民共和国民法典第19条",
+        "中华人民共和国民法典第24条"
+      ],
+      "first_relevant_rank": 1
+    },
+    {
+      "id": "civil-002",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第20条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第20条",
+        "中华人民共和国民法典第19条",
+        "中华人民共和国民法典第21条",
+        "中华人民共和国民法典第17条",
+        "中华人民共和国民法典第18条"
+      ],
+      "first_relevant_rank": 1
+    },
+    {
+      "id": "civil-003",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第16条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第16条",
+        "中华人民共和国民法典第13条",
+        "中华人民共和国民法典第18条",
+        "中华人民共和国民法典第20条",
+        "中华人民共和国民法典第19条"
+      ],
+      "first_relevant_rank": 1
+    },
+    {
+      "id": "civil-004",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第188条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第188条",
+        "中华人民共和国民法典第191条",
+        "中华人民共和国民法典第594条",
+        "中华人民共和国民法典第194条",
+        "中华人民共和国民法典第196条"
+      ],
+      "first_relevant_rank": 1
+    },
+    {
+      "id": "civil-005",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第1082条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第1082条",
+        "中华人民共和国民法典第1079条",
+        "中华人民共和国民法典第1077条",
+        "中华人民共和国民法典第1081条",
+        "中华人民共和国民法典第1090条"
+      ],
+      "first_relevant_rank": 1
+    },
+    {
+      "id": "civil-006",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第1254条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第1240条",
+        "中华人民共和国民法典第1254条",
+        "中华人民共和国民法典第1236条",
+        "中华人民共和国民法典第1239条",
+        "中华人民共和国民法典第1253条"
+      ],
+      "first_relevant_rank": 2
+    },
+    {
+      "id": "civil-007",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第705条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第705条",
+        "中华人民共和国民法典第707条",
+        "中华人民共和国民法典第721条",
+        "中华人民共和国民法典第730条",
+        "中华人民共和国民法典第757条"
+      ],
+      "first_relevant_rank": 1
+    },
+    {
+      "id": "civil-008",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第586条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第586条",
+        "中华人民共和国民法典第490条",
+        "中华人民共和国民法典第491条",
+        "中华人民共和国民法典第890条",
+        "中华人民共和国民法典第905条"
+      ],
+      "first_relevant_rank": 1
+    },
+    {
+      "id": "civil-009",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第491条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第491条",
+        "中华人民共和国民法典第492条",
+        "中华人民共和国民法典第502条",
+        "中华人民共和国民法典第512条",
+        "中华人民共和国民法典第490条"
+      ],
+      "first_relevant_rank": 1
+    },
+    {
+      "id": "civil-010",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第180条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第180条",
+        "中华人民共和国民法典第187条",
+        "中华人民共和国民法典第590条",
+        "中华人民共和国民法典第176条",
+        "中华人民共和国民法典第179条"
+      ],
+      "first_relevant_rank": 1
+    },
+    {
+      "id": "civil-011",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第1136条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第1136条",
+        "中华人民共和国民法典第1135条",
+        "中华人民共和国民法典第1137条",
+        "中华人民共和国民法典第1140条",
+        "中华人民共和国民法典第1138条"
+      ],
+      "first_relevant_rank": 1
+    },
+    {
+      "id": "civil-012",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第1064条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第1064条",
+        "中华人民共和国民法典第1065条",
+        "中华人民共和国民法典第1062条",
+        "中华人民共和国民法典第1089条",
+        "中华人民共和国民法典第1066条"
+      ],
+      "first_relevant_rank": 1
+    },
+    {
+      "id": "civil-013",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第658条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第658条",
+        "中华人民共和国民法典第663条",
+        "中华人民共和国民法典第664条",
+        "中华人民共和国民法典第665条",
+        "中华人民共和国民法典第660条"
+      ],
+      "first_relevant_rank": 1
+    },
+    {
+      "id": "civil-014",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第1105条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第1105条",
+        "中华人民共和国民法典第1106条",
+        "中华人民共和国民法典第1094条",
+        "中华人民共和国民法典第1116条",
+        "中华人民共和国民法典第1104条"
+      ],
+      "first_relevant_rank": 1
+    },
+    {
+      "id": "civil-015",
+      "knowledge_base_slug": "civil-code",
+      "relevant_article_ids": [
+        "中华人民共和国民法典第1121条"
+      ],
+      "ranked_article_ids": [
+        "中华人民共和国民法典第1121条",
+        "中华人民共和国民法典第1127条",
+        "中华人民共和国民法典第230条",
+        "中华人民共和国民法典第1152条",
+        "中华人民共和国民法典第1128条"
+      ],
+      "first_relevant_rank": 1
+    }
+  ]
+}
