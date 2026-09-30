@@ -181,6 +181,17 @@ cd frontend
 npm run build
 ```
 
+直接对真实 Chroma collection 运行 15 条基线：
+
+```powershell
+.\.venv\Scripts\python.exe scripts\evaluate_retrieval.py `
+  --dataset data\evaluation\civil_code_baseline_15.jsonl `
+  --live-collection kb_civil_code `
+  --persist-directory data\chroma_db `
+  --top-k 5 `
+  --output eval_out\civil_code_baseline_15.json
+```
+
 评测候选文件模式（适合保存一次真实运行的排名后复算指标）：
 
 ```powershell

@@ -128,3 +128,17 @@ def test_evaluation_cli_rejects_a_label_without_retrieval_candidates(tmp_path):
 
     assert completed.returncode == 2
     assert "没有候选" in completed.stderr
+
+
+def test_evaluation_cli_documents_live_collection_mode():
+    """评测 CLI 必须提供直接读取 Chroma collection 的模式。"""
+    completed = subprocess.run(
+        [sys.executable, "scripts/evaluate_retrieval.py", "--help"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0
+    assert "--live-collection" in completed.stdout
