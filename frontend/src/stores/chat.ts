@@ -14,6 +14,10 @@ export interface ChatMessage {
     description: string
     confidence: number
   }>
+  knowledgeBaseSlug?: string
+  cacheHit?: 'exact' | 'semantic'
+  cacheOriginalQuery?: string
+  cacheSimilarity?: number
   timestamp: number
 }
 
@@ -65,6 +69,10 @@ export const useChatStore = defineStore('chat', () => {
         intent: res.intent,
         verificationStatus: res.verification_status,
         trace: res.metadata?.reasoning_trace || [],
+        knowledgeBaseSlug: knowledgeBaseId,
+        cacheHit: res.metadata?.cache_hit,
+        cacheOriginalQuery: res.metadata?.cache_original_query,
+        cacheSimilarity: res.metadata?.cache_similarity,
         timestamp: Date.now(),
       }
       messages.value.push(assistantMsg)

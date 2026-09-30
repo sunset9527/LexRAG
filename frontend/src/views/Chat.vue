@@ -28,7 +28,7 @@
           </div>
 
           <div
-            v-for="msg in store.messages"
+            v-for="(msg, index) in store.messages"
             :key="msg.id"
             :class="['message', msg.role]"
           >
@@ -37,6 +37,9 @@
             </div>
             <div class="msg-body">
               <div class="msg-content markdown-body" v-html="renderMarkdown(msg.content)" />
+              <div v-if="msg.role === 'assistant' && msg.cacheHit === 'semantic'" class="cache-hint">
+                基于相似问题“{{ msg.cacheOriginalQuery }}”的缓存结果（相似度 {{ msg.cacheSimilarity }}）
+              </div>
               <div v-if="msg.citations && msg.citations.length" class="msg-citations">
                 <el-tag
                   v-for="c in msg.citations"
@@ -49,6 +52,15 @@
                   {{ c.article_id }}
                 </el-tag>
               </div>
+              <el-button
+                v-if="msg.role === 'assistant'"
+                text
+                size="small"
+                :loading="favoriteLoading === msg.id"
+                @click="toggleFavorite(msg, index)"
+              >
+                {{ favoriteIds[msg.id] ? '取消收藏' : '收藏回答' }}
+              </el-button>
             </div>
           </div>
 
@@ -127,6 +139,8 @@ import { knowledgeBaseApi, type KnowledgeBase } from '@/api/knowledgeBases'
 import { useRoute } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
 import type { Citation } from '@/api/query'
+import { favoritesApi } from '@/api/favorites'
+import { ElMessage } from 'element-plus'
 import MarkdownIt from 'markdown-it'
 
 const route = useRoute()
@@ -137,6 +151,8 @@ const selectedCitation = ref<Citation | null>(null)
 const msgContainer = ref<HTMLElement>()
 const knowledgeBases = ref<KnowledgeBase[]>([])
 const knowledgeBaseId = ref('')
+const favoriteIds = ref<Record<string, number>>({})
+const favoriteLoading = ref<string | null>(null)
 
 const md = new MarkdownIt({ breaks: true, linkify: true })
 
@@ -178,6 +194,38 @@ async function handleSend() {
 function handleQuickAsk(q: string) {
   inputText.value = q
   handleSend()
+}
+
+async function toggleFavorite(msg: typeof store.messages[number], index: number) {
+  if (favoriteLoading.value) return
+  const existingId = favoriteIds.value[msg.id]
+  favoriteLoading.value = msg.id
+  try {
+    if (existingId) {
+      await favoritesApi.remove(existingId)
+      delete favoriteIds.value[msg.id]
+      ElMessage.success('已取消收藏')
+      return
+    }
+    const question = [...store.messages.slice(0, index)].reverse().find((item) => item.role === 'user')?.content
+    if (!question) {
+      ElMessage.warning('未找到对应问题，暂不能收藏')
+      return
+    }
+    const favorite = await favoritesApi.create({
+      question,
+      answer: msg.content,
+      citations: msg.citations || [],
+      knowledge_base_slug: msg.knowledgeBaseSlug || knowledgeBaseId.value || null,
+      law_area: null,
+    })
+    favoriteIds.value[msg.id] = favorite.id
+    ElMessage.success('已收藏')
+  } catch {
+    ElMessage.error('收藏操作失败')
+  } finally {
+    favoriteLoading.value = null
+  }
 }
 
 function scrollToBottom() {
@@ -253,6 +301,7 @@ watch(() => store.messages.length, () => {
 .msg-avatar { font-size: 28px; flex-shrink: 0; line-height: 1; }
 
 .msg-body { padding: 12px 16px; max-width: 80%; }
+.cache-hint { margin-top: 8px; color: #909399; font-size: 12px; }
 
 .msg-citations { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
 .citation-tag { cursor: pointer; }

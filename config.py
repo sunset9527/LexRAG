@@ -94,10 +94,11 @@ class Settings(BaseSettings):
 
     # ==================== 异步文档任务配置 ====================
     redis_url: str = "redis://localhost:6379/0"
-    document_uploads_path: str = "./data/uploads"
 
-    # ==================== 异步文档任务配置 ====================
-    redis_url: str = "redis://localhost:6379/0"
+    # ==================== v2.0 查询缓存配置 ====================
+    query_cache_ttl_seconds: int = 3600
+    query_cache_semantic_threshold: float = 0.9
+    query_cache_retrieval_version: str = "v2.0"
 
     # ==================== FastAPI 配置 ====================
     api_host: str = "0.0.0.0"

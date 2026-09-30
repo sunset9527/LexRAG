@@ -57,13 +57,29 @@ def search_statute(query: str) -> str:
     law_retriever = _retriever_registry.get("law_retriever")
     bm25_retriever = _retriever_registry.get("bm25_retriever")
     reranker = _retriever_registry.get("reranker")
+    query_rewriter = _retriever_registry.get("query_rewriter")
     
     if not law_retriever:
         return "错误：法条检索器未初始化"
     
     try:
-        # 向量检索
-        law_results = law_retriever.retrieve(query, top_k=10)
+        # v2.0：原问题、LLM 改写候选与 HyDE 假设文本分路召回后 RRF 融合。
+        # 任何增强步骤失败时，仍使用原问题检索，避免 LLM 不稳定中断法律问答。
+        if query_rewriter:
+            try:
+                rewritten = query_rewriter.rewrite_candidates(query)
+                search_queries = getattr(rewritten, "search_queries", None) or [query]
+                hyde_query = query_rewriter.generate_hyde(query)
+                law_results = law_retriever.retrieve_multi_query(
+                    search_queries,
+                    hyde_query=hyde_query,
+                    top_k=10,
+                )
+            except Exception as expansion_error:
+                logger.warning(f"查询增强失败，回退原问题检索: {expansion_error}")
+                law_results = law_retriever.retrieve(query, top_k=10)
+        else:
+            law_results = law_retriever.retrieve(query, top_k=10)
         
         # BM25检索（如果可用）
         bm25_results = []

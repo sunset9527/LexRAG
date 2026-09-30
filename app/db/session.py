@@ -72,6 +72,7 @@ def init_db():
     import app.models.knowledge_base  # noqa: F401
     import app.models.document_job  # noqa: F401
     import app.models.case_source  # noqa: F401
+    import app.models.favorite  # noqa: F401
     Base.metadata.create_all(bind=_engine)
 
     logger.info("数据库初始化完成，所有表已就绪")

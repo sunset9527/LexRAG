@@ -76,6 +76,12 @@ const router = createRouter({
           meta: { title: '案例库' },
         },
         {
+          path: 'favorites',
+          name: 'Favorites',
+          component: () => import('@/views/Favorites.vue'),
+          meta: { title: '我的收藏' },
+        },
+        {
           path: 'settings',
           name: 'Settings',
           component: () => import('@/views/Settings.vue'),

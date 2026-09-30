@@ -12,6 +12,10 @@ os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
 import logging
 import threading
 import uuid
+import hashlib
+import re
+from copy import deepcopy
+from urllib.parse import urlparse
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from pathlib import Path
@@ -45,10 +49,12 @@ from app.db.session import init_db
 from app.db import session as db_session
 from app.api.auth import router as auth_router
 from app.api.prompts import router as prompts_router
+from app.api.favorites import router as favorites_router
 from app.services.langfuse_helper import flush_langfuse
 from app.services.knowledge_base_service import KnowledgeBaseBusyError, KnowledgeBaseService
 from app.services.document_ingestion_service import DocumentIngestionService
 from app.services.case_ingestion_service import CaseIngestionService
+from app.services.query_cache_service import QueryCacheService
 from src.ingestion.case_ocr import count_pdf_pages
 from src.ingestion.annual_case_indexer import AnnualCaseIndexer
 from src.retrieval.annual_case_retriever import AnnualCaseRetriever
@@ -140,6 +146,16 @@ def initialize_components():
         document_ingestion_service = None
         case_ingestion_service = None
         annual_case_retriever = None
+        query_cache_service = None
+        try:
+            import redis
+            query_cache_service = QueryCacheService(
+                redis.Redis.from_url(settings.redis_url, decode_responses=True),
+                ttl_seconds=settings.query_cache_ttl_seconds,
+                semantic_threshold=settings.query_cache_semantic_threshold,
+            )
+        except Exception as exc:
+            logger.warning(f"查询缓存初始化失败，将旁路缓存: {exc}")
         if db_session.SessionLocal is not None:
             knowledge_base_service = KnowledgeBaseService(db_session.SessionLocal)
             document_ingestion_service = DocumentIngestionService(
@@ -304,6 +320,7 @@ def initialize_components():
             "document_ingestion_service": document_ingestion_service,
             "case_ingestion_service": case_ingestion_service,
             "annual_case_retriever": annual_case_retriever,
+            "query_cache_service": query_cache_service,
         }
         
         logger.info("组件初始化完成")
@@ -381,6 +398,7 @@ app.add_middleware(
 # v1.7: 注册新路由
 app.include_router(auth_router)
 app.include_router(prompts_router)
+app.include_router(favorites_router)
 
 
 # ==================== API端点 ====================
@@ -629,6 +647,7 @@ async def query(
     x_api_key: str | None = Header(None, alias="X-API-Key"),
     x_model: str | None = Header(None, alias="X-Model"),
     x_base_url: str | None = Header(None, alias="X-Base-URL"),
+    authorization: str | None = Header(None, alias="Authorization"),
 ):
     """
     法律问答接口
@@ -640,6 +659,13 @@ async def query(
     """
     if not components.get("workflow"):
         raise HTTPException(status_code=503, detail="系统未初始化")
+
+    if x_base_url:
+        parsed_base_url = urlparse(x_base_url)
+        if parsed_base_url.scheme not in {"http", "https"} or not parsed_base_url.netloc:
+            raise HTTPException(status_code=422, detail="X-Base-URL 必须是有效的 HTTP(S) Base URL")
+    if x_model and not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}", x_model):
+        raise HTTPException(status_code=422, detail="X-Model 格式无效")
 
     try:
         logger.info(f"处理查询: {request.query}")
@@ -666,6 +692,27 @@ async def query(
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+        # v2.0：缓存作用域不保存 API Key/JWT 原文；授权令牌只使用不可逆摘要做用户隔离。
+        user_scope = hashlib.sha256(authorization.encode("utf-8")).hexdigest() if authorization else "anonymous"
+        cache_scope = {
+            "user_scope": user_scope,
+            "knowledge_base_slug": selected_ids[0],
+            "base_url": x_base_url or settings.deepseek_base_url,
+            "model": x_model or settings.deepseek_model,
+            "prompt_version": "runtime-v1",
+            "retrieval_version": settings.query_cache_retrieval_version,
+        }
+        query_cache_service = components.get("query_cache_service")
+        if query_cache_service:
+            cached = query_cache_service.get_exact(request.query, cache_scope)
+            if cached:
+                cached_response = deepcopy(cached)
+                cached_response["metadata"] = {
+                    **cached_response.get("metadata", {}),
+                    "cache_hit": "exact",
+                }
+                return QueryResponse(**cached_response)
+
         # 每次请求使用目标 collection 构造独立检索器；工具注册表为模块级状态，
         # 因此用锁避免并发请求在不同知识库之间交叉。
         with scoped_query_lock:
@@ -674,6 +721,26 @@ async def query(
                 embedding_model=settings.embedding_model,
                 collection_name=collection_name,
             )
+            query_embedding = None
+            if query_cache_service:
+                try:
+                    query_embedding = [float(value) for value in scoped_indexer.embeddings.embed_query(request.query)]
+                    semantic_hit = query_cache_service.get_semantic(
+                        request.query,
+                        cache_scope,
+                        embedding=query_embedding,
+                    )
+                    if semantic_hit:
+                        cached_response = deepcopy(semantic_hit["payload"])
+                        cached_response["metadata"] = {
+                            **cached_response.get("metadata", {}),
+                            "cache_hit": "semantic",
+                            "cache_original_query": semantic_hit["original_query"],
+                            "cache_similarity": semantic_hit["similarity"],
+                        }
+                        return QueryResponse(**cached_response)
+                except Exception as exc:
+                    logger.warning(f"语义查询缓存不可用，将继续正常检索: {exc}")
             scoped_retriever = LawRetriever(
                 vectorstore=scoped_indexer.vectorstore,
                 api_key=settings.deepseek_api_key,
@@ -736,7 +803,7 @@ async def query(
             logger.warning(f"聊天历史保存失败（非致命）: {e}")
 
         # 转换为响应格式
-        return QueryResponse(
+        response = QueryResponse(
             query_id=query_id,
             query=result.query,
             answer=result.answer,
@@ -747,6 +814,20 @@ async def query(
             sub_questions=result.sub_questions,
             metadata=result.metadata
         )
+        if query_cache_service:
+            try:
+                payload = response.model_dump()
+                query_cache_service.set_exact(request.query, cache_scope, payload)
+                if query_embedding is not None:
+                    query_cache_service.set_semantic(
+                        request.query,
+                        cache_scope,
+                        payload,
+                        embedding=query_embedding,
+                    )
+            except Exception as exc:
+                logger.warning(f"查询缓存写入失败，将继续返回结果: {exc}")
+        return response
         
     except HTTPException:
         raise

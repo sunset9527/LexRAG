@@ -14,7 +14,7 @@
 
 import logging
 from typing import List, Dict, Any, Optional, Tuple, Set
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -223,6 +223,40 @@ class LawRetriever:
             retrieval_results = self._rerank_for_case_query(retrieval_results, query)
         
         return retrieval_results
+
+    def retrieve_multi_query(
+        self,
+        queries: List[str],
+        *,
+        hyde_query: Optional[str] = None,
+        top_k: int = 5,
+        **retrieve_kwargs: Any,
+    ) -> List[RetrievalResult]:
+        """对原问题、改写候选和可选 HyDE 文本分别召回后做 RRF 融合。"""
+        retrieval_queries: List[str] = []
+        for query in [*queries, hyde_query]:
+            normalized = query.strip() if isinstance(query, str) else ""
+            if normalized and normalized not in retrieval_queries:
+                retrieval_queries.append(normalized)
+        if not retrieval_queries:
+            return []
+
+        fused: Dict[str, Tuple[float, RetrievalResult]] = {}
+        for query in retrieval_queries:
+            results = self.retrieve(query, top_k=top_k, **retrieve_kwargs)
+            for rank, result in enumerate(results):
+                score, first_result = fused.get(result.article_id, (0.0, result))
+                fused[result.article_id] = (score + 1 / (60 + rank), first_result)
+
+        ordered = sorted(fused.values(), key=lambda item: (-item[0], item[1].article_id))[:top_k]
+        return [
+            replace(
+                result,
+                score=score,
+                metadata={**result.metadata, "retrieval_queries": retrieval_queries},
+            )
+            for score, result in ordered
+        ]
 
     def retrieve_optimized(
         self,

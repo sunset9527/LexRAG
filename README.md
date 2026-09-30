@@ -44,6 +44,13 @@
 - 前端将 LLM API Key、Base URL 和模型名通过请求头传入；本地 BGE-M3 不依赖外部 Embedding API。
 - 回答生成依赖有效的 LLM API Key；未配置时，法规浏览、案例库和文档解析等数据能力仍可独立使用。
 
+### v2.0 检索增强与质量兜底
+
+- 原问题、多候选法律改写与 HyDE 假设文本分路召回，再经 RRF 融合；改写或 HyDE 失败会自动退回原问题检索。
+- Redis 精确缓存与语义缓存默认 TTL 1 小时；缓存严格隔离授权作用域、知识库、模型和检索版本。语义命中会在聊天页明确显示原问题与相似度。
+- 收藏保存问题、回答、引用、知识库和领域快照，并按 JWT 用户隔离。
+- `data/evaluation/civil_code_baseline_15.jsonl` 是可审计的 15 条民法典回归基线；评测脚本报告真实样本数、Recall@K、MRR@K 与 NDCG@K，不将其表述为 50 条评测。
+
 ## 架构
 
 ```text
@@ -158,10 +165,35 @@ npm run dev
 | `POST` | `/document-libraries` | 创建自定义文档库 |
 | `POST` | `/document-libraries/{slug}/documents` | 上传 PDF / DOCX 并异步处理 |
 | `GET` | `/documents/{id}` | 查询文档任务状态 |
+| `GET / POST` | `/favorites` | 查询、创建当前用户的问答收藏 |
+| `DELETE` | `/favorites/{id}` | 删除当前用户的一条收藏 |
 
 完整接口定义请访问启动后的 `/docs`。
 
 ## 验证
+
+```powershell
+# v2.0：评测、查询扩展、缓存、收藏与既有回归
+.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider
+
+# 前端生产构建
+cd frontend
+npm run build
+```
+
+评测候选文件模式（适合保存一次真实运行的排名后复算指标）：
+
+```powershell
+.\.venv\Scripts\python.exe scripts\evaluate_retrieval.py `
+  --dataset data\evaluation\civil_code_baseline_15.jsonl `
+  --candidates path\to\ranked_candidates.json `
+  --top-k 5 `
+  --output eval_out\civil_code_baseline_15.json
+```
+
+`ranked_candidates.json` 的键为评测样本 ID，值为按排名排列的完整法条 ID 数组。任一样本缺少候选时命令会失败，以免把运行故障误报为指标下降。
+
+历史模块验证：
 
 ```powershell
 # 模块 3：案例解析、OCR、索引、检索、API
@@ -202,6 +234,8 @@ LexRAG/
 ## 版本状态
 
 v1.9 已完成法规接入、多知识库、案例库与文档解析中心四个模块。法条版本链（历史版本存档、按生效日期查询、逐条 diff）因现有本地资料缺少同一法律的第二版本而延期，后续将以真实历史文本补齐，不使用伪造差异数据。
+
+v2.0 已完成代码与自动化回归：多候选改写、HyDE 融合、Redis 精确/语义缓存、收藏与 15 条基线评测数据契约均已进入仓库。最终指标需在本机真实 `kb_civil_code` 与 Redis 上执行上方命令后记录；在此之前不宣称 HyDE 的实际提升数值。
 
 ## License
 
