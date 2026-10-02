@@ -141,7 +141,11 @@ class GraphBuilder:
         # 使用预解析的引用列表
         for ref in article.references:
             target_id = self._build_article_id(ref, article.law_name)
-            if target_id and target_id != article_id:
+            if (
+                target_id
+                and target_id != article_id
+                and self.graph.graph.has_node(target_id)
+            ):
                 self.graph.add_edge(
                     article_id,
                     target_id,
@@ -159,7 +163,11 @@ class GraphBuilder:
                         f"第{ref_num}条",
                         article.law_name
                     )
-                    if target_id and target_id != article_id:
+                    if (
+                        target_id
+                        and target_id != article_id
+                        and self.graph.graph.has_node(target_id)
+                    ):
                         # 避免重复边
                         if not self.graph.graph.has_edge(article_id, target_id):
                             self.graph.add_edge(

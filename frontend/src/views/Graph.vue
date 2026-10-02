@@ -2,12 +2,13 @@
   <div class="graph-page">
     <div class="graph-header">
       <div>
-        <h2>🕸️ 法条引用知识图谱</h2>
+        <h2><el-icon><Connection /></el-icon>法条引用知识图谱</h2>
         <p class="graph-desc">可视化法条间的引用关系，点击节点查看详情，拖动探索法律知识网络</p>
       </div>
       <div class="graph-actions">
         <el-select v-model="lawFilter" placeholder="选择法律" size="default" style="width: 180px">
-          <el-option label="民法典" value="民法典" />
+          <el-option label="全部法规" value="" />
+          <el-option v-for="law in graphLaws" :key="law" :label="law" :value="law" />
         </el-select>
         <el-button type="primary" @click="loadGraph">加载图谱</el-button>
         <el-button @click="resetGraph">重置</el-button>
@@ -37,7 +38,7 @@
         </div>
         <div class="detail-row">
           <span class="detail-label">所属法律</span>
-          <span>民法典</span>
+          <span>{{ selectedNode.law_name || '未标注' }}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">引用次数</span>
@@ -58,7 +59,8 @@ const graphContainer = ref<HTMLElement>()
 const loading = ref(false)
 const drawerVisible = ref(false)
 const selectedNode = ref<any>(null)
-const lawFilter = ref('民法典')
+const lawFilter = ref('')
+const graphLaws = ref<string[]>([])
 
 let chartInstance: echarts.ECharts | null = null
 
@@ -118,28 +120,10 @@ function buildGraphOption(graphData: any) {
 async function loadGraph() {
   loading.value = true
   try {
-    const data = await queryApi.getGraph()
+    const data = await queryApi.getGraph(lawFilter.value || undefined)
+    graphLaws.value = data.available_laws || []
     const viz = data.visualization_data
-
-    // 默认节点图（后端若未返回可视化数据则用模拟数据）
-    const nodes = viz?.nodes || [
-      { name: '第463条', symbolSize: 30 },
-      { name: '第465条', symbolSize: 25 },
-      { name: '第467条', symbolSize: 20 },
-      { name: '第472条', symbolSize: 22 },
-      { name: '第490条', symbolSize: 28 },
-      { name: '第496条', symbolSize: 18 },
-      { name: '第500条', symbolSize: 20 },
-    ]
-    const links = viz?.links || [
-      { source: '第465条', target: '第463条' },
-      { source: '第467条', target: '第465条' },
-      { source: '第472条', target: '第463条' },
-      { source: '第490条', target: '第467条' },
-      { source: '第496条', target: '第490条' },
-    ]
-
-    renderChart({ nodes, links })
+    renderChart(viz || { nodes: [], links: [] })
   } catch {
     // 加载失败用空数据
     renderChart({ nodes: [], links: [] })
@@ -188,6 +172,8 @@ onMounted(() => {
   loadGraph()
   window.addEventListener('resize', handleResize)
 })
+
+watch(lawFilter, loadGraph)
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)

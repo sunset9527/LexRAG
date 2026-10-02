@@ -4,7 +4,7 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.models.knowledge_base import KnowledgeBase
@@ -54,12 +54,29 @@ class KnowledgeBaseService:
             ).all()
             return [self._serialize(item) for item in knowledge_bases]
 
+    def list_visible_knowledge_bases(self, *, organization_id: int) -> list[dict[str, Any]]:
+        """列出当前组织自有库及明确标记为系统共享的库。"""
+        with self._session_factory() as session:
+            knowledge_bases = session.scalars(
+                select(KnowledgeBase)
+                .where(
+                    or_(
+                        KnowledgeBase.organization_id == organization_id,
+                        KnowledgeBase.is_system_shared.is_(True),
+                    )
+                )
+                .order_by(KnowledgeBase.id)
+            ).all()
+            return [self._serialize(item) for item in knowledge_bases]
+
     def create_knowledge_base(
         self,
         *,
         name: str,
         slug: str,
         law_area: str,
+        organization_id: int | None = None,
+        is_system_shared: bool = False,
     ) -> dict[str, Any]:
         """创建一个尚未索引的法规知识库。"""
         with self._session_factory() as session:
@@ -78,6 +95,8 @@ class KnowledgeBaseService:
                 status="EMPTY",
                 document_count=0,
                 chunk_count=0,
+                organization_id=organization_id,
+                is_system_shared=is_system_shared,
             )
             session.add(knowledge_base)
             session.commit()
@@ -90,6 +109,7 @@ class KnowledgeBaseService:
         name: str,
         slug: str,
         law_area: str,
+        organization_id: int | None = None,
     ) -> dict[str, Any]:
         """创建一个尚未上传文档的自定义知识库。"""
         with self._session_factory() as session:
@@ -108,6 +128,8 @@ class KnowledgeBaseService:
                 status="EMPTY",
                 document_count=0,
                 chunk_count=0,
+                organization_id=organization_id,
+                is_system_shared=False,
             )
             session.add(knowledge_base)
             session.commit()
@@ -140,6 +162,43 @@ class KnowledgeBaseService:
 
         with self._session_factory() as session:
             knowledge_base = self._get_by_slug(session, slug)
+            knowledge_base.status = "READY"
+            knowledge_base.document_count = len(articles)
+            knowledge_base.chunk_count = indexed_count
+            knowledge_base.last_indexed_at = datetime.now()
+            knowledge_base.error_message = None
+            session.commit()
+            session.refresh(knowledge_base)
+            return self._serialize(knowledge_base)
+
+    def rebuild_confirmed_law_version(
+        self, slug: str, *, organization_id: int, content: str, version_hash: str
+    ) -> dict[str, Any]:
+        """安全构建新法规版本：先写隔离 collection，全部成功后才原子切换指针。
+
+        失败时绝不修改既有 READY collection 或其状态，确保当前查询仍可用。
+        """
+        with self._session_factory() as session:
+            knowledge_base = self._get_by_slug(session, slug)
+            if knowledge_base.organization_id != organization_id or knowledge_base.type != "statute":
+                raise KnowledgeBaseNotFoundError("知识库不存在或无访问权限")
+            name = knowledge_base.name
+            old_collection = knowledge_base.collection_name
+
+        new_collection = f"{self.collection_name_for_slug(slug)}_v_{version_hash[:12]}"
+        try:
+            articles = self._parser.parse_law_content(content, name)
+            chunks = self._chunker.chunk_articles(articles)
+            indexed_count = self._indexer_factory(new_collection).rebuild_index(chunks)
+        except Exception:
+            # 最多留下未被引用的临时 collection；线上指针和 READY 状态保持不变。
+            raise
+
+        with self._session_factory() as session:
+            knowledge_base = self._get_by_slug(session, slug)
+            if knowledge_base.collection_name != old_collection:
+                raise KnowledgeBaseBusyError("知识库版本已被其他确认操作切换，请重新检查")
+            knowledge_base.collection_name = new_collection
             knowledge_base.status = "READY"
             knowledge_base.document_count = len(articles)
             knowledge_base.chunk_count = indexed_count
@@ -188,6 +247,43 @@ class KnowledgeBaseService:
             if knowledge_base.status != "READY":
                 raise ValueError(f"知识库不可用于检索，当前状态: {knowledge_base.status}")
             return knowledge_base.collection_name
+
+    def get_ready_collection_name_for_organization(self, slug: str, *, organization_id: int) -> str:
+        """只允许组织自有库或显式系统共享库参与检索。"""
+        with self._session_factory() as session:
+            knowledge_base = session.scalar(
+                select(KnowledgeBase).where(
+                    KnowledgeBase.slug == slug,
+                    or_(
+                        KnowledgeBase.organization_id == organization_id,
+                        KnowledgeBase.is_system_shared.is_(True),
+                    ),
+                )
+            )
+            if knowledge_base is None:
+                raise KnowledgeBaseNotFoundError("知识库不存在或无访问权限")
+            if knowledge_base.status != "READY":
+                raise ValueError(f"知识库不可用于检索，当前状态: {knowledge_base.status}")
+            return knowledge_base.collection_name
+
+    def get_visible_knowledge_base(
+        self, slug: str, *, organization_id: int, require_owner: bool = False
+    ) -> dict[str, Any]:
+        """校验知识库对组织可见；写操作只能作用于组织自有库。"""
+        with self._session_factory() as session:
+            knowledge_base = session.scalar(select(KnowledgeBase).where(KnowledgeBase.slug == slug))
+            if knowledge_base is None:
+                raise KnowledgeBaseNotFoundError("知识库不存在或无访问权限")
+            if require_owner:
+                is_allowed = knowledge_base.organization_id == organization_id
+            else:
+                is_allowed = (
+                    knowledge_base.organization_id == organization_id
+                    or knowledge_base.is_system_shared
+                )
+            if not is_allowed:
+                raise KnowledgeBaseNotFoundError("知识库不存在或无访问权限")
+            return self._serialize(knowledge_base)
 
     def delete_knowledge_base(self, slug: str) -> None:
         """删除一个非索引中的知识库及其专属 collection。"""
@@ -261,6 +357,8 @@ class KnowledgeBaseService:
             "name": knowledge_base.name,
             "slug": knowledge_base.slug,
             "type": knowledge_base.type,
+            "organization_id": knowledge_base.organization_id,
+            "is_system_shared": knowledge_base.is_system_shared,
             "law_area": knowledge_base.law_area,
             "collection_name": knowledge_base.collection_name,
             "status": knowledge_base.status,

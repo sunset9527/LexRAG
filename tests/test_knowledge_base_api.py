@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 
 import httpx
+import pytest
+from types import SimpleNamespace
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
@@ -33,7 +35,17 @@ class FakeKnowledgeBaseService:
             }
         ]
 
-    def create_knowledge_base(self, *, name, slug, law_area):
+    def list_visible_knowledge_bases(self, *, organization_id):
+        assert organization_id == 1
+        return self.list_knowledge_bases()
+
+    def get_visible_knowledge_base(self, slug, *, organization_id, require_owner=False):
+        assert slug == "civil-code"
+        assert organization_id == 1
+        return self.list_knowledge_bases()[0]
+
+    def create_knowledge_base(self, *, name, slug, law_area, organization_id):
+        assert organization_id == 1
         return {
             "id": slug,
             "name": name,
@@ -66,6 +78,15 @@ class FakeKnowledgeBaseService:
 
     def delete_knowledge_base(self, slug):
         assert slug == "civil-code"
+
+
+@pytest.fixture(autouse=True)
+def authorized_knowledge_base_client():
+    api.app.dependency_overrides[api.get_authorization_context] = lambda: SimpleNamespace(
+        organization_id=1, can=lambda _permission: True
+    )
+    yield
+    api.app.dependency_overrides.pop(api.get_authorization_context, None)
 
 
 def test_list_knowledge_bases_returns_registered_libraries(monkeypatch):
@@ -123,9 +144,9 @@ def test_create_knowledge_base_registers_an_empty_statute_library():
 def test_create_document_library_registers_an_empty_document_library():
     """文档解析中心必须创建 document 类型库，而不复用法规库入口。"""
     class DocumentLibraryService(FakeKnowledgeBaseService):
-        def create_document_library(self, *, name, slug, law_area):
+        def create_document_library(self, *, name, slug, law_area, organization_id):
             return {
-                **self.create_knowledge_base(name=name, slug=slug, law_area=law_area),
+                **self.create_knowledge_base(name=name, slug=slug, law_area=law_area, organization_id=organization_id),
                 "type": "document",
             }
 

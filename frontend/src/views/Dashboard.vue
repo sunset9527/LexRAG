@@ -2,8 +2,9 @@
   <div class="dashboard">
     <!-- 欢迎区域 -->
     <div class="hero-section">
-      <h1 class="hero-title">法律智能知识平台</h1>
-      <p class="hero-subtitle">基于 RAG + Multi-Agent + 法条自校验，为您提供准确、可溯源的法律咨询</p>
+      <div class="eyebrow">LEXRAG · LEGAL RESEARCH</div>
+      <h1 class="hero-title">法律研究工作台</h1>
+      <p class="hero-subtitle">基于已收录法规、可核验法条和真实案例数据开展研究与咨询。</p>
       <div class="hero-actions">
         <el-button type="primary" size="large" @click="$router.push('/chat')">
           <el-icon><ChatDotRound /></el-icon> 开始法律咨询
@@ -18,8 +19,8 @@
     <el-row :gutter="20" class="stats-row">
       <el-col :span="6">
         <div class="stat-card">
-          <div class="stat-icon" style="background: #e8f0fe;">
-            <el-icon :size="28" color="#2d5cc5"><Document /></el-icon>
+          <div class="stat-icon info">
+            <el-icon :size="22"><Document /></el-icon>
           </div>
           <div class="stat-info">
             <div class="stat-value">{{ stats.lawCount }}</div>
@@ -29,8 +30,8 @@
       </el-col>
       <el-col :span="6">
         <div class="stat-card">
-          <div class="stat-icon" style="background: #e6f7ed;">
-            <el-icon :size="28" color="#27ae60"><Files /></el-icon>
+          <div class="stat-icon success">
+            <el-icon :size="22"><Files /></el-icon>
           </div>
           <div class="stat-info">
             <div class="stat-value">{{ stats.caseCount }}</div>
@@ -40,8 +41,8 @@
       </el-col>
       <el-col :span="6">
         <div class="stat-card">
-          <div class="stat-icon" style="background: #fdf6ec;">
-            <el-icon :size="28" color="#c9a84c"><Checked /></el-icon>
+          <div class="stat-icon info">
+            <el-icon :size="22"><Checked /></el-icon>
           </div>
           <div class="stat-info">
             <div class="stat-value">{{ stats.verifyRate }}%</div>
@@ -51,8 +52,8 @@
       </el-col>
       <el-col :span="6">
         <div class="stat-card">
-          <div class="stat-icon" style="background: #fde8e8;">
-            <el-icon :size="28" color="#c0392b"><Star /></el-icon>
+          <div class="stat-icon neutral">
+            <el-icon :size="22"><Star /></el-icon>
           </div>
           <div class="stat-info">
             <div class="stat-value">{{ stats.queryCount }}</div>
@@ -69,8 +70,10 @@
         <el-card shadow="never" class="section-card">
           <template #header>
             <div class="card-header">
-              <span>🔥 热门法律问题</span>
-              <el-tag size="small" type="info">民法典</el-tag>
+              <span>常见法律问题</span>
+              <el-select v-model="selectedQuestionLawSlug" size="small" aria-label="选择常见问题的法规库" style="width: 210px">
+                <el-option v-for="item in statuteKnowledgeBases" :key="item.slug" :label="item.name" :value="item.slug" />
+              </el-select>
             </div>
           </template>
           <div class="hot-questions">
@@ -78,7 +81,7 @@
               v-for="q in hotQuestions"
               :key="q"
               class="hot-item"
-              @click="goToChat(q)"
+              @click="goToChat(q, selectedQuestionLawSlug)"
             >
               <el-icon color="#2d5cc5"><ArrowRight /></el-icon>
               <span>{{ q }}</span>
@@ -90,9 +93,7 @@
       <!-- 最近查询 & 知识库 -->
       <el-col :span="10">
         <el-card shadow="never" class="section-card">
-          <template #header>
-            <span>📋 知识库覆盖</span>
-          </template>
+          <template #header><span>知识库覆盖</span></template>
           <div class="kb-list">
             <div v-for="kb in knowledgeBases" :key="kb.name" class="kb-item">
               <span class="kb-name">{{ kb.name }}（{{ kb.status === 'READY' ? '可用' : kb.status === 'INDEXING' ? '索引中' : '待索引' }}）</span>
@@ -111,9 +112,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { knowledgeBaseApi, type KnowledgeBase } from '@/api/knowledgeBases'
+import { getQuestionPresets } from '@/utils/lawPresentation'
+import { dashboardApi } from '@/api/dashboard'
 
 const router = useRouter()
 
@@ -124,20 +127,17 @@ const stats = reactive({
   queryCount: '--',
 })
 
-const hotQuestions = [
-  '合同成立需要满足哪些条件？',
-  '格式条款什么情况下无效？',
-  '定金和订金有什么区别？',
-  '什么情况下可以解除合同？',
-  '违约责任如何计算赔偿金额？',
-  '借款合同没有约定利息怎么办？',
-]
-
 const knowledgeBases = ref<KnowledgeBase[]>([])
+const selectedQuestionLawSlug = ref('')
+const statuteKnowledgeBases = computed(() => knowledgeBases.value.filter(
+  item => item.type === 'statute' && item.status === 'READY',
+))
+const hotQuestions = computed(() => getQuestionPresets(selectedQuestionLawSlug.value))
 
 onMounted(async () => {
   try {
     knowledgeBases.value = await knowledgeBaseApi.list()
+    selectedQuestionLawSlug.value = statuteKnowledgeBases.value[0]?.slug || ''
     stats.lawCount = String(
       knowledgeBases.value
         .filter(item => item.status === 'READY')
@@ -146,34 +146,39 @@ onMounted(async () => {
   } catch {
     stats.lawCount = '加载失败'
   }
+  try {
+    const dashboardStats = await dashboardApi.stats()
+    stats.caseCount = String(dashboardStats.case_count)
+  } catch {
+    stats.caseCount = '加载失败'
+  }
 })
 
-function goToChat(question: string) {
-  router.push({ path: '/chat', query: { q: question } })
+function goToChat(question: string, knowledgeBaseSlug: string) {
+  router.push({ path: '/chat', query: { q: question, kb: knowledgeBaseSlug } })
 }
 </script>
 
 <style scoped>
-.dashboard { max-width: 1200px; margin: 0 auto; }
+.dashboard { max-width: 1360px; margin: 0 auto; }
 
 .hero-section {
-  text-align: center;
-  padding: 40px 0 32px;
+  padding: 20px 0 28px;
 }
 
 .hero-title {
-  font-family: 'Noto Serif SC', STSong, serif;
-  font-size: 36px;
-  font-weight: 700;
-  color: #0f1f3d;
-  margin: 0 0 12px;
+  font-size: 28px;
+  font-weight: 650;
+  color: var(--text-primary);
+  margin: 4px 0 8px;
 }
 
 .hero-subtitle {
-  color: #606266;
-  font-size: 15px;
-  margin-bottom: 24px;
+  color: var(--text-secondary);
+  margin: 0 0 20px;
 }
+
+.eyebrow { color: var(--brand-primary); font-size: 11px; font-weight: 700; letter-spacing: .1em; }
 
 .hero-actions {
   display: flex;
@@ -181,39 +186,40 @@ function goToChat(question: string) {
   justify-content: center;
 }
 
-.stats-row { margin-bottom: 24px; }
+.stats-row { margin-bottom: 20px; }
 
 .stat-card {
   background: #fff;
-  border-radius: 12px;
-  padding: 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 18px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  gap: 12px;
+  box-shadow: none;
   cursor: default;
   transition: box-shadow 0.2s;
 }
-.stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.stat-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-panel); }
 
 .stat-icon {
-  width: 56px; height: 56px;
-  border-radius: 12px;
+  width: 40px; height: 40px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.stat-value { font-size: 24px; font-weight: 700; color: #0f1f3d; }
-.stat-label { font-size: 13px; color: #909399; margin-top: 2px; }
+.stat-icon.info { color: var(--brand-primary); background: var(--surface-selected); }
+.stat-icon.success { color: var(--status-success); background: #f0fdf4; }
+.stat-icon.neutral { color: var(--text-secondary); background: var(--surface-subtle); }
+.stat-value { font-size: 22px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
 
 .content-row { margin-bottom: 24px; }
 
-.section-card {
-  border-radius: 12px;
-  height: 100%;
-}
+.section-card { border-radius: var(--radius-md); height: 100%; }
 
 .card-header {
   display: flex;
@@ -227,18 +233,20 @@ function goToChat(question: string) {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 8px;
-  border-radius: 8px;
+  padding: 12px 10px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.15s;
   font-size: 14px;
-  color: #303133;
+  color: var(--text-primary);
 }
-.hot-item:hover { background: #e8f0fe; }
+.hot-item:hover { background: var(--surface-selected); }
 
 .kb-list { display: flex; flex-direction: column; gap: 16px; }
 
 .kb-item { display: flex; flex-direction: column; gap: 6px; }
 
-.kb-name { font-size: 14px; color: #303133; font-weight: 500; }
+.kb-name { font-size: 14px; color: var(--text-primary); font-weight: 500; }
+
+@media (max-width: 900px) { .stats-row :deep(.el-col), .content-row :deep(.el-col) { width: 100%; max-width: 100%; flex: 0 0 100%; margin-bottom: 12px; } }
 </style>

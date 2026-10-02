@@ -19,11 +19,23 @@ from pydantic import BaseModel, Field
 from app.db.session import get_db
 from app.services import prompt_service
 from app.api.auth import get_current_user
+from app.api.admin import get_authorization_context
 from app.models.user import User
+from app.services.authorization_service import AuthorizationContext
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/prompts", tags=["Prompt 管理"])
+def require_prompt_management(
+    context: AuthorizationContext = Depends(get_authorization_context),
+) -> AuthorizationContext:
+    if not context.can("prompts:manage"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="权限不足")
+    return context
+
+
+router = APIRouter(
+    prefix="/prompts", tags=["Prompt 管理"], dependencies=[Depends(require_prompt_management)]
+)
 
 
 # ========== 请求/响应模型 ==========

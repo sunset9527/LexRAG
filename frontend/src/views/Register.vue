@@ -2,7 +2,7 @@
   <div class="auth-page">
     <div class="auth-card">
       <div class="auth-header">
-        <h1 class="auth-logo">⚖️ LexRAG</h1>
+        <h1 class="auth-logo">LexRAG</h1>
         <p class="auth-subtitle">创建账号</p>
       </div>
 
@@ -98,12 +98,12 @@ async function handleRegister() {
 
 <style scoped>
 /* Same as Login */
-.auth-page { height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0a1628 0%, #1a3a7f 50%, #2d5cc5 100%); }
-.auth-card { width: 420px; padding: 40px; background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--surface-canvas); }
+.auth-card { width: 420px; padding: 40px; background: var(--surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); box-shadow: var(--shadow-panel); }
 .auth-header { text-align: center; margin-bottom: 32px; }
-.auth-logo { font-family: 'Noto Serif SC', STSong, serif; font-size: 28px; color: #0f1f3d; margin: 0 0 8px; }
-.auth-subtitle { color: #909399; font-size: 14px; }
-.auth-footer { text-align: center; color: #909399; font-size: 14px; margin-top: 16px; }
-.auth-link { color: #2d5cc5; text-decoration: none; font-weight: 600; }
+.auth-logo { font-family: var(--font-display); font-size: 28px; color: var(--text-primary); margin: 0 0 8px; }
+.auth-subtitle { color: var(--text-secondary); font-size: 14px; }
+.auth-footer { text-align: center; color: var(--text-secondary); font-size: 14px; margin-top: 16px; }
+.auth-link { color: var(--brand-primary); text-decoration: none; font-weight: 600; }
 .w-full { width: 100%; }
 </style>

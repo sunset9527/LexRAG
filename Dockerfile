@@ -36,6 +36,8 @@ COPY app/ ./app/
 COPY src/ ./src/
 COPY api.py .
 COPY init.py .
+COPY alembic.ini .
+COPY alembic/ ./alembic/
 COPY data/ ./data/
 
 RUN useradd --create-home --shell /bin/bash appuser && \
@@ -56,6 +58,8 @@ COPY config.py .
 COPY src/ ./src/
 COPY main.py .
 COPY api.py .
+COPY alembic.ini .
+COPY alembic/ ./alembic/
 COPY data/ ./data/
 
 RUN useradd --create-home --shell /bin/bash appuser && \

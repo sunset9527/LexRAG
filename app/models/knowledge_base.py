@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -18,6 +18,12 @@ class KnowledgeBase(Base):
     name: Mapped[str] = mapped_column(String(128), nullable=False)
     slug: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     type: Mapped[str] = mapped_column(String(32), nullable=False, default="statute")
+    organization_id: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    is_system_shared: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="0"
+    )
     law_area: Mapped[str] = mapped_column(String(64), nullable=False)
     collection_name: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="EMPTY")

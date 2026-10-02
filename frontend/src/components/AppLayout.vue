@@ -1,10 +1,10 @@
 <template>
   <el-container class="app-container">
     <!-- 侧边导航 -->
-    <el-aside width="220px" class="sidebar">
+    <el-aside width="232px" class="sidebar">
       <div class="logo-section">
-        <span class="logo-icon">⚖️</span>
         <span class="logo-text">LexRAG</span>
+        <span class="brand-caption">法律研究</span>
       </div>
 
       <el-menu
@@ -51,9 +51,16 @@
           <el-icon><Star /></el-icon>
           <span>我的收藏</span>
         </el-menu-item>
+        <el-menu-item index="/scenarios">
+          <el-icon><DocumentChecked /></el-icon>
+          <span>法律场景</span>
+        </el-menu-item>
         <el-menu-item index="/settings">
           <el-icon><Setting /></el-icon>
           <span>设置</span>
+        </el-menu-item>
+        <el-menu-item index="/admin">
+          <el-icon><Setting /></el-icon><span>企业管理</span>
         </el-menu-item>
       </el-menu>
 
@@ -94,59 +101,82 @@ function handleLogout() {
 
 <style scoped>
 .app-container {
-  height: 100vh;
+  min-height: 100vh;
+  background: var(--surface-canvas);
 }
 
 .sidebar {
-  background: linear-gradient(180deg, #0a1628 0%, #0f1f3d 50%, #152d5e 100%);
+  background: var(--surface-raised);
+  border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .logo-section {
-  padding: 20px 20px 16px;
+  min-height: 72px;
+  padding: 0 20px;
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.logo-icon {
-  font-size: 28px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .logo-text {
-  font-family: 'Noto Serif SC', STSong, serif;
-  font-size: 22px;
+  font-family: var(--font-display);
+  font-size: 21px;
   font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 2px;
+  color: var(--text-primary);
+  letter-spacing: .02em;
+}
+
+.brand-caption {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .nav-menu {
   flex: 1;
-  padding-top: 12px;
+  padding: 14px 10px;
+  overflow-y: auto;
 }
 
 .nav-menu .el-menu-item {
-  margin: 4px 12px;
-  border-radius: 8px;
-  height: 44px;
-  line-height: 44px;
+  position: relative;
+  margin: 2px 0;
+  border-radius: var(--radius-sm);
+  height: 42px;
+  line-height: 42px;
+  color: var(--text-secondary) !important;
+  transition: background-color 180ms ease, color 180ms ease;
 }
 
 .nav-menu .el-menu-item:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: var(--surface-subtle) !important;
+  color: var(--text-primary) !important;
 }
 
 .nav-menu .el-menu-item.is-active {
-  background: rgba(255, 255, 255, 0.15) !important;
+  background: var(--surface-selected) !important;
+  color: var(--brand-primary) !important;
+  font-weight: 600;
+}
+
+.nav-menu .el-menu-item.is-active::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--brand-primary);
 }
 
 .sidebar-footer {
-  padding: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 14px 16px;
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -159,18 +189,27 @@ function handleLogout() {
 }
 
 .username {
-  color: #c5d9fa;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
 .logout-btn {
-  color: #8aaff5;
+  color: var(--text-tertiary);
 }
 
 .main-content {
-  background: #f5f7fa;
+  background: var(--surface-canvas);
   padding: 24px;
   overflow-y: auto;
-  height: 100vh;
+  min-height: 100vh;
+}
+
+@media (max-width: 1080px) {
+  .sidebar { width: 72px !important; }
+  .logo-section { justify-content: center; padding: 0; }
+  .brand-caption, .logo-text, .nav-menu :deep(.el-menu-item span), .username { display: none; }
+  .nav-menu .el-menu-item { justify-content: center; padding: 0 !important; }
+  .sidebar-footer { justify-content: center; padding: 14px 0; }
+  .main-content { padding: 16px; }
 }
 </style>

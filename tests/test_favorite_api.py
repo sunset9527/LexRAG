@@ -35,6 +35,7 @@ def test_favorite_routes_use_authenticated_user_not_request_user_id(monkeypatch)
     app = FastAPI()
     app.include_router(favorites.router)
     app.dependency_overrides[favorites.get_current_user] = lambda: SimpleNamespace(id=7)
+    app.dependency_overrides[favorites.get_authorization_context] = lambda: SimpleNamespace(organization_id=1)
     monkeypatch.setattr(favorites, "_service", lambda: fake_service)
 
     async def request():

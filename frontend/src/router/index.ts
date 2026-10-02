@@ -82,11 +82,18 @@ const router = createRouter({
           meta: { title: '我的收藏' },
         },
         {
+          path: 'scenarios',
+          name: 'Scenarios',
+          component: () => import('@/views/Scenarios.vue'),
+          meta: { title: '法律场景' },
+        },
+        {
           path: 'settings',
           name: 'Settings',
           component: () => import('@/views/Settings.vue'),
           meta: { title: '设置' },
         },
+        { path: 'admin', name: 'Admin', component: () => import('@/views/Admin.vue'), meta: { title: '企业管理' } },
       ],
     },
   ],

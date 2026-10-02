@@ -1,16 +1,22 @@
 """文档解析、分块和索引的 Worker 业务编排。"""
 
+import logging
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.models.document_job import DocumentJob
+from app.models.document_page import DocumentPage
 from app.models.knowledge_base import KnowledgeBase
 from app.services.document_ingestion_service import DocumentIngestionService
+from app.services.document_structure_service import DocumentStructureService
+from src.ingestion.rich_document_parser import ParsedDocument, ParsedPage
+
+logger = logging.getLogger(__name__)
 
 
 class DocumentProcessingService:
@@ -24,12 +30,14 @@ class DocumentProcessingService:
         parser: Callable[[Path], list[dict[str, Any]]],
         chunker: Callable[[list[dict[str, Any]], int, int], list[dict[str, Any]]],
         indexer_factory: Callable[[str], Any],
+        relation_service_factory: Callable[[], Any] | None = None,
     ):
         self._session_factory = session_factory
         self._parsed_root = Path(parsed_root)
         self._parser = parser
         self._chunker = chunker
         self._indexer_factory = indexer_factory
+        self._relation_service_factory = relation_service_factory
 
     def process(self, job_id: str) -> dict[str, Any]:
         """执行一次完整的解析、分块和索引。"""
@@ -47,7 +55,8 @@ class DocumentProcessingService:
             knowledge_base_slug = job.knowledge_base_slug
             collection_name = knowledge_base.collection_name
 
-        segments = self._parser(source_path)
+        parsed_result = self._parser(source_path)
+        segments, rich_pages = self._to_index_segments(parsed_result)
         parsed_text = "\n\n".join(
             str(segment.get("text", "")).strip()
             for segment in segments
@@ -56,16 +65,26 @@ class DocumentProcessingService:
         parsed_path = self._parsed_root / knowledge_base_slug / "parsed" / f"{job_id}.txt"
         parsed_path.parent.mkdir(parents=True, exist_ok=True)
         parsed_path.write_text(parsed_text, encoding="utf-8")
-        page_count = max((int(segment.get("page", 0)) for segment in segments), default=0)
+        page_count = len(rich_pages) if rich_pages is not None else max(
+            (int(segment.get("page", 0)) for segment in segments), default=0
+        )
 
         with self._session_factory() as session:
             job = self._get_job(session, job_id)
+            if rich_pages is not None:
+                self._replace_pages(session, job_id, rich_pages)
             job.status = "CHUNKING"
             job.progress = 45
             job.parsed_text_path = str(parsed_path.resolve())
             job.page_count = page_count or None
             job.character_count = len(parsed_text)
             session.commit()
+
+        if rich_pages is not None:
+            try:
+                DocumentStructureService(self._session_factory).process(job_id)
+            except Exception:
+                logger.exception("文档结构化失败，不阻断索引主链路: %s", job_id)
 
         raw_chunks = self._chunker(segments, chunk_size, chunk_overlap)
         chunks = [
@@ -108,7 +127,14 @@ class DocumentProcessingService:
             knowledge_base.last_indexed_at = datetime.now()
             session.commit()
             session.refresh(job)
-            return DocumentIngestionService._serialize(job)
+            result = DocumentIngestionService._serialize(job)
+
+        if self._relation_service_factory is not None:
+            try:
+                self._relation_service_factory().rebuild(job_id)
+            except Exception:
+                logger.exception("文档关联失败，不阻断已完成的索引任务: %s", job_id)
+        return result
 
     def mark_failed(self, job_id: str, error_message: str) -> dict[str, Any]:
         """记录 Worker 异常，供前端展示并允许用户稍后重试。"""
@@ -120,6 +146,49 @@ class DocumentProcessingService:
             session.commit()
             session.refresh(job)
             return DocumentIngestionService._serialize(job)
+
+    @staticmethod
+    def _to_index_segments(
+        parsed_result: list[dict[str, Any]] | ParsedDocument,
+    ) -> tuple[list[dict[str, Any]], list[ParsedPage] | None]:
+        if not isinstance(parsed_result, ParsedDocument):
+            return parsed_result, None
+        return (
+            [
+                {"text": page.search_text, "page": page.page_number}
+                for page in parsed_result.pages
+                if page.search_text.strip()
+            ],
+            parsed_result.pages,
+        )
+
+    @staticmethod
+    def _replace_pages(session: Session, job_id: str, pages: list[ParsedPage]) -> None:
+        session.execute(delete(DocumentPage).where(DocumentPage.document_id == job_id))
+        session.add_all(
+            [
+                DocumentPage(
+                    document_id=job_id,
+                    page_number=page.page_number,
+                    raw_text=page.raw_text,
+                    search_text=page.search_text,
+                    source=page.source,
+                    ocr_confidence=page.ocr_confidence,
+                    tables=[
+                        {
+                            "rows": table.rows,
+                            "bbox": list(table.bbox),
+                            "method": table.method,
+                        }
+                        for table in page.tables
+                    ],
+                    header=page.header,
+                    footer=page.footer,
+                    parse_warnings=page.warnings,
+                )
+                for page in pages
+            ]
+        )
 
     @staticmethod
     def _get_job(session: Session, job_id: str) -> DocumentJob:

@@ -5,13 +5,12 @@
       <el-col :span="7">
         <el-card shadow="never" class="law-tree-card">
           <template #header>
-            <span style="font-weight: 600;">📚 法规目录</span>
+            <span style="font-weight: 600;"><el-icon><Reading /></el-icon> 法规目录</span>
           </template>
           <el-tree
             :data="lawTree"
             :props="{ children: 'children', label: 'label' }"
             node-key="id"
-            :default-expanded-keys="['民法典']"
             highlight-current
             @node-click="handleNodeClick"
           >
@@ -33,7 +32,7 @@
           <template #header>
             <div style="display: flex; align-items: center; justify-content: space-between;">
               <span style="font-weight: 600;">
-                📖 {{ currentLaw || '请选择法律' }}
+                <el-icon><Document /></el-icon> {{ currentLaw || '请选择法律' }}
               </span>
               <el-input
                 v-model="articleSearch"
@@ -83,6 +82,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { knowledgeBaseApi } from '@/api/knowledgeBases'
+import { buildStatuteTree } from '@/utils/lawPresentation'
 
 interface ArticleData {
   id: string
@@ -97,25 +97,7 @@ const currentKnowledgeBaseSlug = ref('')
 
 const mockArticles = ref<ArticleData[]>([])
 
-const lawTree = [
-  {
-    id: '民法典',
-    label: '中华人民共和国民法典',
-    children: [
-      { id: '总则编', label: '总则编', count: 204, startArticle: 1, endArticle: 204 },
-      { id: '物权编', label: '物权编', count: 258, startArticle: 205, endArticle: 462 },
-      { id: '合同编', label: '合同编', count: 526, startArticle: 463, endArticle: 988, children: [
-        { id: '合同编-通则', label: '通则', count: 132, startArticle: 463, endArticle: 594 },
-        { id: '合同编-典型合同', label: '典型合同', count: 342, startArticle: 595, endArticle: 936 },
-        { id: '合同编-准合同', label: '准合同', count: 52, startArticle: 937, endArticle: 988 },
-      ]},
-      { id: '人格权编', label: '人格权编', count: 51, startArticle: 989, endArticle: 1039 },
-      { id: '婚姻家庭编', label: '婚姻家庭编', count: 79, startArticle: 1040, endArticle: 1118 },
-      { id: '继承编', label: '继承编', count: 44, startArticle: 1119, endArticle: 1162 },
-      { id: '侵权责任编', label: '侵权责任编', count: 98, startArticle: 1163, endArticle: 1260 },
-    ],
-  },
-]
+const lawTree = ref<any[]>([])
 
 const filteredArticles = computed(() => {
   if (!articleSearch.value) return mockArticles.value
@@ -125,9 +107,11 @@ const filteredArticles = computed(() => {
 })
 
 function handleNodeClick(data: any) {
-  if (!currentKnowledgeBaseSlug.value) return
+  const slug = data.knowledgeBaseSlug || data.slug
+  if (!slug) return
+  currentKnowledgeBaseSlug.value = slug
   articleSearch.value = ''
-  currentLaw.value = data.label || data.id
+  currentLaw.value = data.lawName || data.label || data.id
   if (data.startArticle && data.endArticle) {
     loadArticles({ startArticle: data.startArticle, endArticle: data.endArticle })
   } else {
@@ -141,7 +125,8 @@ async function loadArticles(range?: { startArticle: number; endArticle: number }
 
 onMounted(async () => {
   const knowledgeBases = await knowledgeBaseApi.list()
-  const selected = knowledgeBases.find(item => item.status === 'READY')
+  lawTree.value = buildStatuteTree(knowledgeBases)
+  const selected = knowledgeBases.find(item => item.type === 'statute' && item.status === 'READY')
   if (!selected) return
   currentLaw.value = selected.name
   currentKnowledgeBaseSlug.value = selected.slug

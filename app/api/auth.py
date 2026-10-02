@@ -15,7 +15,9 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 
 from app.db.session import get_db
+from app.db import session as db_session
 from app.services import auth_service
+from app.services.authorization_service import AuthorizationService
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +121,10 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
             password=request.password,
             email=request.email,
         )
+        # v3 本机演示必须把新用户放入真实组织成员关系；首位用户仅作为初始管理员。
+        if db_session.SessionLocal is None:
+            raise RuntimeError("数据库服务未初始化")
+        AuthorizationService(db_session.SessionLocal).enroll_new_local_user(user_id=user.id)
         # 注册即登录，生成令牌
         token = auth_service.create_access_token(
             data={"sub": user.username, "user_id": user.id}

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.models.case_source import CaseSource, LegalCase
@@ -152,6 +152,14 @@ class CaseIngestionService:
             statement = statement.where(CaseSource.domain == domain)
         with self._session_factory() as session:
             return [self._serialize(source) for source in session.scalars(statement).all()]
+
+    def get_statistics(self) -> dict[str, int]:
+        """返回首页可展示的真实结构化案例与来源数量。"""
+        with self._session_factory() as session:
+            return {
+                "case_count": int(session.scalar(select(func.count()).select_from(LegalCase)) or 0),
+                "source_count": int(session.scalar(select(func.count()).select_from(CaseSource)) or 0),
+            }
 
     def get_case(self, case_id: str) -> dict[str, Any]:
         """读取一条结构化案例；原始页码随结果返回以便人工复核。"""

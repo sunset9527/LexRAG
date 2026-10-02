@@ -37,6 +37,8 @@ faiss_index/
 # 测试
 .pytest_cache/
 htmlcov/
+.coverage
+reports/quality/
 
 # 前端
 frontend/node_modules/

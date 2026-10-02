@@ -2,7 +2,7 @@
   <div class="auth-page">
     <div class="auth-card">
       <div class="auth-header">
-        <h1 class="auth-logo">⚖️ LexRAG</h1>
+        <h1 class="auth-logo">LexRAG</h1>
         <p class="auth-subtitle">法律智能知识平台</p>
       </div>
 
@@ -88,15 +88,16 @@ async function handleLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0a1628 0%, #1a3a7f 50%, #2d5cc5 100%);
+  background: var(--surface-canvas);
 }
 
 .auth-card {
   width: 400px;
   padding: 40px;
   background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
 }
 
 .auth-header {
@@ -107,18 +108,18 @@ async function handleLogin() {
 .auth-logo {
   font-family: 'Noto Serif SC', STSong, serif;
   font-size: 28px;
-  color: #0f1f3d;
+  color: var(--text-primary);
   margin: 0 0 8px;
 }
 
 .auth-subtitle {
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
 .auth-footer {
   text-align: center;
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 14px;
   margin-top: 16px;
 }

@@ -1,9 +1,25 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
+import app.models.case_source  # noqa: F401
+import app.models.audit_log  # noqa: F401
+import app.models.agent_config  # noqa: F401
+import app.models.document_job  # noqa: F401
+import app.models.document_page  # noqa: F401
+import app.models.document_relation  # noqa: F401
+import app.models.document_structure  # noqa: F401
+import app.models.favorite  # noqa: F401
+import app.models.knowledge_base  # noqa: F401
+import app.models.law_update  # noqa: F401
+import app.models.organization  # noqa: F401
+import app.models.rbac  # noqa: F401
+import app.models.scenario_job  # noqa: F401
+import app.models.user  # noqa: F401
+import app.models.usage_daily  # noqa: F401
 from alembic import context
+from app.db.base import Base
+from app.db.session import get_database_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -18,7 +34,8 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = None
+config.set_main_option("sqlalchemy.url", get_database_url())
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -64,9 +81,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

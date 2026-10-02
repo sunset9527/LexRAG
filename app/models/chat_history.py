@@ -20,6 +20,9 @@ class ChatHistory(Base):
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    organization_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     session_id: Mapped[str] = mapped_column(
         String(64), nullable=False, index=True
     )

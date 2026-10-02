@@ -260,6 +260,8 @@ class LawGraph:
                     "id": node,
                     "label": node,
                     "chapter": self.graph.nodes[node].get("chapter", ""),
+                    "law_name": self.graph.nodes[node].get("law_name", ""),
+                    "article_number": self.graph.nodes[node].get("article_number", ""),
                     "citation_count": self.graph.in_degree(node)
                 }
                 for node in self.graph.nodes()

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { queryApi, type QueryResponse, type Citation } from '@/api/query'
+import { queryApi, type QueryResponse, type Citation, type WorkflowTraceEvent } from '@/api/query'
+import { sessionsApi, type Recommendation, type SessionSummary } from '@/api/sessions'
 
 export interface ChatMessage {
   id: string
@@ -9,11 +10,10 @@ export interface ChatMessage {
   citations?: Citation[]
   intent?: string
   verificationStatus?: string
-  trace?: Array<{
-    step_type: string
-    description: string
-    confidence: number
-  }>
+  workflowTrace?: WorkflowTraceEvent[]
+  workflowStatus?: 'completed' | 'degraded'
+  evidenceCount?: number
+  verificationAttempts?: number
   knowledgeBaseSlug?: string
   cacheHit?: 'exact' | 'semantic'
   cacheOriginalQuery?: string
@@ -25,7 +25,8 @@ export const useChatStore = defineStore('chat', () => {
   const messages = ref<ChatMessage[]>([])
   const isLoading = ref(false)
   const currentSessionId = ref<string | null>(null)
-  const sessions = ref<Array<{ id: string; title: string; updatedAt: number }>>([])
+  const sessions = ref<SessionSummary[]>([])
+  const recommendations = ref<Recommendation[]>([])
 
   function generateId(): string {
     return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
@@ -53,11 +54,6 @@ export const useChatStore = defineStore('chat', () => {
       // 保存 sessionId
       if (res.query_id && !currentSessionId.value) {
         currentSessionId.value = res.query_id
-        sessions.value.unshift({
-          id: res.query_id,
-          title: question.slice(0, 30) + (question.length > 30 ? '…' : ''),
-          updatedAt: Date.now(),
-        })
       }
 
       // 添加助手消息
@@ -68,7 +64,10 @@ export const useChatStore = defineStore('chat', () => {
         citations: res.citations,
         intent: res.intent,
         verificationStatus: res.verification_status,
-        trace: res.metadata?.reasoning_trace || [],
+        workflowTrace: res.metadata?.workflow_trace || [],
+        workflowStatus: res.metadata?.workflow_status,
+        evidenceCount: res.metadata?.evidence_count,
+        verificationAttempts: res.metadata?.verification_attempts,
         knowledgeBaseSlug: knowledgeBaseId,
         cacheHit: res.metadata?.cache_hit,
         cacheOriginalQuery: res.metadata?.cache_original_query,
@@ -76,6 +75,7 @@ export const useChatStore = defineStore('chat', () => {
         timestamp: Date.now(),
       }
       messages.value.push(assistantMsg)
+      await loadSessions()
     } catch (error) {
       const errorMsg: ChatMessage = {
         id: generateId(),
@@ -94,9 +94,55 @@ export const useChatStore = defineStore('chat', () => {
     currentSessionId.value = null
   }
 
-  function loadSession(sessionId: string) {
-    currentSessionId.value = sessionId
-    // 实际会话加载需要后端 /history API（v2.4 实现）
+  async function loadSessions(query?: string) {
+    sessions.value = await sessionsApi.list(query)
+  }
+
+  async function loadSession(sessionId: string) {
+    const detail = await sessionsApi.get(sessionId)
+    currentSessionId.value = detail.id
+    messages.value = detail.messages.flatMap((item) => {
+      const timestamp = item.created_at ? Date.parse(item.created_at) : Date.now()
+      return [
+        { id: `user_${item.id}`, role: 'user' as const, content: item.question, timestamp },
+        {
+          id: `assistant_${item.id}`,
+          role: 'assistant' as const,
+          content: item.answer,
+          citations: item.citations,
+          intent: item.intent || undefined,
+          verificationStatus: item.verification_status || undefined,
+          workflowTrace: item.metadata?.workflow_trace || [],
+          workflowStatus: item.metadata?.workflow_status,
+          evidenceCount: item.metadata?.evidence_count,
+          verificationAttempts: item.metadata?.verification_attempts,
+          timestamp,
+        },
+      ]
+    })
+  }
+
+  async function createSession() {
+    const session = await sessionsApi.create()
+    currentSessionId.value = session.id
+    messages.value = []
+    await loadSessions()
+    return session
+  }
+
+  async function archiveSession(sessionId: string) {
+    await sessionsApi.archive(sessionId)
+    if (currentSessionId.value === sessionId) clearMessages()
+    await loadSessions()
+  }
+
+  async function renameSession(sessionId: string, title: string) {
+    await sessionsApi.rename(sessionId, title)
+    await loadSessions()
+  }
+
+  async function loadRecommendations() {
+    recommendations.value = (await sessionsApi.recommendations()).items
   }
 
   return {
@@ -104,8 +150,14 @@ export const useChatStore = defineStore('chat', () => {
     isLoading,
     currentSessionId,
     sessions,
+    recommendations,
     sendMessage,
     clearMessages,
+    loadSessions,
     loadSession,
+    createSession,
+    archiveSession,
+    renameSession,
+    loadRecommendations,
   }
 })

@@ -1,6 +1,6 @@
 # LexRAG v2.3 实施计划：多模态法律理解
 
-**状态：** 已完成设计，待开始 v2.3.1 实现
+**状态：** v2.3.1 代码与自动化验证完成；真实 MySQL/Celery 端到端验收待执行
 
 **依据：** `docs/superpowers/specs/2026-10-01-v23-multimodal-legal-understanding-design.md`
 **开发原则：** 每个生产行为严格遵循 Red → Green → Refactor。先写最小失败测试并实际确认失败原因，再写最小实现；不得以测试后补代替测试先行。
@@ -162,3 +162,15 @@
 | --- | --- |
 | 计划技能模板要求根目录 `task_plan.md` / `findings.md` / `progress.md` | 这些文件已在工作树中未跟踪，归属不明；为保护用户/既有迭代内容，未覆盖，改在 `docs/superpowers/plans/` 写入本版本独立、可提交的计划。 |
 | 初次读取网页工具结果的对象结构与预期不同 | 未重试同一调用；改为直接打开 PyMuPDF 官方 Page 文档，确认 `find_tables()` 可用。 |
+| v2.3.1 基线文档入库测试失败 | 根因是 `app.services` 初始化注册了 `favorites` 模型但未加载其 `users` 外键目标；收藏模型显式导入用户模型后，文档和收藏基线共 7 项通过。 |
+| `alembic upgrade head --sql` 离线校验失败 | 失败发生在既有 `20261001_01_add_scenario_jobs.py`：其 `upgrade()` 对离线 `MockConnection` 调用 `sa.inspect()`；未改动该既有场景迁移，真实在线迁移仍待在本机库单独验收。 |
+| 富解析器原生 PDF 测试首次失败 | 测试夹具默认字体不能编码中文且写入顺序使页脚不在提取末行；改用 ASCII 文本层夹具并在表格后写页脚，验证解析器而非字体配置。 |
+
+## v2.3.1 执行记录（2026-10-01）
+
+- 新增 `document_pages`、`document_structures`、`document_relations` 模型及 `20261001_02` 迁移；页面结果包含原文、去噪检索文本、来源、OCR 信号、原生表格、页眉页脚和警告。
+- 新增富 PDF 解析器：文本层优先、RapidOCR 回退可注入、PyMuPDF `find_tables()` 原生表格提取、仅跨两页重复的首尾行会从检索文本排除。
+- Worker 接入富解析结果，重试会替换同一文档的旧页面记录；向量分块只接收 `search_text`。
+- 新增结果服务和 `/documents/{id}/result`、`/pages`、`/relations` 路由；上传/任务响应不再暴露 `storage_path` 或 `parsed_text_path`。
+- Vue 文档中心新增已完成任务的详情抽屉，展示页来源、OCR/解析警告和表格摘要；不显示内部路径、Prompt 或思维链。
+- 验证：新增与受影响文档链路测试 14 项通过；全量后端 `pytest -q` 为 167 项通过；Vue `npm run build` 通过。构建有既有 CSS `@import` 与大 chunk 警告，pytest 有既有依赖弃用与 `.pytest_cache` 权限警告。

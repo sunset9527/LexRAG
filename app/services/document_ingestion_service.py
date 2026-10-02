@@ -98,6 +98,33 @@ class DocumentIngestionService:
         self._task_dispatcher(job_id)
         return result
 
+    def submit_documents(
+        self,
+        *,
+        knowledge_base_slug: str,
+        submissions: list[dict[str, Any]],
+        chunk_size: int,
+        chunk_overlap: int,
+    ) -> list[dict[str, Any]]:
+        """逐个提交批量文件；任一文件失败仅返回自身错误。"""
+        results: list[dict[str, Any]] = []
+        for submission in submissions:
+            source_path = Path(submission["source_path"])
+            original_filename = str(submission["original_filename"])
+            try:
+                job = self.submit_document(
+                    knowledge_base_slug=knowledge_base_slug,
+                    source_path=source_path,
+                    original_filename=original_filename,
+                    chunk_size=chunk_size,
+                    chunk_overlap=chunk_overlap,
+                )
+            except ValueError as exc:
+                results.append({"original_filename": original_filename, "error": str(exc)})
+            else:
+                results.append({"original_filename": original_filename, "job": job})
+        return results
+
     def list_documents(self, knowledge_base_slug: str) -> list[dict[str, Any]]:
         with self._session_factory() as session:
             self._get_document_library(session, knowledge_base_slug)
@@ -156,8 +183,6 @@ class DocumentIngestionService:
             "id": job.id,
             "knowledge_base_slug": job.knowledge_base_slug,
             "original_filename": job.original_filename,
-            "storage_path": job.storage_path,
-            "parsed_text_path": job.parsed_text_path,
             "file_type": job.file_type,
             "file_size": job.file_size,
             "sha256": job.sha256,

@@ -7,6 +7,7 @@ from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, Text, Unique
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
+from app.models.user import User  # noqa: F401
 
 
 class Favorite(Base):
@@ -18,6 +19,9 @@ class Favorite(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    organization_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True
     )
     answer_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
     question: Mapped[str] = mapped_column(Text, nullable=False)

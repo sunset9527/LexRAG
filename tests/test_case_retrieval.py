@@ -42,3 +42,19 @@ def test_similar_cases_excludes_self_and_boosts_same_cause():
     assert [item["id"] for item in results] == ["case-2", "case-3"]
     assert results[0]["case_cause_match"] is True
     assert results[0]["similarity_score"] > results[1]["similarity_score"]
+
+
+def test_search_returns_traceable_case_evidence_for_free_text_query():
+    retriever = AnnualCaseRetriever(
+        VectorStore(),
+        case_loader=lambda case_id: {
+            "case-1": {"id": "case-1", "title": "案例一", "case_cause": "确认劳动关系纠纷", "issues": "劳动关系", "court_reasoning": "从属性", "source_start_page": 12, "source_end_page": 15},
+            "case-2": {"id": "case-2", "title": "案例二", "case_cause": "确认劳动关系纠纷", "issues": "劳动关系", "court_reasoning": "从属性", "source_start_page": 20, "source_end_page": 24},
+            "case-3": {"id": "case-3", "title": "案例三", "case_cause": "劳动报酬纠纷", "issues": "加班费", "court_reasoning": "工资", "source_start_page": 30, "source_end_page": 32},
+        }[case_id],
+    )
+
+    results = retriever.search("劳动关系争议", top_k=3)
+
+    assert results[0]["case_id"] == "case-1"
+    assert results[0]["source_pages"] == "12-15"

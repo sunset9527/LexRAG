@@ -6,9 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
 from app.api.auth import get_current_user
+from app.api.admin import get_authorization_context
 from app.db import session as db_session
 from app.models.user import User
 from app.services.favorite_service import FavoriteService
+from app.services.authorization_service import AuthorizationContext
 
 
 router = APIRouter(prefix="/favorites", tags=["收藏"])
@@ -32,8 +34,9 @@ def _service() -> FavoriteService:
 def create_favorite(
     request: FavoriteCreateRequest,
     current_user: User = Depends(get_current_user),
+    context: AuthorizationContext = Depends(get_authorization_context),
 ):
-    return _service().create(user_id=current_user.id, **request.model_dump())
+    return _service().create(user_id=current_user.id, organization_id=context.organization_id, **request.model_dump())
 
 
 @router.get("")
@@ -41,10 +44,12 @@ def list_favorites(
     law_area: Optional[str] = Query(default=None),
     knowledge_base_slug: Optional[str] = Query(default=None),
     current_user: User = Depends(get_current_user),
+    context: AuthorizationContext = Depends(get_authorization_context),
 ):
     return {
         "items": _service().list_for_user(
             user_id=current_user.id,
+            organization_id=context.organization_id,
             law_area=law_area,
             knowledge_base_slug=knowledge_base_slug,
         )
@@ -55,6 +60,7 @@ def list_favorites(
 def delete_favorite(
     favorite_id: int,
     current_user: User = Depends(get_current_user),
+    context: AuthorizationContext = Depends(get_authorization_context),
 ):
-    if not _service().delete(user_id=current_user.id, favorite_id=favorite_id):
+    if not _service().delete(user_id=current_user.id, organization_id=context.organization_id, favorite_id=favorite_id):
         raise HTTPException(status_code=404, detail="收藏不存在")
