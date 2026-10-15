@@ -1,7 +1,9 @@
 # LexRAG Stage 0 Baseline and Truth Alignment Design
 
-**Date:** 2026-10-15  
-**Scope:** Stage 0 only — freeze the current state, organize existing work, and align factual claims  
+**Date:** 2026-10-15
+
+**Scope:** Stage 0 only — freeze the current state, organize existing work, and align factual claims
+
 **Repository:** `E:\python\LLM\Legal_RAG_Agent`
 
 ## 1. Objective
@@ -154,4 +156,3 @@ Stage 0 is complete only when:
 - the feature ledger covers the major API, service, permission, data, degradation, test, and acceptance paths;
 - validation results are recorded with dates and commit identifiers;
 - no remote push, history rewrite, Stage 1 implementation, or inflated quality claim has occurred.
-
