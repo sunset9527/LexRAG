@@ -1,7 +1,6 @@
 """知识库注册表模型。"""
 
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -18,7 +17,7 @@ class KnowledgeBase(Base):
     name: Mapped[str] = mapped_column(String(128), nullable=False)
     slug: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     type: Mapped[str] = mapped_column(String(32), nullable=False, default="statute")
-    organization_id: Mapped[Optional[int]] = mapped_column(
+    organization_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True
     )
     is_system_shared: Mapped[bool] = mapped_column(
@@ -29,8 +28,8 @@ class KnowledgeBase(Base):
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="EMPTY")
     document_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     chunk_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    last_indexed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    last_indexed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), nullable=False
     )

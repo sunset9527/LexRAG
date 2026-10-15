@@ -72,9 +72,27 @@ def test_duplicate_query_event_is_audit_and_usage_idempotent():
     }
 
     assert audit.append_query(**kwargs) is True
-    assert usage.record_query(event_id="evt-2", organization_id=7, actor_user_id=9, latency_ms=120, estimated_tokens=88) is True
+    assert (
+        usage.record_query(
+            event_id="evt-2",
+            organization_id=7,
+            actor_user_id=9,
+            latency_ms=120,
+            estimated_tokens=88,
+        )
+        is True
+    )
     assert audit.append_query(**kwargs) is False
-    assert usage.record_query(event_id="evt-2", organization_id=7, actor_user_id=9, latency_ms=120, estimated_tokens=88) is False
+    assert (
+        usage.record_query(
+            event_id="evt-2",
+            organization_id=7,
+            actor_user_id=9,
+            latency_ms=120,
+            estimated_tokens=88,
+        )
+        is False
+    )
 
     with factory() as db:
         assert db.query(AuditLog).count() == 1

@@ -10,11 +10,7 @@ sys.path.insert(0, str(ROOT))
 def test_admin_router_is_registered_on_application():
     import api
 
-    paths = {
-        route.path
-        for route in api.app.routes
-        if hasattr(route, "path")
-    }
+    paths = {route.path for route in api.app.routes if hasattr(route, "path")}
     paths.update(
         child.path
         for route in api.app.routes

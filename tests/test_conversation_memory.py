@@ -3,7 +3,6 @@
 from types import SimpleNamespace
 
 import api
-
 from app.services.session_service import ConversationTurn
 from src.workflow.evidence import CitationVerifier, EvidenceItem, EvidenceLedger
 
@@ -14,7 +13,9 @@ class FakeLLM:
 
     def invoke(self, prompt):
         self.prompt = prompt
-        return SimpleNamespace(content="依据【中华人民共和国民法典第17条】，年满十八周岁的自然人为成年人。")
+        return SimpleNamespace(
+            content="依据【中华人民共和国民法典第17条】，年满十八周岁的自然人为成年人。"
+        )
 
 
 def statute() -> EvidenceItem:

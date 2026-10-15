@@ -10,13 +10,13 @@ from sqlalchemy import select
 from app.api.auth import get_current_user
 from app.db import session as db_session
 from app.models.user import User
+from app.services.agent_config_service import AgentConfigService
+from app.services.audit_service import AuditService
 from app.services.authorization_service import (
     AuthorizationContext,
     AuthorizationError,
     AuthorizationService,
 )
-from app.services.agent_config_service import AgentConfigService
-from app.services.audit_service import AuditService
 
 router = APIRouter(prefix="/admin", tags=["组织管理"])
 
@@ -65,13 +65,26 @@ def _require(context: AuthorizationContext, permission_code: str) -> None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="权限不足")
 
 
-def _audit(service: object, context: AuthorizationContext, *, action: str, target_type: str, target_id: str | None, metadata: dict | None = None) -> None:
+def _audit(
+    service: object,
+    context: AuthorizationContext,
+    *,
+    action: str,
+    target_type: str,
+    target_id: str | None,
+    metadata: dict | None = None,
+) -> None:
     """审计故障不得阻断授权已成功的管理操作。"""
     try:
         AuditService(service.session_factory).append_event(
-            event_id=str(uuid4()), organization_id=context.organization_id,
-            actor_user_id=context.user_id, action=action, target_type=target_type,
-            target_id=target_id, status="success", metadata=metadata,
+            event_id=str(uuid4()),
+            organization_id=context.organization_id,
+            actor_user_id=context.user_id,
+            action=action,
+            target_type=target_type,
+            target_id=target_id,
+            status="success",
+            metadata=metadata,
         )
     except Exception:
         pass
@@ -114,7 +127,14 @@ def change_member_role(
             organization_id=context.organization_id,
             role_code=request.role_code,
         )
-        _audit(service, context, action="member.role_changed", target_type="member", target_id=str(user_id), metadata={"role_code": request.role_code})
+        _audit(
+            service,
+            context,
+            action="member.role_changed",
+            target_type="member",
+            target_id=str(user_id),
+            metadata={"role_code": request.role_code},
+        )
     except AuthorizationError as exc:
         raise HTTPException(status_code=404, detail="成员或角色不存在") from exc
 
@@ -203,7 +223,14 @@ def update_agent_config(
             organization_id=context.organization_id,
             values=request.model_dump(exclude_none=True),
         )
-        _audit(service, context, action="agent_config.updated", target_type="agent_config", target_id=str(context.organization_id), metadata={"field_count": len(request.model_dump(exclude_none=True))})
+        _audit(
+            service,
+            context,
+            action="agent_config.updated",
+            target_type="agent_config",
+            target_id=str(context.organization_id),
+            metadata={"field_count": len(request.model_dump(exclude_none=True))},
+        )
         return result
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

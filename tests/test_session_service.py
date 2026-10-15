@@ -1,7 +1,6 @@
 """v2.4 会话服务：用户隔离、受控记忆与画像更新。"""
 
 import sys
-from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -12,7 +11,6 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 from app.db.base import Base
-from app.models.chat_history import ChatHistory
 from app.models.user import User
 
 try:
@@ -59,7 +57,9 @@ def test_sessions_are_searchable_and_inaccessible_to_other_user():
     service.create(user_id=1, initial_question="公司股权转让")
     service.create(user_id=2, initial_question="劳动争议仲裁")
 
-    assert [item["id"] for item in service.list_for_user(user_id=1, query="劳动")] == [matched["id"]]
+    assert [item["id"] for item in service.list_for_user(user_id=1, query="劳动")] == [
+        matched["id"]
+    ]
     with pytest.raises(SessionNotFoundError):
         service.get_for_user(user_id=2, session_id=matched["id"])
 

@@ -36,7 +36,10 @@ def make_client(role_code: str):
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     with factory() as db:
         db.add_all(
-            [User(id=1, username="admin", hashed_password="hash"), User(id=2, username="member", hashed_password="hash")]
+            [
+                User(id=1, username="admin", hashed_password="hash"),
+                User(id=2, username="member", hashed_password="hash"),
+            ]
         )
         db.commit()
     service = AuthorizationService(factory)

@@ -1,10 +1,9 @@
 """v3.0 组织内 RBAC 模型。"""
 
-from sqlalchemy import ForeignKey, Integer, String, Table, Column, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, Integer, String, Table, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-
 
 role_permissions = Table(
     "role_permissions",

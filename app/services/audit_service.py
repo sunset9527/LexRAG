@@ -8,7 +8,16 @@ from sqlalchemy.orm import sessionmaker
 from app.models.audit_log import AuditLog
 
 _ALLOWED_QUERY_METADATA = {"cache_hit", "law_area", "knowledge_base", "citation_count"}
-_SENSITIVE_METADATA_KEYS = {"api_key", "authorization", "jwt", "password", "question", "answer", "content", "token"}
+_SENSITIVE_METADATA_KEYS = {
+    "api_key",
+    "authorization",
+    "jwt",
+    "password",
+    "question",
+    "answer",
+    "content",
+    "token",
+}
 
 
 class AuditService:
@@ -35,7 +44,9 @@ class AuditService:
             "verification_status": verification_status,
         }
         for key, value in (metadata or {}).items():
-            if key in _ALLOWED_QUERY_METADATA and isinstance(value, (str, int, float, bool, type(None))):
+            if key in _ALLOWED_QUERY_METADATA and isinstance(
+                value, (str, int, float, bool, type(None))
+            ):
                 safe_metadata[key] = value
 
         with self.session_factory() as db:
@@ -80,17 +91,19 @@ class AuditService:
         with self.session_factory() as db:
             if db.scalar(select(AuditLog.id).where(AuditLog.event_id == event_id)) is not None:
                 return False
-            db.add(AuditLog(
-                event_id=event_id,
-                organization_id=organization_id,
-                actor_user_id=actor_user_id,
-                action=action[:64],
-                target_type=target_type[:64],
-                target_id=target_id[:128] if target_id else None,
-                status=status[:16],
-                request_id=request_id[:64] if request_id else None,
-                metadata_=safe_metadata,
-            ))
+            db.add(
+                AuditLog(
+                    event_id=event_id,
+                    organization_id=organization_id,
+                    actor_user_id=actor_user_id,
+                    action=action[:64],
+                    target_type=target_type[:64],
+                    target_id=target_id[:128] if target_id else None,
+                    status=status[:16],
+                    request_id=request_id[:64] if request_id else None,
+                    metadata_=safe_metadata,
+                )
+            )
             db.commit()
             return True
 

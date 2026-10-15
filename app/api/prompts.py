@@ -13,17 +13,18 @@ Prompt 管理 API 路由
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
-from app.db.session import get_db
-from app.services import prompt_service
-from app.api.auth import get_current_user
 from app.api.admin import get_authorization_context
+from app.api.auth import get_current_user
+from app.db.session import get_db
 from app.models.user import User
+from app.services import prompt_service
 from app.services.authorization_service import AuthorizationContext
 
 logger = logging.getLogger(__name__)
+
 
 def require_prompt_management(
     context: AuthorizationContext = Depends(get_authorization_context),
@@ -40,8 +41,10 @@ router = APIRouter(
 
 # ========== 请求/响应模型 ==========
 
+
 class PromptCreateRequest(BaseModel):
     """创建 Prompt 请求"""
+
     name: str = Field(..., min_length=1, max_length=128, description="Prompt 名称")
     content: str = Field(..., min_length=1, description="Prompt 内容")
     description: str | None = Field(None, max_length=512, description="描述")
@@ -50,12 +53,14 @@ class PromptCreateRequest(BaseModel):
 
 class PromptUpdateRequest(BaseModel):
     """更新 Prompt 请求（版本递增）"""
+
     content: str = Field(..., min_length=1, description="新的 Prompt 内容")
     description: str | None = Field(None, max_length=512, description="描述")
 
 
 class PromptResponse(BaseModel):
     """Prompt 响应"""
+
     id: int
     name: str
     content: str
@@ -83,6 +88,7 @@ class PromptResponse(BaseModel):
 
 class PromptListResponse(BaseModel):
     """Prompt 列表响应"""
+
     total: int
     prompts: list[PromptResponse]
 
@@ -92,6 +98,7 @@ class MessageResponse(BaseModel):
 
 
 # ========== 端点 ==========
+
 
 @router.get("", response_model=PromptListResponse, summary="列出所有活跃 Prompt")
 def list_prompts(
@@ -123,8 +130,7 @@ def get_prompt(
 
 
 @router.post(
-    "", response_model=PromptResponse, status_code=status.HTTP_201_CREATED,
-    summary="创建新 Prompt"
+    "", response_model=PromptResponse, status_code=status.HTTP_201_CREATED, summary="创建新 Prompt"
 )
 def create_prompt(
     request: PromptCreateRequest,
@@ -145,7 +151,7 @@ def create_prompt(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(e),
-        )
+        ) from e
 
 
 @router.put("/{name}", response_model=PromptResponse, summary="更新 Prompt")
@@ -172,7 +178,7 @@ def update_prompt(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
 
 
 @router.delete("/{name}", response_model=MessageResponse, summary="删除 Prompt")

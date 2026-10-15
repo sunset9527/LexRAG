@@ -73,4 +73,7 @@ def test_semantic_cache_returns_original_question_only_above_threshold():
         "similarity": 0.998618,
     }
     assert service.get_semantic("成年人的年龄规定", scope, embedding=[0.5, 0.5]) is None
-    assert service.get_semantic("成年人的年龄规定", {**scope, "user_id": 8}, embedding=[1.0, 0.0]) is None
+    assert (
+        service.get_semantic("成年人的年龄规定", {**scope, "user_id": 8}, embedding=[1.0, 0.0])
+        is None
+    )

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 from app.models.favorite import Favorite
 
@@ -20,7 +21,7 @@ class FavoriteService:
         question: str,
         answer: str,
         citations: list[dict[str, Any]],
-        knowledge_base_slug: Optional[str],
+        knowledge_base_slug: str | None,
     ) -> str:
         material = json.dumps(
             {
@@ -55,8 +56,8 @@ class FavoriteService:
         question: str,
         answer: str,
         citations: list[dict[str, Any]],
-        knowledge_base_slug: Optional[str],
-        law_area: Optional[str],
+        knowledge_base_slug: str | None,
+        law_area: str | None,
     ) -> dict[str, Any]:
         fingerprint = self._fingerprint(question, answer, citations, knowledge_base_slug)
         with self._session_factory() as db:
@@ -88,8 +89,8 @@ class FavoriteService:
         *,
         user_id: int,
         organization_id: int | None = None,
-        law_area: Optional[str] = None,
-        knowledge_base_slug: Optional[str] = None,
+        law_area: str | None = None,
+        knowledge_base_slug: str | None = None,
     ) -> list[dict[str, Any]]:
         with self._session_factory() as db:
             query = db.query(Favorite).filter(Favorite.user_id == user_id)
@@ -103,7 +104,9 @@ class FavoriteService:
 
     def delete(self, *, user_id: int, favorite_id: int, organization_id: int | None = None) -> bool:
         with self._session_factory() as db:
-            query = db.query(Favorite).filter(Favorite.id == favorite_id, Favorite.user_id == user_id)
+            query = db.query(Favorite).filter(
+                Favorite.id == favorite_id, Favorite.user_id == user_id
+            )
             if organization_id is not None:
                 query = query.filter(Favorite.organization_id == organization_id)
             favorite = query.first()

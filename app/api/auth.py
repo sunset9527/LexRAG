@@ -11,11 +11,11 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
-from app.db.session import get_db
 from app.db import session as db_session
+from app.db.session import get_db
 from app.services import auth_service
 from app.services.authorization_service import AuthorizationService
 
@@ -29,8 +29,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 # ========== 请求/响应模型 ==========
 
+
 class RegisterRequest(BaseModel):
     """注册请求"""
+
     username: str = Field(..., min_length=3, max_length=64, description="用户名")
     password: str = Field(..., min_length=6, max_length=128, description="密码")
     email: str | None = Field(None, max_length=128, description="邮箱（可选）")
@@ -38,12 +40,14 @@ class RegisterRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     """登录请求"""
+
     username: str = Field(..., description="用户名")
     password: str = Field(..., description="密码")
 
 
 class TokenResponse(BaseModel):
     """令牌响应"""
+
     access_token: str = Field(..., description="JWT 访问令牌")
     token_type: str = Field("bearer", description="令牌类型")
     username: str = Field(..., description="用户名")
@@ -52,6 +56,7 @@ class TokenResponse(BaseModel):
 
 class UserResponse(BaseModel):
     """用户信息响应"""
+
     id: int
     username: str
     email: str | None = None
@@ -61,10 +66,12 @@ class UserResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     """通用消息响应"""
+
     message: str
 
 
 # ========== 认证依赖注入 ==========
+
 
 def get_current_user(
     token: str = Depends(oauth2_scheme),
@@ -103,6 +110,7 @@ def get_current_user(
 
 # ========== 端点 ==========
 
+
 @router.post("/register", response_model=TokenResponse, summary="用户注册")
 def register(request: RegisterRequest, db: Session = Depends(get_db)):
     """
@@ -126,9 +134,7 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
             raise RuntimeError("数据库服务未初始化")
         AuthorizationService(db_session.SessionLocal).enroll_new_local_user(user_id=user.id)
         # 注册即登录，生成令牌
-        token = auth_service.create_access_token(
-            data={"sub": user.username, "user_id": user.id}
-        )
+        token = auth_service.create_access_token(data={"sub": user.username, "user_id": user.id})
         return TokenResponse(
             access_token=token,
             username=user.username,
@@ -138,13 +144,13 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         logger.error(f"注册失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="注册失败，请稍后重试",
-        )
+        ) from e
 
 
 @router.post("/login", response_model=TokenResponse, summary="用户登录")
@@ -165,9 +171,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             detail="用户名或密码错误",
         )
 
-    token = auth_service.create_access_token(
-        data={"sub": user.username, "user_id": user.id}
-    )
+    token = auth_service.create_access_token(data={"sub": user.username, "user_id": user.id})
     return TokenResponse(
         access_token=token,
         username=user.username,

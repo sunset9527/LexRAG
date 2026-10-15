@@ -6,14 +6,13 @@ JWT 令牌生成/验证 + 密码哈希/校验
 
 import logging
 from datetime import datetime, timedelta
-from typing import Optional
 
-from jose import JWTError, jwt
 import bcrypt
+from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from config import settings
 from app.models.user import User
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +37,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def create_access_token(
     data: dict,
-    expires_delta: Optional[timedelta] = None,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """
     生成 JWT 访问令牌
@@ -57,13 +56,11 @@ def create_access_token(
         else timedelta(minutes=settings.jwt_access_token_expire_minutes)
     )
     to_encode.update({"exp": expire, "iat": datetime.utcnow()})
-    encoded_jwt = jwt.encode(
-        to_encode, settings.jwt_secret_key, algorithm=ALGORITHM
-    )
+    encoded_jwt = jwt.encode(to_encode, settings.jwt_secret_key, algorithm=ALGORITHM)
     return encoded_jwt
 
 
-def decode_access_token(token: str) -> Optional[dict]:
+def decode_access_token(token: str) -> dict | None:
     """
     解码 JWT 令牌
 
@@ -74,21 +71,19 @@ def decode_access_token(token: str) -> Optional[dict]:
         解码后的 payload 字典，失败返回 None
     """
     try:
-        payload = jwt.decode(
-            token, settings.jwt_secret_key, algorithms=[ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[ALGORITHM])
         return payload
     except JWTError as e:
         logger.warning(f"JWT 解码失败: {e}")
         return None
 
 
-def get_user_by_username(db: Session, username: str) -> Optional[User]:
+def get_user_by_username(db: Session, username: str) -> User | None:
     """根据用户名查询用户"""
     return db.query(User).filter(User.username == username).first()
 
 
-def get_user_by_id(db: Session, user_id: int) -> Optional[User]:
+def get_user_by_id(db: Session, user_id: int) -> User | None:
     """根据 ID 查询用户"""
     return db.query(User).filter(User.id == user_id).first()
 
@@ -97,7 +92,7 @@ def create_user(
     db: Session,
     username: str,
     password: str,
-    email: Optional[str] = None,
+    email: str | None = None,
 ) -> User:
     """
     创建新用户
@@ -131,9 +126,7 @@ def create_user(
     return user
 
 
-def authenticate_user(
-    db: Session, username: str, password: str
-) -> Optional[User]:
+def authenticate_user(db: Session, username: str, password: str) -> User | None:
     """
     认证用户
 

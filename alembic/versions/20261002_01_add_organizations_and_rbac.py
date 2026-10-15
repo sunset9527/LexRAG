@@ -9,7 +9,6 @@ import sqlalchemy as sa
 
 from alembic import op
 
-
 revision = "20261002_01"
 down_revision = "20261001_03"
 branch_labels = None
@@ -46,8 +45,18 @@ def upgrade() -> None:
             sa.Column("name", sa.String(length=128), nullable=False),
             sa.Column("slug", sa.String(length=64), nullable=False),
             sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.true()),
-            sa.Column("created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
-            sa.Column("updated_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
+            sa.Column(
+                "created_at",
+                sa.DateTime(),
+                server_default=sa.text("CURRENT_TIMESTAMP"),
+                nullable=False,
+            ),
+            sa.Column(
+                "updated_at",
+                sa.DateTime(),
+                server_default=sa.text("CURRENT_TIMESTAMP"),
+                nullable=False,
+            ),
             sa.UniqueConstraint("slug", name="uq_organizations_slug"),
         )
         op.create_index("ix_organizations_slug", "organizations", ["slug"])
@@ -72,7 +81,12 @@ def upgrade() -> None:
     if not inspector.has_table("role_permissions"):
         op.create_table(
             "role_permissions",
-            sa.Column("role_id", sa.Integer(), sa.ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True),
+            sa.Column(
+                "role_id",
+                sa.Integer(),
+                sa.ForeignKey("roles.id", ondelete="CASCADE"),
+                primary_key=True,
+            ),
             sa.Column(
                 "permission_id",
                 sa.Integer(),
@@ -84,15 +98,27 @@ def upgrade() -> None:
         op.create_table(
             "user_roles",
             sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
-            sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
+            sa.Column(
+                "user_id",
+                sa.Integer(),
+                sa.ForeignKey("users.id", ondelete="CASCADE"),
+                nullable=False,
+            ),
             sa.Column(
                 "organization_id",
                 sa.Integer(),
                 sa.ForeignKey("organizations.id", ondelete="CASCADE"),
                 nullable=False,
             ),
-            sa.Column("role_id", sa.Integer(), sa.ForeignKey("roles.id", ondelete="RESTRICT"), nullable=False),
-            sa.UniqueConstraint("user_id", "organization_id", name="uq_user_roles_user_organization"),
+            sa.Column(
+                "role_id",
+                sa.Integer(),
+                sa.ForeignKey("roles.id", ondelete="RESTRICT"),
+                nullable=False,
+            ),
+            sa.UniqueConstraint(
+                "user_id", "organization_id", name="uq_user_roles_user_organization"
+            ),
         )
         op.create_index("ix_user_roles_user_id", "user_roles", ["user_id"])
         op.create_index("ix_user_roles_organization_id", "user_roles", ["organization_id"])
@@ -101,7 +127,9 @@ def upgrade() -> None:
     organizations = sa.table("organizations", sa.column("id"), sa.column("name"), sa.column("slug"))
     roles = sa.table("roles", sa.column("id"), sa.column("code"), sa.column("name"))
     permissions = sa.table("permissions", sa.column("id"), sa.column("code"), sa.column("name"))
-    role_permissions = sa.table("role_permissions", sa.column("role_id"), sa.column("permission_id"))
+    role_permissions = sa.table(
+        "role_permissions", sa.column("role_id"), sa.column("permission_id")
+    )
     user_roles = sa.table(
         "user_roles", sa.column("user_id"), sa.column("organization_id"), sa.column("role_id")
     )

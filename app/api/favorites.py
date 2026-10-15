@@ -1,17 +1,16 @@
 """当前登录用户的法律问答收藏 API。"""
 
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
-from app.api.auth import get_current_user
 from app.api.admin import get_authorization_context
+from app.api.auth import get_current_user
 from app.db import session as db_session
 from app.models.user import User
-from app.services.favorite_service import FavoriteService
 from app.services.authorization_service import AuthorizationContext
-
+from app.services.favorite_service import FavoriteService
 
 router = APIRouter(prefix="/favorites", tags=["收藏"])
 
@@ -20,8 +19,8 @@ class FavoriteCreateRequest(BaseModel):
     question: str = Field(..., min_length=1)
     answer: str = Field(..., min_length=1)
     citations: list[dict[str, Any]] = Field(default_factory=list)
-    knowledge_base_slug: Optional[str] = Field(None, max_length=128)
-    law_area: Optional[str] = Field(None, max_length=64)
+    knowledge_base_slug: str | None = Field(None, max_length=128)
+    law_area: str | None = Field(None, max_length=64)
 
 
 def _service() -> FavoriteService:
@@ -36,13 +35,15 @@ def create_favorite(
     current_user: User = Depends(get_current_user),
     context: AuthorizationContext = Depends(get_authorization_context),
 ):
-    return _service().create(user_id=current_user.id, organization_id=context.organization_id, **request.model_dump())
+    return _service().create(
+        user_id=current_user.id, organization_id=context.organization_id, **request.model_dump()
+    )
 
 
 @router.get("")
 def list_favorites(
-    law_area: Optional[str] = Query(default=None),
-    knowledge_base_slug: Optional[str] = Query(default=None),
+    law_area: str | None = Query(default=None),
+    knowledge_base_slug: str | None = Query(default=None),
     current_user: User = Depends(get_current_user),
     context: AuthorizationContext = Depends(get_authorization_context),
 ):
@@ -62,5 +63,7 @@ def delete_favorite(
     current_user: User = Depends(get_current_user),
     context: AuthorizationContext = Depends(get_authorization_context),
 ):
-    if not _service().delete(user_id=current_user.id, organization_id=context.organization_id, favorite_id=favorite_id):
+    if not _service().delete(
+        user_id=current_user.id, organization_id=context.organization_id, favorite_id=favorite_id
+    ):
         raise HTTPException(status_code=404, detail="收藏不存在")

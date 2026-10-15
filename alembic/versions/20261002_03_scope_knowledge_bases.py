@@ -9,7 +9,6 @@ import sqlalchemy as sa
 
 from alembic import op
 
-
 revision = "20261002_03"
 down_revision = "20261002_02"
 branch_labels = None
@@ -30,7 +29,9 @@ def upgrade() -> None:
             ["id"],
             ondelete="CASCADE",
         )
-        op.create_index("ix_knowledge_bases_organization_id", "knowledge_bases", ["organization_id"])
+        op.create_index(
+            "ix_knowledge_bases_organization_id", "knowledge_bases", ["organization_id"]
+        )
     if "is_system_shared" not in columns:
         op.add_column(
             "knowledge_bases",
@@ -45,7 +46,9 @@ def downgrade() -> None:
     inspector = sa.inspect(bind)
     columns = {column["name"] for column in inspector.get_columns("knowledge_bases")}
     if "organization_id" in columns:
-        op.drop_constraint("fk_knowledge_bases_organization_id", "knowledge_bases", type_="foreignkey")
+        op.drop_constraint(
+            "fk_knowledge_bases_organization_id", "knowledge_bases", type_="foreignkey"
+        )
         op.drop_index("ix_knowledge_bases_organization_id", table_name="knowledge_bases")
         op.drop_column("knowledge_bases", "organization_id")
     if "is_system_shared" in columns:

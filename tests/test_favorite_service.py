@@ -6,12 +6,12 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
-import app.services as services
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.db.base import Base
 import app.models.user  # noqa: F401
+import app.services as services
+from app.db.base import Base
 
 
 def test_favorite_service_is_exposed_separately_from_query_routes():

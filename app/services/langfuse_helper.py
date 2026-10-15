@@ -6,20 +6,19 @@ create_llm() 统一工厂函数，自动注入 Langfuse CallbackHandler
 """
 
 import logging
-from typing import Optional
 
-from langchain_openai import ChatOpenAI
 from langchain_core.callbacks import BaseCallbackHandler
+from langchain_openai import ChatOpenAI
 
 from config import settings
 
 logger = logging.getLogger(__name__)
 
 # 模块级 Langfuse handler 缓存
-_langfuse_handler: Optional[BaseCallbackHandler] = None
+_langfuse_handler: BaseCallbackHandler | None = None
 
 
-def _init_langfuse_handler() -> Optional[BaseCallbackHandler]:
+def _init_langfuse_handler() -> BaseCallbackHandler | None:
     """
     初始化 Langfuse CallbackHandler
 
@@ -56,10 +55,7 @@ def _init_langfuse_handler() -> Optional[BaseCallbackHandler]:
         return handler
 
     except ImportError:
-        logger.warning(
-            "langfuse 包未安装，可观测性不可用。"
-            "运行 pip install langfuse 安装。"
-        )
+        logger.warning("langfuse 包未安装，可观测性不可用。运行 pip install langfuse 安装。")
         return None
     except Exception as e:
         logger.error(f"Langfuse 初始化失败: {e}")
@@ -67,11 +63,11 @@ def _init_langfuse_handler() -> Optional[BaseCallbackHandler]:
 
 
 def create_llm(
-    api_key: Optional[str] = None,
-    base_url: Optional[str] = None,
-    model: Optional[str] = None,
+    api_key: str | None = None,
+    base_url: str | None = None,
+    model: str | None = None,
     temperature: float = 0.1,
-    request_timeout: int = 30,
+    request_timeout: int = 90,
     max_retries: int = 1,
     enable_langfuse: bool = True,
 ) -> ChatOpenAI:
@@ -131,7 +127,7 @@ def create_llm(
     return llm
 
 
-def get_langfuse_handler() -> Optional[BaseCallbackHandler]:
+def get_langfuse_handler() -> BaseCallbackHandler | None:
     """
     获取 Langfuse handler（供需要手动添加到 callbacks 的场景使用）
 

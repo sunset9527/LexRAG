@@ -80,9 +80,7 @@ class KnowledgeBaseService:
     ) -> dict[str, Any]:
         """创建一个尚未索引的法规知识库。"""
         with self._session_factory() as session:
-            existing = session.scalar(
-                select(KnowledgeBase).where(KnowledgeBase.slug == slug)
-            )
+            existing = session.scalar(select(KnowledgeBase).where(KnowledgeBase.slug == slug))
             if existing is not None:
                 raise KnowledgeBaseAlreadyExistsError(f"知识库 slug 已存在: {slug}")
 
@@ -113,9 +111,7 @@ class KnowledgeBaseService:
     ) -> dict[str, Any]:
         """创建一个尚未上传文档的自定义知识库。"""
         with self._session_factory() as session:
-            existing = session.scalar(
-                select(KnowledgeBase).where(KnowledgeBase.slug == slug)
-            )
+            existing = session.scalar(select(KnowledgeBase).where(KnowledgeBase.slug == slug))
             if existing is not None:
                 raise KnowledgeBaseAlreadyExistsError(f"知识库 slug 已存在: {slug}")
 
@@ -180,7 +176,10 @@ class KnowledgeBaseService:
         """
         with self._session_factory() as session:
             knowledge_base = self._get_by_slug(session, slug)
-            if knowledge_base.organization_id != organization_id or knowledge_base.type != "statute":
+            if (
+                knowledge_base.organization_id != organization_id
+                or knowledge_base.type != "statute"
+            ):
                 raise KnowledgeBaseNotFoundError("知识库不存在或无访问权限")
             name = knowledge_base.name
             old_collection = knowledge_base.collection_name
@@ -320,7 +319,9 @@ class KnowledgeBaseService:
         collection = client.get_collection(collection_name)
         data = collection.get(include=["documents", "metadatas"])
         articles: dict[str, dict[str, str]] = {}
-        for content, metadata in zip(data.get("documents", []), data.get("metadatas", [])):
+        for content, metadata in zip(
+            data.get("documents", []), data.get("metadatas", []), strict=True
+        ):
             article_id = metadata.get("article_id", "")
             if article_id and article_id not in articles:
                 articles[article_id] = {
@@ -343,9 +344,7 @@ class KnowledgeBaseService:
 
     @staticmethod
     def _get_by_slug(session: Session, slug: str) -> KnowledgeBase:
-        knowledge_base = session.scalar(
-            select(KnowledgeBase).where(KnowledgeBase.slug == slug)
-        )
+        knowledge_base = session.scalar(select(KnowledgeBase).where(KnowledgeBase.slug == slug))
         if knowledge_base is None:
             raise KnowledgeBaseNotFoundError(f"知识库不存在: {slug}")
         return knowledge_base

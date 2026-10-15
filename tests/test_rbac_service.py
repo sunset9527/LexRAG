@@ -17,9 +17,9 @@ try:
     from app.models.organization import Organization
     from app.models.rbac import Permission, Role, UserRole
     from app.services.authorization_service import (
+        DEFAULT_PERMISSIONS,
         AuthorizationError,
         AuthorizationService,
-        DEFAULT_PERMISSIONS,
     )
 except ImportError:
     Organization = Permission = Role = UserRole = None
@@ -91,10 +91,16 @@ def test_unknown_or_non_member_organization_cannot_build_context():
 def test_role_change_is_visible_to_next_request_without_reissuing_token():
     service, organization = make_service()
 
-    assert service.build_context(user_id=2, organization_id=organization["id"]).can("audit:read") is False
+    assert (
+        service.build_context(user_id=2, organization_id=organization["id"]).can("audit:read")
+        is False
+    )
     service.assign_role(user_id=2, organization_id=organization["id"], role_code="admin")
 
-    assert service.build_context(user_id=2, organization_id=organization["id"]).can("audit:read") is True
+    assert (
+        service.build_context(user_id=2, organization_id=organization["id"]).can("audit:read")
+        is True
+    )
 
 
 def test_default_context_is_allowed_only_when_the_user_has_one_active_organization():

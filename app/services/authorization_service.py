@@ -55,9 +55,7 @@ class AuthorizationService:
     def ensure_demo_organization(self) -> dict[str, object]:
         with self.session_factory() as db:
             self._ensure_seed_data(db)
-            organization = db.scalar(
-                select(Organization).where(Organization.slug == "local-demo")
-            )
+            organization = db.scalar(select(Organization).where(Organization.slug == "local-demo"))
             if organization is None:
                 organization = Organization(name="本机演示组织", slug="local-demo")
                 db.add(organization)
@@ -89,9 +87,14 @@ class AuthorizationService:
         """本机演示注册即加入默认组织；首个成员成为组织管理员。"""
         organization = self.ensure_demo_organization()
         with self.session_factory() as db:
-            has_members = db.scalar(
-                select(UserRole.id).where(UserRole.organization_id == organization["id"]).limit(1)
-            ) is not None
+            has_members = (
+                db.scalar(
+                    select(UserRole.id)
+                    .where(UserRole.organization_id == organization["id"])
+                    .limit(1)
+                )
+                is not None
+            )
         role_code = "member" if has_members else "admin"
         self.assign_role(
             user_id=user_id,
@@ -115,9 +118,7 @@ class AuthorizationService:
             if role is None:
                 raise AuthorizationError("成员角色不可用")
             permissions = db.scalars(
-                select(Permission)
-                .join(Role.permissions)
-                .where(Role.id == role.id)
+                select(Permission).join(Role.permissions).where(Role.id == role.id)
             ).all()
             return AuthorizationContext(
                 user_id=user_id,
@@ -161,8 +162,7 @@ class AuthorizationService:
     @staticmethod
     def _ensure_seed_data(db: Session) -> None:
         permission_by_code = {
-            permission.code: permission
-            for permission in db.scalars(select(Permission)).all()
+            permission.code: permission for permission in db.scalars(select(Permission)).all()
         }
         for code in DEFAULT_PERMISSIONS:
             if code not in permission_by_code:

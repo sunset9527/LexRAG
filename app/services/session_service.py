@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any
 from uuid import uuid4
 
 from app.models.chat_history import ChatHistory
@@ -61,11 +62,13 @@ class SessionService:
         ]
 
     @staticmethod
-    def _active_session(db: Any, *, user_id: int, session_id: str, organization_id: int | None = None) -> ConversationSession:
+    def _active_session(
+        db: Any, *, user_id: int, session_id: str, organization_id: int | None = None
+    ) -> ConversationSession:
         query = db.query(ConversationSession).filter(
-                ConversationSession.id == session_id,
-                ConversationSession.user_id == user_id,
-                ConversationSession.is_active.is_(True),
+            ConversationSession.id == session_id,
+            ConversationSession.user_id == user_id,
+            ConversationSession.is_active.is_(True),
         )
         if organization_id is not None:
             query = query.filter(ConversationSession.organization_id == organization_id)
@@ -74,17 +77,28 @@ class SessionService:
             raise SessionNotFoundError("会话不存在或不可用")
         return session
 
-    def create(self, *, user_id: int, initial_question: str | None = None, organization_id: int | None = None) -> dict[str, Any]:
+    def create(
+        self,
+        *,
+        user_id: int,
+        initial_question: str | None = None,
+        organization_id: int | None = None,
+    ) -> dict[str, Any]:
         with self._session_factory() as db:
             session = ConversationSession(
-                id=str(uuid4()), user_id=user_id, organization_id=organization_id, title=self._title(initial_question)
+                id=str(uuid4()),
+                user_id=user_id,
+                organization_id=organization_id,
+                title=self._title(initial_question),
             )
             db.add(session)
             db.commit()
             db.refresh(session)
             return self._to_dict(session)
 
-    def list_for_user(self, *, user_id: int, query: str | None = None, organization_id: int | None = None) -> list[dict[str, Any]]:
+    def list_for_user(
+        self, *, user_id: int, query: str | None = None, organization_id: int | None = None
+    ) -> list[dict[str, Any]]:
         with self._session_factory() as db:
             statement = db.query(ConversationSession).filter(
                 ConversationSession.user_id == user_id,
@@ -97,9 +111,13 @@ class SessionService:
             sessions = statement.order_by(ConversationSession.updated_at.desc()).all()
             return [self._to_dict(item) for item in sessions]
 
-    def get_for_user(self, *, user_id: int, session_id: str, organization_id: int | None = None) -> dict[str, Any]:
+    def get_for_user(
+        self, *, user_id: int, session_id: str, organization_id: int | None = None
+    ) -> dict[str, Any]:
         with self._session_factory() as db:
-            session = self._active_session(db, user_id=user_id, session_id=session_id, organization_id=organization_id)
+            session = self._active_session(
+                db, user_id=user_id, session_id=session_id, organization_id=organization_id
+            )
             payload = self._to_dict(session)
             history = (
                 db.query(ChatHistory)
@@ -122,9 +140,13 @@ class SessionService:
             ]
             return payload
 
-    def rename(self, *, user_id: int, session_id: str, title: str, organization_id: int | None = None) -> dict[str, Any]:
+    def rename(
+        self, *, user_id: int, session_id: str, title: str, organization_id: int | None = None
+    ) -> dict[str, Any]:
         with self._session_factory() as db:
-            session = self._active_session(db, user_id=user_id, session_id=session_id, organization_id=organization_id)
+            session = self._active_session(
+                db, user_id=user_id, session_id=session_id, organization_id=organization_id
+            )
             session.title = self._title(title)
             session.updated_at = datetime.now()
             db.commit()
@@ -133,15 +155,21 @@ class SessionService:
 
     def archive(self, *, user_id: int, session_id: str, organization_id: int | None = None) -> bool:
         with self._session_factory() as db:
-            session = self._active_session(db, user_id=user_id, session_id=session_id, organization_id=organization_id)
+            session = self._active_session(
+                db, user_id=user_id, session_id=session_id, organization_id=organization_id
+            )
             session.is_active = False
             session.updated_at = datetime.now()
             db.commit()
             return True
 
-    def load_memory(self, *, user_id: int, session_id: str, limit: int = 5, organization_id: int | None = None) -> list[ConversationTurn]:
+    def load_memory(
+        self, *, user_id: int, session_id: str, limit: int = 5, organization_id: int | None = None
+    ) -> list[ConversationTurn]:
         with self._session_factory() as db:
-            self._active_session(db, user_id=user_id, session_id=session_id, organization_id=organization_id)
+            self._active_session(
+                db, user_id=user_id, session_id=session_id, organization_id=organization_id
+            )
             rows = (
                 db.query(ChatHistory)
                 .filter(ChatHistory.user_id == user_id, ChatHistory.session_id == session_id)
@@ -173,7 +201,9 @@ class SessionService:
         organization_id: int | None = None,
     ) -> None:
         with self._session_factory() as db:
-            session = self._active_session(db, user_id=user_id, session_id=session_id, organization_id=organization_id)
+            session = self._active_session(
+                db, user_id=user_id, session_id=session_id, organization_id=organization_id
+            )
             db.add(
                 ChatHistory(
                     user_id=user_id,

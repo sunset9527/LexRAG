@@ -5,8 +5,6 @@ Prompt 管理服务
 """
 
 import logging
-from typing import Optional, List, Dict
-from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -15,7 +13,7 @@ from app.models.prompt import Prompt
 logger = logging.getLogger(__name__)
 
 # 内存缓存：name -> Prompt
-_prompt_cache: Dict[str, Prompt] = {}
+_prompt_cache: dict[str, Prompt] = {}
 
 
 def _invalidate_cache(name: str = None):
@@ -26,7 +24,7 @@ def _invalidate_cache(name: str = None):
         _prompt_cache.clear()
 
 
-def get_prompt_by_name(db: Session, name: str, use_cache: bool = True) -> Optional[Prompt]:
+def get_prompt_by_name(db: Session, name: str, use_cache: bool = True) -> Prompt | None:
     """
     按名称获取 Prompt（优先从缓存读取）
 
@@ -43,7 +41,7 @@ def get_prompt_by_name(db: Session, name: str, use_cache: bool = True) -> Option
 
     prompt = (
         db.query(Prompt)
-        .filter(Prompt.name == name, Prompt.is_active == True)
+        .filter(Prompt.name == name, Prompt.is_active.is_(True))
         .order_by(Prompt.version.desc())
         .first()
     )
@@ -54,29 +52,20 @@ def get_prompt_by_name(db: Session, name: str, use_cache: bool = True) -> Option
     return prompt
 
 
-def get_all_active_prompts(db: Session) -> List[Prompt]:
+def get_all_active_prompts(db: Session) -> list[Prompt]:
     """获取所有活跃 Prompt（每个 name 返回最新版本）"""
-    from sqlalchemy import and_
     # 子查询：每组 name 的最大 version
-    from sqlalchemy import func
+    from sqlalchemy import and_, func
+
     subq = (
-        db.query(
-            Prompt.name,
-            func.max(Prompt.version).label("max_version")
-        )
-        .filter(Prompt.is_active == True)
+        db.query(Prompt.name, func.max(Prompt.version).label("max_version"))
+        .filter(Prompt.is_active.is_(True))
         .group_by(Prompt.name)
         .subquery()
     )
     prompts = (
         db.query(Prompt)
-        .join(
-            subq,
-            and_(
-                Prompt.name == subq.c.name,
-                Prompt.version == subq.c.max_version
-            )
-        )
+        .join(subq, and_(Prompt.name == subq.c.name, Prompt.version == subq.c.max_version))
         .all()
     )
     return prompts
@@ -86,8 +75,8 @@ def create_prompt(
     db: Session,
     name: str,
     content: str,
-    description: Optional[str] = None,
-    category: Optional[str] = None,
+    description: str | None = None,
+    category: str | None = None,
 ) -> Prompt:
     """
     创建新 Prompt（版本号从 1 开始）
@@ -120,7 +109,7 @@ def update_prompt(
     db: Session,
     name: str,
     content: str,
-    description: Optional[str] = None,
+    description: str | None = None,
 ) -> Prompt:
     """
     更新 Prompt（版本号递增，旧版本标记为 inactive）
@@ -131,7 +120,7 @@ def update_prompt(
     # 获取当前版本
     current = (
         db.query(Prompt)
-        .filter(Prompt.name == name, Prompt.is_active == True)
+        .filter(Prompt.name == name, Prompt.is_active.is_(True))
         .order_by(Prompt.version.desc())
         .first()
     )
@@ -139,9 +128,7 @@ def update_prompt(
         raise ValueError(f"Prompt '{name}' 不存在")
 
     # 将旧版本标记为非活跃
-    db.query(Prompt).filter(Prompt.name == name).update(
-        {"is_active": False}
-    )
+    db.query(Prompt).filter(Prompt.name == name).update({"is_active": False})
 
     # 创建新版本
     new_prompt = Prompt(
@@ -169,11 +156,7 @@ def delete_prompt(db: Session, name: str) -> bool:
     Returns:
         True 表示删除成功，False 表示不存在
     """
-    result = (
-        db.query(Prompt)
-        .filter(Prompt.name == name)
-        .update({"is_active": False})
-    )
+    result = db.query(Prompt).filter(Prompt.name == name).update({"is_active": False})
     db.commit()
 
     if result:
@@ -183,14 +166,9 @@ def delete_prompt(db: Session, name: str) -> bool:
     return False
 
 
-def get_prompt_history(db: Session, name: str) -> List[Prompt]:
+def get_prompt_history(db: Session, name: str) -> list[Prompt]:
     """获取 Prompt 的完整版本历史"""
-    return (
-        db.query(Prompt)
-        .filter(Prompt.name == name)
-        .order_by(Prompt.version.desc())
-        .all()
-    )
+    return db.query(Prompt).filter(Prompt.name == name).order_by(Prompt.version.desc()).all()
 
 
 def seed_default_prompts(db: Session):

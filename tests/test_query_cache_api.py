@@ -3,10 +3,10 @@
 import asyncio
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
 import pytest
-from types import SimpleNamespace
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
@@ -181,6 +181,7 @@ def test_query_rejects_invalid_runtime_base_url_before_cache_or_llm(monkeypatch)
 
 def test_query_uses_the_scoped_collection_without_passing_organization_to_workflow(monkeypatch):
     """组织隔离在 collection 选择完成，工作流只接收其公开的查询参数。"""
+
     class FakeIndexer:
         def __init__(self, **_kwargs):
             self.vectorstore = object()
@@ -203,14 +204,18 @@ def test_query_uses_the_scoped_collection_without_passing_organization_to_workfl
                 metadata={},
             )
 
-    monkeypatch.setattr(api, "components", {
-        "workflow": object(),
-        "knowledge_base_service": FakeKnowledgeBaseService(),
-        "query_cache_service": None,
-        "case_retriever": None,
-        "graph_retriever": None,
-        "query_rewriter": None,
-    })
+    monkeypatch.setattr(
+        api,
+        "components",
+        {
+            "workflow": object(),
+            "knowledge_base_service": FakeKnowledgeBaseService(),
+            "query_cache_service": None,
+            "case_retriever": None,
+            "graph_retriever": None,
+            "query_rewriter": None,
+        },
+    )
     monkeypatch.setattr(api, "LawIndexer", FakeIndexer)
     monkeypatch.setattr(api, "LawRetriever", lambda **_kwargs: object())
     monkeypatch.setattr(api, "create_llm", lambda **_kwargs: object())

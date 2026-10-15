@@ -68,9 +68,9 @@ def init_db():
     )
 
     # 自动创建所有表（开发便利，生产应使用 Alembic 迁移）
-    import app.models.case_source  # noqa: F401
-    import app.models.audit_log  # noqa: F401
     import app.models.agent_config  # noqa: F401
+    import app.models.audit_log  # noqa: F401
+    import app.models.case_source  # noqa: F401
     import app.models.chat_history  # noqa: F401
     import app.models.document_job  # noqa: F401
     import app.models.document_page  # noqa: F401
@@ -84,10 +84,11 @@ def init_db():
     import app.models.rbac  # noqa: F401
     import app.models.scenario_job  # noqa: F401
     import app.models.session  # noqa: F401
+    import app.models.usage_daily  # noqa: F401
     import app.models.user  # noqa: F401
     import app.models.user_profile  # noqa: F401
-    import app.models.usage_daily  # noqa: F401
     from app.db.base import Base
+
     Base.metadata.create_all(bind=_engine)
 
     logger.info("数据库初始化完成，所有表已就绪")

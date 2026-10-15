@@ -10,7 +10,9 @@ from app.db.base import Base
 
 class UsageDaily(Base):
     __tablename__ = "usage_daily"
-    __table_args__ = (UniqueConstraint("organization_id", "stat_date", name="uq_usage_daily_org_date"),)
+    __table_args__ = (
+        UniqueConstraint("organization_id", "stat_date", name="uq_usage_daily_org_date"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     organization_id: Mapped[int] = mapped_column(

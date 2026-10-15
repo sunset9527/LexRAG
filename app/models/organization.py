@@ -16,7 +16,9 @@ class Organization(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(128), nullable=False)
     slug: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="1")
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="1"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), nullable=False
     )

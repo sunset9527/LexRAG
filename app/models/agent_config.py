@@ -20,9 +20,13 @@ class AgentConfig(Base):
     graph_search_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     top_k: Mapped[int] = mapped_column(Integer, nullable=False, default=5)
     timeout_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=30)
-    model_alias: Mapped[str] = mapped_column(String(64), nullable=False, default="browser-configured")
+    model_alias: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="browser-configured"
+    )
     version_note: Mapped[str] = mapped_column(String(256), nullable=False, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
     )

@@ -21,26 +21,48 @@ def test_ready_collection_is_visible_only_to_owner_organization_or_system_share(
     Base.metadata.create_all(engine)
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     with factory() as db:
-        db.add_all([Organization(id=1, name="甲", slug="a"), Organization(id=2, name="乙", slug="b")])
+        db.add_all(
+            [Organization(id=1, name="甲", slug="a"), Organization(id=2, name="乙", slug="b")]
+        )
         db.add_all(
             [
                 KnowledgeBase(
-                    name="甲私有库", slug="a-private", type="document", law_area="civil",
-                    collection_name="kb_a_private", status="READY", document_count=1, chunk_count=1,
-                    organization_id=1, is_system_shared=False,
+                    name="甲私有库",
+                    slug="a-private",
+                    type="document",
+                    law_area="civil",
+                    collection_name="kb_a_private",
+                    status="READY",
+                    document_count=1,
+                    chunk_count=1,
+                    organization_id=1,
+                    is_system_shared=False,
                 ),
                 KnowledgeBase(
-                    name="共享法规", slug="shared-law", type="statute", law_area="civil",
-                    collection_name="kb_shared_law", status="READY", document_count=1, chunk_count=1,
-                    organization_id=None, is_system_shared=True,
+                    name="共享法规",
+                    slug="shared-law",
+                    type="statute",
+                    law_area="civil",
+                    collection_name="kb_shared_law",
+                    status="READY",
+                    document_count=1,
+                    chunk_count=1,
+                    organization_id=None,
+                    is_system_shared=True,
                 ),
             ]
         )
         db.commit()
     service = KnowledgeBaseService(factory)
 
-    assert service.get_ready_collection_name_for_organization("a-private", organization_id=1) == "kb_a_private"
-    assert service.get_ready_collection_name_for_organization("shared-law", organization_id=2) == "kb_shared_law"
+    assert (
+        service.get_ready_collection_name_for_organization("a-private", organization_id=1)
+        == "kb_a_private"
+    )
+    assert (
+        service.get_ready_collection_name_for_organization("shared-law", organization_id=2)
+        == "kb_shared_law"
+    )
     with pytest.raises(KnowledgeBaseNotFoundError):
         service.get_ready_collection_name_for_organization("a-private", organization_id=2)
 

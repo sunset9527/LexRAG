@@ -6,8 +6,8 @@ import hashlib
 import json
 import logging
 import math
-from typing import Any, Mapping, Optional
-
+from collections.abc import Mapping
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -36,21 +36,25 @@ class QueryCacheService:
             "scope": dict(scope),
         }
         digest = hashlib.sha256(
-            json.dumps(material, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            json.dumps(material, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode(
+                "utf-8"
+            )
         ).hexdigest()
         return f"lexrag:query:v2:{digest}"
 
     @staticmethod
     def _scope_digest(scope: Mapping[str, Any]) -> str:
         return hashlib.sha256(
-            json.dumps(dict(scope), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            json.dumps(
+                dict(scope), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            ).encode("utf-8")
         ).hexdigest()
 
     def _semantic_key(self, query: str, scope: Mapping[str, Any]) -> str:
         query_digest = hashlib.sha256(self._normalize_query(query).encode("utf-8")).hexdigest()
         return f"lexrag:semantic:v2:{self._scope_digest(scope)}:{query_digest}"
 
-    def get_exact(self, query: str, scope: Mapping[str, Any]) -> Optional[dict[str, Any]]:
+    def get_exact(self, query: str, scope: Mapping[str, Any]) -> dict[str, Any] | None:
         """读取精确命中；Redis 不可用时无声旁路到正常查询。"""
         try:
             raw = self.redis_client.get(self._exact_key(query, scope))
@@ -78,7 +82,7 @@ class QueryCacheService:
     def _cosine_similarity(left: list[float], right: list[float]) -> float:
         if len(left) != len(right) or not left:
             return 0.0
-        numerator = sum(a * b for a, b in zip(left, right))
+        numerator = sum(a * b for a, b in zip(left, right, strict=True))
         left_norm = math.sqrt(sum(a * a for a in left))
         right_norm = math.sqrt(sum(b * b for b in right))
         return numerator / (left_norm * right_norm) if left_norm and right_norm else 0.0
@@ -112,11 +116,11 @@ class QueryCacheService:
         scope: Mapping[str, Any],
         *,
         embedding: list[float],
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """返回同作用域内阈值以上的最佳近似缓存，失败时旁路。"""
         try:
             prefix = f"lexrag:semantic:v2:{self._scope_digest(scope)}:"
-            best: Optional[dict[str, Any]] = None
+            best: dict[str, Any] | None = None
             for key in self.redis_client.scan_iter(f"{prefix}*"):
                 raw = self.redis_client.get(key)
                 if isinstance(raw, bytes):

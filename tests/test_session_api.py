@@ -23,7 +23,12 @@ class FakeSessionService:
 
     def create(self, **kwargs):
         self.calls.append(("create", kwargs))
-        return {"id": "session-1", "user_id": kwargs["user_id"], "title": "新法律咨询", "is_active": True}
+        return {
+            "id": "session-1",
+            "user_id": kwargs["user_id"],
+            "title": "新法律咨询",
+            "is_active": True,
+        }
 
     def list_for_user(self, **kwargs):
         self.calls.append(("list", kwargs))
@@ -52,7 +57,9 @@ def test_session_routes_take_user_identity_from_auth_dependency(monkeypatch):
     app = FastAPI()
     app.include_router(sessions.router)
     app.dependency_overrides[sessions.get_current_user] = lambda: SimpleNamespace(id=7)
-    app.dependency_overrides[sessions.get_authorization_context] = lambda: SimpleNamespace(organization_id=1)
+    app.dependency_overrides[sessions.get_authorization_context] = lambda: SimpleNamespace(
+        organization_id=1
+    )
     monkeypatch.setattr(sessions, "_service", lambda: fake_service)
 
     async def request():

@@ -21,7 +21,9 @@ def test_agent_config_accepts_only_safe_whitelist_and_is_organization_scoped():
     Base.metadata.create_all(engine)
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     with factory() as db:
-        db.add_all([Organization(id=1, name="甲", slug="a"), Organization(id=2, name="乙", slug="b")])
+        db.add_all(
+            [Organization(id=1, name="甲", slug="a"), Organization(id=2, name="乙", slug="b")]
+        )
         db.commit()
 
     service = AgentConfigService(factory)

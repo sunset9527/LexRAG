@@ -25,7 +25,9 @@ class ConversationSession(Base):
         Integer, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True
     )
     title: Mapped[str] = mapped_column(String(120), nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="1")
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="1"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), nullable=False
     )

@@ -9,10 +9,10 @@ from sqlalchemy.orm import sessionmaker
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.db.base import Base
-from app.models.knowledge_base import KnowledgeBase
 import pytest
 
+from app.db.base import Base
+from app.models.knowledge_base import KnowledgeBase
 from app.services.knowledge_base_service import KnowledgeBaseService
 
 
@@ -108,9 +108,10 @@ def test_list_law_articles_reads_only_the_selected_collection():
     collections = []
     service = KnowledgeBaseService(
         base_service._session_factory,
-        article_reader=lambda collection_name: collections.append(collection_name) or [
-            {"article_id": "民法典第1条", "content": "为了保护民事主体的合法权益。"}
-        ],
+        article_reader=lambda collection_name: (
+            collections.append(collection_name)
+            or [{"article_id": "民法典第1条", "content": "为了保护民事主体的合法权益。"}]
+        ),
     )
     service.create_knowledge_base(name="民法典", slug="civil-code", law_area="civil")
 
@@ -133,13 +134,9 @@ def test_list_law_articles_filters_by_article_number_range():
     )
     service.create_knowledge_base(name="民法典", slug="civil-code", law_area="civil")
 
-    result = service.list_law_articles(
-        "civil-code", start_article=463, end_article=988
-    )
+    result = service.list_law_articles("civil-code", start_article=463, end_article=988)
 
-    assert result == [
-        {"id": "民法典第463条", "article_number": 463, "content": "合同编"}
-    ]
+    assert result == [{"id": "民法典第463条", "article_number": 463, "content": "合同编"}]
 
 
 def test_list_law_articles_keeps_inserted_article_number_for_browsing():
@@ -157,9 +154,7 @@ def test_list_law_articles_keeps_inserted_article_number_for_browsing():
     )
     service.create_knowledge_base(name="刑法", slug="criminal-law", law_area="criminal")
 
-    result = service.list_law_articles(
-        "criminal-law", start_article=17, end_article=17
-    )
+    result = service.list_law_articles("criminal-law", start_article=17, end_article=17)
 
     assert result == [
         {

@@ -3,10 +3,10 @@
 import asyncio
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
 import pytest
-from types import SimpleNamespace
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
@@ -143,10 +143,13 @@ def test_create_knowledge_base_registers_an_empty_statute_library():
 
 def test_create_document_library_registers_an_empty_document_library():
     """文档解析中心必须创建 document 类型库，而不复用法规库入口。"""
+
     class DocumentLibraryService(FakeKnowledgeBaseService):
         def create_document_library(self, *, name, slug, law_area, organization_id):
             return {
-                **self.create_knowledge_base(name=name, slug=slug, law_area=law_area, organization_id=organization_id),
+                **self.create_knowledge_base(
+                    name=name, slug=slug, law_area=law_area, organization_id=organization_id
+                ),
                 "type": "document",
             }
 
@@ -191,6 +194,7 @@ def test_rebuild_knowledge_base_returns_the_target_library_status():
 
 def test_rebuild_returns_conflict_when_the_library_is_already_indexing():
     """正在重建的知识库必须返回 409，供前端阻止重复操作。"""
+
     class BusyService(FakeKnowledgeBaseService):
         def rebuild_knowledge_base(self, slug, *, content):
             raise KnowledgeBaseBusyError(f"知识库正在重建: {slug}")

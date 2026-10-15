@@ -28,7 +28,9 @@ class AgentConfigService:
 
     def get(self, *, organization_id: int) -> dict[str, Any]:
         with self.session_factory() as db:
-            item = db.scalar(select(AgentConfig).where(AgentConfig.organization_id == organization_id))
+            item = db.scalar(
+                select(AgentConfig).where(AgentConfig.organization_id == organization_id)
+            )
             return self._serialize(item) if item else self.defaults()
 
     def upsert(self, *, organization_id: int, values: dict[str, Any]) -> dict[str, Any]:
@@ -38,7 +40,9 @@ class AgentConfigService:
         merged = {**self.defaults(), **values}
         self._validate(merged)
         with self.session_factory() as db:
-            item = db.scalar(select(AgentConfig).where(AgentConfig.organization_id == organization_id))
+            item = db.scalar(
+                select(AgentConfig).where(AgentConfig.organization_id == organization_id)
+            )
             if item is None:
                 item = AgentConfig(organization_id=organization_id, **merged)
                 db.add(item)
@@ -53,7 +57,10 @@ class AgentConfigService:
     def _validate(cls, values: dict[str, Any]) -> None:
         if not isinstance(values["top_k"], int) or not 1 <= values["top_k"] <= 20:
             raise ValueError("top_k 必须是 1 到 20 的整数")
-        if not isinstance(values["timeout_seconds"], int) or not 5 <= values["timeout_seconds"] <= 120:
+        if (
+            not isinstance(values["timeout_seconds"], int)
+            or not 5 <= values["timeout_seconds"] <= 120
+        ):
             raise ValueError("timeout_seconds 必须是 5 到 120 的整数")
         for key in ("case_search_enabled", "graph_search_enabled"):
             if not isinstance(values[key], bool):
