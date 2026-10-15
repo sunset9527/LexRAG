@@ -9,7 +9,6 @@ import sqlalchemy as sa
 
 from alembic import op
 
-
 revision = "20261001_02"
 down_revision = "20261001_01"
 branch_labels = None
@@ -39,9 +38,16 @@ def upgrade() -> None:
             sa.Column("header", sa.Text(), nullable=True),
             sa.Column("footer", sa.Text(), nullable=True),
             sa.Column("parse_warnings", sa.JSON(), nullable=False),
-            sa.Column("created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
+            sa.Column(
+                "created_at",
+                sa.DateTime(),
+                server_default=sa.text("CURRENT_TIMESTAMP"),
+                nullable=False,
+            ),
             sa.CheckConstraint("page_number >= 1", name="ck_document_pages_page_number"),
-            sa.UniqueConstraint("document_id", "page_number", name="uq_document_pages_document_page"),
+            sa.UniqueConstraint(
+                "document_id", "page_number", name="uq_document_pages_document_page"
+            ),
         )
         op.create_index("ix_document_pages_document_id", "document_pages", ["document_id"])
 
@@ -60,11 +66,18 @@ def upgrade() -> None:
             sa.Column("parser_version", sa.String(length=32), nullable=False),
             sa.Column("status", sa.String(length=16), nullable=False),
             sa.Column("error_message", sa.Text(), nullable=True),
-            sa.Column("created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
+            sa.Column(
+                "created_at",
+                sa.DateTime(),
+                server_default=sa.text("CURRENT_TIMESTAMP"),
+                nullable=False,
+            ),
             sa.Column("updated_at", sa.DateTime(), nullable=True),
             sa.UniqueConstraint("document_id", name="uq_document_structures_document"),
         )
-        op.create_index("ix_document_structures_document_id", "document_structures", ["document_id"])
+        op.create_index(
+            "ix_document_structures_document_id", "document_structures", ["document_id"]
+        )
 
     if not inspector.has_table("document_relations"):
         op.create_table(
@@ -85,13 +98,20 @@ def upgrade() -> None:
             sa.Column("evidence_text", sa.Text(), nullable=True),
             sa.Column("created_by", sa.String(length=32), nullable=False),
             sa.Column("engine_version", sa.String(length=32), nullable=False),
-            sa.Column("created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
+            sa.Column(
+                "created_at",
+                sa.DateTime(),
+                server_default=sa.text("CURRENT_TIMESTAMP"),
+                nullable=False,
+            ),
             sa.CheckConstraint(
                 "law_article IS NOT NULL OR similarity IS NOT NULL OR evidence_text IS NOT NULL",
                 name="ck_document_relations_evidence",
             ),
         )
-        op.create_index("ix_document_relations_source_document_id", "document_relations", ["source_document_id"])
+        op.create_index(
+            "ix_document_relations_source_document_id", "document_relations", ["source_document_id"]
+        )
         op.create_index("ix_document_relations_target_id", "document_relations", ["target_id"])
 
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 PDF 解析器测试：用真实生成的 PDF 验证「文本层 + RapidOCR 扫描页 OCR」双通道
 
@@ -9,6 +8,7 @@ PDF 解析器测试：用真实生成的 PDF 验证「文本层 + RapidOCR 扫�
 - sample_text_law.pdf     文本型：fitz 内置中文字体写入文本层
 - sample_scanned_law.pdf  扫描型：PIL 渲染中文图片插入整页（无文本层）
 """
+
 import os
 import sys
 
@@ -16,7 +16,6 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 import fitz
-import pytest
 
 from src.ingestion.pdf_parser import parse_pdf, parse_pdf_to_txt
 
@@ -35,8 +34,12 @@ LAW_SAMPLE = (
 
 def _find_cjk_font():
     """查找 Windows 中文字体，保证 PIL 渲染的图片能被 RapidOCR 识别"""
-    for cand in [r"C:\Windows\Fonts\msyh.ttc", r"C:\Windows\Fonts\simhei.ttf",
-                 r"C:\Windows\Fonts\simsun.ttc", r"C:\Windows\Fonts\Deng.ttf"]:
+    for cand in [
+        r"C:\Windows\Fonts\msyh.ttc",
+        r"C:\Windows\Fonts\simhei.ttf",
+        r"C:\Windows\Fonts\simsun.ttc",
+        r"C:\Windows\Fonts\Deng.ttf",
+    ]:
         if os.path.exists(cand):
             return cand
     return None
@@ -58,6 +61,7 @@ def _ensure_fixtures():
     # 2) 扫描型 PDF：PIL 把中文渲染成图片 → 插入为整页图片（无文本层）
     if not os.path.exists(SCANNED_PDF):
         from PIL import Image, ImageDraw, ImageFont
+
         font_path = _find_cjk_font()
         assert font_path, "未找到 Windows 中文字体，无法生成扫描测试件"
         img = Image.new("RGB", (1100, 320), "white")

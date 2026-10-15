@@ -13,6 +13,7 @@ import pytest
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
+from scripts.ingest_statutes import STATUTE_DEFINITIONS  # noqa: E402
 from src.ingestion.statute_ingestion import (  # noqa: E402
     StatuteDefinition,
     StatuteIngestionRunner,
@@ -23,8 +24,6 @@ from src.ingestion.statute_ingestion import (  # noqa: E402
     prepare_statute_sources,
     validate_clean_law_text,
 )
-from scripts.ingest_statutes import STATUTE_DEFINITIONS  # noqa: E402
-
 
 COMPANY_LAW = """中华人民共和国公司法
 第一章 总则
@@ -48,9 +47,7 @@ def test_validate_clean_law_text_reports_a_traceable_article_range():
     assert report.article_count == 2
     assert report.first_article_number == 1
     assert report.last_article_number == 2
-    assert report.clean_text_sha256 == hashlib.sha256(
-        COMPANY_LAW.encode("utf-8")
-    ).hexdigest()
+    assert report.clean_text_sha256 == hashlib.sha256(COMPANY_LAW.encode("utf-8")).hexdigest()
 
 
 def test_validate_clean_law_text_keeps_inserted_articles_in_strict_order():
@@ -140,7 +137,9 @@ def test_extract_epub_text_keeps_reading_order_and_removes_html_markup(tmp_path)
 def test_extract_epub_text_honors_declared_gb18030_encoding(tmp_path):
     """本地书籍常用 GBK/GB18030，不能以 UTF-8 替换字符后再清洗。"""
     epub_path = tmp_path / "gb18030-law.epub"
-    html = '<html><head><meta charset="gb18030"></head><body><p>中华人民共和国刑法</p></body></html>'
+    html = (
+        '<html><head><meta charset="gb18030"></head><body><p>中华人民共和国刑法</p></body></html>'
+    )
     with ZipFile(epub_path, "w") as archive:
         archive.writestr("OPS/chapter-1.xhtml", html.encode("gb18030"))
 
@@ -173,10 +172,13 @@ def test_clean_statute_from_source_discards_catalog_and_annotations():
 
     clean_text = clean_statute_from_source(source_text, definition)
 
-    assert clean_text == """中华人民共和国公司法
+    assert (
+        clean_text
+        == """中华人民共和国公司法
 第一章 总则
 第一条 公司法正文一。
 第二条 公司法正文二。"""
+    )
 
 
 def test_clean_statute_from_source_keeps_multiline_article_body_before_annotation():
@@ -202,12 +204,15 @@ def test_clean_statute_from_source_keeps_multiline_article_body_before_annotatio
 
     clean_text = clean_statute_from_source(source_text, definition)
 
-    assert clean_text == """中华人民共和国刑法
+    assert (
+        clean_text
+        == """中华人民共和国刑法
 第一章 总则
 第一条
 为了惩罚犯罪，保护人民，制定本法。
 第二条
 中华人民共和国刑法的任务，是用刑罚同一切犯罪行为作斗争。"""
+    )
 
 
 def test_prepare_statute_sources_writes_raw_clean_text_and_manifest(tmp_path):
@@ -289,7 +294,9 @@ def test_batch_ingestion_keeps_ready_laws_when_one_law_fails_validation(tmp_path
     good_file = tmp_path / "company-law.txt"
     bad_file = tmp_path / "criminal-law.txt"
     good_file.write_text(COMPANY_LAW, encoding="utf-8")
-    bad_file.write_text("中华人民共和国刑法\n第一条 刑法正文。\n第一条 重复正文。", encoding="utf-8")
+    bad_file.write_text(
+        "中华人民共和国刑法\n第一条 刑法正文。\n第一条 重复正文。", encoding="utf-8"
+    )
     service = FakeKnowledgeBaseService()
     runner = StatuteIngestionRunner(service)
     definitions = [

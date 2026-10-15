@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, Text, func
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -24,7 +24,9 @@ class CaseSource(Base):
     processed_pages: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     ocr_engine: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
@@ -32,13 +34,17 @@ class CaseIngestionJob(Base):
     __tablename__ = "case_ingestion_jobs"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    source_id: Mapped[int] = mapped_column(ForeignKey("case_sources.id"), nullable=False, index=True)
+    source_id: Mapped[int] = mapped_column(
+        ForeignKey("case_sources.id"), nullable=False, index=True
+    )
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="PENDING")
     current_page: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     total_pages: Mapped[int] = mapped_column(Integer, nullable=False)
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
@@ -46,7 +52,9 @@ class LegalCase(Base):
     __tablename__ = "legal_cases"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    source_id: Mapped[int] = mapped_column(ForeignKey("case_sources.id"), nullable=False, index=True)
+    source_id: Mapped[int] = mapped_column(
+        ForeignKey("case_sources.id"), nullable=False, index=True
+    )
     sequence_no: Mapped[int] = mapped_column(Integer, nullable=False)
     title: Mapped[str | None] = mapped_column(String(512), nullable=True)
     domain: Mapped[str] = mapped_column(String(64), nullable=False, index=True)

@@ -10,9 +10,11 @@ def test_graph_rebuild_adds_all_parsed_articles_and_explicit_references(tmp_path
         encoding="utf-8",
     )
 
-    graph = build_graph_from_sources([
-        LawGraphSource(law_name="示例法", path=source),
-    ])
+    graph = build_graph_from_sources(
+        [
+            LawGraphSource(law_name="示例法", path=source),
+        ]
+    )
 
     assert graph.graph.number_of_nodes() == 2
     assert graph.graph.has_edge("示例法第2条", "示例法第1条")
@@ -25,9 +27,11 @@ def test_graph_rebuild_skips_references_to_articles_absent_from_the_current_sour
         encoding="utf-8",
     )
 
-    graph = build_graph_from_sources([
-        LawGraphSource(law_name="示例法", path=source),
-    ])
+    graph = build_graph_from_sources(
+        [
+            LawGraphSource(law_name="示例法", path=source),
+        ]
+    )
 
     assert graph.graph.number_of_nodes() == 2
     assert not graph.graph.has_edge("示例法第2条", "示例法第99条")

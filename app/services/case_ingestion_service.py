@@ -73,7 +73,9 @@ class CaseIngestionService:
             if session.get(CaseSource, source_id) is None:
                 raise ValueError(f"案例来源不存在: {source_id}")
             case = LegalCase(
-                id=str(uuid5(NAMESPACE_URL, f"lexrag:case-source:{source_id}:sequence:{sequence_no}")),
+                id=str(
+                    uuid5(NAMESPACE_URL, f"lexrag:case-source:{source_id}:sequence:{sequence_no}")
+                ),
                 source_id=source_id,
                 sequence_no=sequence_no,
                 title=parsed.title,
@@ -158,7 +160,9 @@ class CaseIngestionService:
         with self._session_factory() as session:
             return {
                 "case_count": int(session.scalar(select(func.count()).select_from(LegalCase)) or 0),
-                "source_count": int(session.scalar(select(func.count()).select_from(CaseSource)) or 0),
+                "source_count": int(
+                    session.scalar(select(func.count()).select_from(CaseSource)) or 0
+                ),
             }
 
     def get_case(self, case_id: str) -> dict[str, Any]:

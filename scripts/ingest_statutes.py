@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from datetime import datetime
 from pathlib import Path
-import sys
-
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -18,7 +17,6 @@ from src.ingestion.statute_ingestion import (  # noqa: E402
     prepare_statute_sources,
     validate_clean_law_text,
 )
-
 
 SOURCE_DIRECTORY = Path(r"E:\个人发展\002职业\项目1：RAG法律")
 RAW_DIRECTORY = PROJECT_ROOT / "data" / "laws" / "raw"
@@ -96,9 +94,7 @@ def source_files() -> dict[str, Path]:
     for source_id, pattern in patterns.items():
         matches = list(SOURCE_DIRECTORY.glob(pattern))
         if len(matches) != 1:
-            raise FileNotFoundError(
-                f"来源文件应唯一匹配 {pattern}，实际匹配 {len(matches)} 个"
-            )
+            raise FileNotFoundError(f"来源文件应唯一匹配 {pattern}，实际匹配 {len(matches)} 个")
         resolved[source_id] = matches[0]
     return resolved
 
@@ -116,7 +112,9 @@ def selected_definitions(slug: str | None) -> tuple[StatuteDefinition, ...]:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     action = parser.add_mutually_exclusive_group(required=True)
-    action.add_argument("--prepare", action="store_true", help="从原始 EPUB 重建 raw、clean 与 manifest")
+    action.add_argument(
+        "--prepare", action="store_true", help="从原始 EPUB 重建 raw、clean 与 manifest"
+    )
     action.add_argument("--validate-only", action="store_true", help="只校验已生成的 clean 文本")
     action.add_argument("--all", action="store_true", help="将全部已校验法规写入独立知识库")
     parser.add_argument("--law", help="单独处理的法规 slug")
@@ -139,9 +137,7 @@ def main() -> int:
 
     if args.validate_only:
         for definition in definitions:
-            content = (CLEAN_TEXT_DIRECTORY / f"{definition.slug}.txt").read_text(
-                encoding="utf-8"
-            )
+            content = (CLEAN_TEXT_DIRECTORY / f"{definition.slug}.txt").read_text(encoding="utf-8")
             report = validate_clean_law_text(content, definition)
             print(
                 f"{definition.slug}: {report.article_count} 条，"

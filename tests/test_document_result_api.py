@@ -3,9 +3,9 @@
 import asyncio
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
-from types import SimpleNamespace
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
@@ -64,7 +64,14 @@ def test_batch_document_route_delegates_all_files_once_and_returns_independent_i
                 data={"chunk_size": "900", "chunk_overlap": "100"},
                 files=[
                     ("files", ("one.pdf", b"one", "application/pdf")),
-                    ("files", ("two.docx", b"two", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")),
+                    (
+                        "files",
+                        (
+                            "two.docx",
+                            b"two",
+                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        ),
+                    ),
                 ],
             )
 
@@ -74,11 +81,17 @@ def test_batch_document_route_delegates_all_files_once_and_returns_independent_i
         api.app.dependency_overrides.pop(api.get_authorization_context, None)
 
     assert response.status_code == 202
-    assert [item["original_filename"] for item in response.json()["items"]] == ["one.pdf", "two.docx"]
+    assert [item["original_filename"] for item in response.json()["items"]] == [
+        "one.pdf",
+        "two.docx",
+    ]
     assert len(service.calls) == 1
     assert service.calls[0]["knowledge_base_slug"] == "contracts"
     assert service.calls[0]["chunk_size"] == 900
-    assert [item["original_filename"] for item in service.calls[0]["submissions"]] == ["one.pdf", "two.docx"]
+    assert [item["original_filename"] for item in service.calls[0]["submissions"]] == [
+        "one.pdf",
+        "two.docx",
+    ]
     assert all(not item["source_path"].exists() for item in service.calls[0]["submissions"])
 
 
@@ -97,7 +110,9 @@ def test_document_result_routes_delegate_to_result_service_without_starting_work
         transport = httpx.ASGITransport(app=api.app)
         async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
             result = await client.get("/documents/document-1/result")
-            pages = await client.get("/documents/document-1/pages", params={"page": 2, "page_size": 10})
+            pages = await client.get(
+                "/documents/document-1/pages", params={"page": 2, "page_size": 10}
+            )
             relations = await client.get("/documents/document-1/relations")
             return result, pages, relations
 

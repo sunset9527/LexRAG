@@ -65,8 +65,10 @@ class DocumentProcessingService:
         parsed_path = self._parsed_root / knowledge_base_slug / "parsed" / f"{job_id}.txt"
         parsed_path.parent.mkdir(parents=True, exist_ok=True)
         parsed_path.write_text(parsed_text, encoding="utf-8")
-        page_count = len(rich_pages) if rich_pages is not None else max(
-            (int(segment.get("page", 0)) for segment in segments), default=0
+        page_count = (
+            len(rich_pages)
+            if rich_pages is not None
+            else max((int(segment.get("page", 0)) for segment in segments), default=0)
         )
 
         with self._session_factory() as session:
@@ -199,9 +201,7 @@ class DocumentProcessingService:
 
     @staticmethod
     def _get_knowledge_base(session: Session, slug: str) -> KnowledgeBase:
-        knowledge_base = session.scalar(
-            select(KnowledgeBase).where(KnowledgeBase.slug == slug)
-        )
+        knowledge_base = session.scalar(select(KnowledgeBase).where(KnowledgeBase.slug == slug))
         if knowledge_base is None:
             raise ValueError(f"知识库不存在: {slug}")
         return knowledge_base

@@ -92,17 +92,20 @@ def apply_verified_supplement(
 
 def _parse_contract(pages: list[PageText]) -> dict:
     clauses = _split_clauses(pages)
-    content = {key: None for key in (
-        "parties",
-        "subject",
-        "remuneration",
-        "performance",
-        "breach",
-        "exemption",
-        "dispute_resolution",
-        "jurisdiction",
-        "term",
-    )}
+    content = {
+        key: None
+        for key in (
+            "parties",
+            "subject",
+            "remuneration",
+            "performance",
+            "breach",
+            "exemption",
+            "dispute_resolution",
+            "jurisdiction",
+            "term",
+        )
+    }
     content["parties"] = _contract_parties(pages)
     content["clauses"] = [
         {

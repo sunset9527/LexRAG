@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import json
+import re
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from hashlib import sha256
 from html.parser import HTMLParser
-import json
 from pathlib import Path
-import re
-from typing import Any, Mapping, Protocol, Sequence
+from typing import Any, Protocol
 from xml.etree import ElementTree
 from zipfile import ZipFile
 
@@ -97,9 +98,7 @@ class _EpubHtmlTextExtractor(HTMLParser):
 
     def text(self) -> str:
         return "\n".join(
-            " ".join(line.split())
-            for line in "".join(self._parts).splitlines()
-            if line.strip()
+            " ".join(line.split()) for line in "".join(self._parts).splitlines() if line.strip()
         )
 
 
@@ -138,9 +137,7 @@ def _decode_epub_html(raw_html: bytes) -> str:
 def _epub_chapter_names(archive: ZipFile) -> list[str]:
     """读取 OPF spine；遇到非标准 EPUB 时以 HTML 文件名回退。"""
     html_names = sorted(
-        name
-        for name in archive.namelist()
-        if name.lower().endswith((".html", ".htm", ".xhtml"))
+        name for name in archive.namelist() if name.lower().endswith((".html", ".htm", ".xhtml"))
     )
     try:
         container = ElementTree.fromstring(archive.read("META-INF/container.xml"))
@@ -155,9 +152,8 @@ def _epub_chapter_names(archive: ZipFile) -> list[str]:
         href_by_id = {
             item.attrib["id"]: item.attrib["href"]
             for item in manifest
-            if item.tag.endswith("item") and item.attrib.get("href", "").lower().endswith(
-                (".html", ".htm", ".xhtml")
-            )
+            if item.tag.endswith("item")
+            and item.attrib.get("href", "").lower().endswith((".html", ".htm", ".xhtml"))
         }
         opf_directory = str(Path(rootfile).parent).replace("\\", "/")
         chapter_names = []
@@ -219,7 +215,10 @@ def clean_statute_from_source(source_text: str, definition: StatuteDefinition) -
                 cleaned.append(normalized)
                 article = LawParser().parse_law_content(normalized, definition.name)[0]
                 is_collecting_body = True
-                if _article_number_sort_key(article.article_number)[0] == definition.terminal_article_number:
+                if (
+                    _article_number_sort_key(article.article_number)[0]
+                    == definition.terminal_article_number
+                ):
                     terminal_started = True
             elif _STRUCTURE_TITLE.match(line):
                 if terminal_started:
@@ -345,17 +344,13 @@ def prepare_statute_sources(
     return manifest
 
 
-def validate_clean_law_text(
-    content: str, definition: StatuteDefinition
-) -> StatuteValidationReport:
+def validate_clean_law_text(content: str, definition: StatuteDefinition) -> StatuteValidationReport:
     """校验单部法规标题、条号连续顺序和可解析性。"""
     lines = [line.strip() for line in content.splitlines() if line.strip()]
     if not lines:
         raise StatuteValidationError("清洗文本为空")
     if lines[0] != definition.name:
-        raise StatuteValidationError(
-            f"法律标题不匹配: 期望 {definition.name}，实际 {lines[0]}"
-        )
+        raise StatuteValidationError(f"法律标题不匹配: 期望 {definition.name}，实际 {lines[0]}")
 
     articles = LawParser().parse_law_content(content, definition.name)
     if not articles:
@@ -366,7 +361,7 @@ def validate_clean_law_text(
 
     seen: set[str] = set()
     previous: tuple[int, int] | None = None
-    for number, key in zip(article_numbers, article_keys):
+    for number, key in zip(article_numbers, article_keys, strict=True):
         if number in seen:
             raise StatuteValidationError(f"条号重复: {number}")
         if previous is not None and key <= previous:
@@ -399,9 +394,7 @@ class StatuteIngestionRunner:
         summary = IngestionSummary()
         for definition in definitions:
             try:
-                result = self.ingest_one(
-                    definition, clean_text_directory=clean_text_directory
-                )
+                result = self.ingest_one(definition, clean_text_directory=clean_text_directory)
             except (OSError, StatuteValidationError, ValueError) as exc:
                 summary.failed.append(IngestionResult(definition.slug, reason=str(exc)))
             else:

@@ -12,7 +12,9 @@ from src.ingestion.case_parser import AnnualCaseParser
 class AnnualCaseBookProcessor:
     """处理一份已登记案例源；OCR 页文本落盘后可从检查点恢复。"""
 
-    def __init__(self, *, service: CaseIngestionService, scanner: Any, indexer: Any, ocr_root: Path):
+    def __init__(
+        self, *, service: CaseIngestionService, scanner: Any, indexer: Any, ocr_root: Path
+    ):
         self._service = service
         self._scanner = scanner
         self._indexer = indexer
@@ -24,13 +26,17 @@ class AnnualCaseBookProcessor:
         pages = self._read_pages(pages_file)
         start_page = (pages[-1]["page"] + 1) if pages else 1
         self._service.update_source_progress(
-            source_id, status="OCR_RUNNING", processed_pages=len(pages),
+            source_id,
+            status="OCR_RUNNING",
+            processed_pages=len(pages),
         )
 
         def checkpoint(batch: list[dict[str, Any]]) -> None:
             self._append_pages(pages_file, batch)
             self._service.update_source_progress(
-                source_id, status="OCR_RUNNING", processed_pages=batch[-1]["page"],
+                source_id,
+                status="OCR_RUNNING",
+                processed_pages=batch[-1]["page"],
             )
 
         try:
@@ -42,17 +48,23 @@ class AnnualCaseBookProcessor:
             )
             pages = self._read_pages(pages_file)
             self._service.update_source_progress(
-                source_id, status="STRUCTURING", processed_pages=len(pages),
+                source_id,
+                status="STRUCTURING",
+                processed_pages=len(pages),
             )
             cases = self._parse_cases(source, pages)
             self._service.clear_cases_for_source(source_id)
             persisted = [
-                self._service.persist_case(source_id=source_id, sequence_no=index + 1, parsed=parsed)
+                self._service.persist_case(
+                    source_id=source_id, sequence_no=index + 1, parsed=parsed
+                )
                 for index, parsed in enumerate(cases)
             ]
             indexed_count = self._indexer.upsert_cases(persisted)
             self._service.update_source_progress(
-                source_id, status="COMPLETED", processed_pages=len(pages),
+                source_id,
+                status="COMPLETED",
+                processed_pages=len(pages),
             )
             return {
                 "source_id": source_id,
@@ -62,7 +74,10 @@ class AnnualCaseBookProcessor:
             }
         except Exception as exc:
             self._service.update_source_progress(
-                source_id, status="FAILED", processed_pages=len(self._read_pages(pages_file)), error_message=str(exc),
+                source_id,
+                status="FAILED",
+                processed_pages=len(self._read_pages(pages_file)),
+                error_message=str(exc),
             )
             raise
 
@@ -84,10 +99,14 @@ class AnnualCaseBookProcessor:
 
     @staticmethod
     def _split_by_focus(pages: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
-        anchors = [index for index, page in enumerate(pages) if "【案件焦点】" in page.get("text", "")]
+        anchors = [
+            index for index, page in enumerate(pages) if "【案件焦点】" in page.get("text", "")
+        ]
         if not anchors:
             return [pages] if pages else []
-        return [pages[start:end] for start, end in zip(anchors, anchors[1:] + [len(pages)])]
+        return [
+            pages[start:end] for start, end in zip(anchors, anchors[1:] + [len(pages)], strict=True)
+        ]
 
     @staticmethod
     def _read_pages(path: Path) -> list[dict[str, Any]]:

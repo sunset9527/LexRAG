@@ -1,9 +1,8 @@
 """将年度案例 OCR 页面解析为可追溯的结构化案例。"""
 
-from dataclasses import dataclass, field
 import re
+from dataclasses import dataclass, field
 from typing import Any
-
 
 SECTION_PATTERN = re.compile(r"【([^】]+)】")
 LEGAL_BASIS_PATTERN = re.compile(r"《[^》]+》第[一二三四五六七八九十百千万0-9]+条")
@@ -50,7 +49,11 @@ class AnnualCaseParser:
         result = self._judgment_result(content)
         facts = self._facts_before_first_section(content, title)
         warnings = []
-        for name, value in (("案件焦点", issues), ("法院裁判要旨/裁判理由", reasoning), ("裁判结果", result)):
+        for name, value in (
+            ("案件焦点", issues),
+            ("法院裁判要旨/裁判理由", reasoning),
+            ("裁判结果", result),
+        ):
             if not value:
                 warnings.append(f"未识别{name}")
         if not title:

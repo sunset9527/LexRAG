@@ -60,9 +60,9 @@ class CaseOcrScanner:
 
 def build_annual_case_scanner(dpi: int = 150) -> CaseOcrScanner:
     """构造使用 PyMuPDF + RapidOCR 的真实扫描器。"""
-    from src.ingestion.pdf_parser import _ocr_page
-
     import fitz
+
+    from src.ingestion.pdf_parser import _ocr_page
 
     def ocr_page(path: Path, page_number: int) -> str:
         document = fitz.open(path)

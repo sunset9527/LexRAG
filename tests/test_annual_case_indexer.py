@@ -24,20 +24,22 @@ def test_index_cases_writes_independent_case_ids_and_retrieval_metadata():
     store = VectorStore()
     indexer = AnnualCaseIndexer(vectorstore=store)
 
-    count = indexer.upsert_cases([
-        {
-            "id": "case-1",
-            "source_id": 8,
-            "domain": "labor",
-            "case_cause": "确认劳动关系纠纷",
-            "title": "某甲诉某公司劳动争议案",
-            "issues": "是否存在劳动关系",
-            "court_reasoning": "从属性审查",
-            "judgment_result": "驳回诉讼请求",
-            "source_start_page": 14,
-            "source_end_page": 16,
-        }
-    ])
+    count = indexer.upsert_cases(
+        [
+            {
+                "id": "case-1",
+                "source_id": 8,
+                "domain": "labor",
+                "case_cause": "确认劳动关系纠纷",
+                "title": "某甲诉某公司劳动争议案",
+                "issues": "是否存在劳动关系",
+                "court_reasoning": "从属性审查",
+                "judgment_result": "驳回诉讼请求",
+                "source_start_page": 14,
+                "source_end_page": 16,
+            }
+        ]
+    )
 
     assert count == 1
     assert store.ids == ["case:case-1"]

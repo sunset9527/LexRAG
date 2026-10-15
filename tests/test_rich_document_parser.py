@@ -14,7 +14,9 @@ from src.ingestion.rich_document_parser import parse_document_details
 def build_native_contract_pdf(path: Path) -> None:
     """生成带重复页眉页脚和矢量表格的自编 PDF 样本。"""
     document = fitz.open()
-    for page_number, body in enumerate(("Clause 1 employment term.", "Clause 2 monthly salary."), start=1):
+    for page_number, body in enumerate(
+        ("Clause 1 employment term.", "Clause 2 monthly salary."), start=1
+    ):
         page = document.new_page()
         page.insert_text((50, 36), "Labor Contract")
         page.insert_text((50, 100), body)

@@ -44,17 +44,19 @@ class AnnualCaseIndexer:
         ids = []
         for case in cases:
             case_id = case["id"]
-            documents.append(Document(
-                page_content=self._build_content(case),
-                metadata={
-                    "case_id": case_id,
-                    "source_id": case["source_id"],
-                    "domain": case["domain"],
-                    "case_cause": case["case_cause"],
-                    "source_start_page": case["source_start_page"],
-                    "source_end_page": case["source_end_page"],
-                },
-            ))
+            documents.append(
+                Document(
+                    page_content=self._build_content(case),
+                    metadata={
+                        "case_id": case_id,
+                        "source_id": case["source_id"],
+                        "domain": case["domain"],
+                        "case_cause": case["case_cause"],
+                        "source_start_page": case["source_start_page"],
+                        "source_end_page": case["source_end_page"],
+                    },
+                )
+            )
             ids.append(f"case:{case_id}")
         self._vectorstore.add_documents(documents, ids=ids)
         return len(documents)

@@ -42,7 +42,9 @@ class DocumentStructureService:
                 .where(DocumentPage.document_id == document_id)
                 .order_by(DocumentPage.page_number)
             ).all()
-            source_pages = [(page.page_number, page.search_text) for page in pages if page.search_text]
+            source_pages = [
+                (page.page_number, page.search_text) for page in pages if page.search_text
+            ]
             try:
                 parsed = self._parser(source_pages)
                 if self._supplementer is not None:

@@ -43,7 +43,14 @@ def test_contract_parser_extracts_numbered_clauses_with_source_evidence():
     assert result.content["dispute_resolution"]["value"].startswith("因履行本合同发生争议")
     assert result.content["jurisdiction"]["value"] == "北京市朝阳区人民法院"
     assert result.content["exemption"] is None
-    for field in ("parties", "subject", "remuneration", "breach", "dispute_resolution", "jurisdiction"):
+    for field in (
+        "parties",
+        "subject",
+        "remuneration",
+        "breach",
+        "dispute_resolution",
+        "jurisdiction",
+    ):
         assert result.content[field]["extraction_method"] == "rule"
         assert result.content[field]["evidence_text"] in "\n".join(text for _, text in result.pages)
 

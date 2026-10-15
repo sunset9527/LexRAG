@@ -1,9 +1,8 @@
 """将清洗后的民法典重建到 v1.9 专属知识库。"""
 
-from pathlib import Path
 import os
 import sys
-
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -12,8 +11,10 @@ os.chdir(PROJECT_ROOT)
 
 from app.db import session as db_session
 from app.db.session import init_db
-from app.services.knowledge_base_service import KnowledgeBaseAlreadyExistsError, KnowledgeBaseService
-
+from app.services.knowledge_base_service import (
+    KnowledgeBaseAlreadyExistsError,
+    KnowledgeBaseService,
+)
 
 SOURCE_FILE = PROJECT_ROOT / "data" / "laws" / "中华人民共和国民法典.txt"
 

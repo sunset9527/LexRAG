@@ -9,8 +9,8 @@ from sqlalchemy.orm import sessionmaker
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.db.base import Base
 import app.models.case_source  # noqa: F401
+from app.db.base import Base
 from app.services.case_ingestion_service import CaseIngestionService
 from src.ingestion.case_parser import AnnualCaseParser
 
@@ -45,12 +45,21 @@ def test_persist_case_keeps_structured_fields_and_source_pages(tmp_path):
     Base.metadata.create_all(engine)
     source_file = tmp_path / "劳动纠纷年度案例.pdf"
     source_file.write_bytes(b"case-book")
-    service = CaseIngestionService(sessionmaker(bind=engine, expire_on_commit=False), page_counter=lambda _path: 1)
-    source = service.register_source(path=source_file, title="劳动纠纷", domain="labor", publisher_note="用户提供")
+    service = CaseIngestionService(
+        sessionmaker(bind=engine, expire_on_commit=False), page_counter=lambda _path: 1
+    )
+    source = service.register_source(
+        path=source_file, title="劳动纠纷", domain="labor", publisher_note="用户提供"
+    )
     parsed = AnnualCaseParser(domain="labor").parse_case(
         sequence_no=1,
         case_cause="确认劳动关系纠纷",
-        pages=[{"page": 14, "text": "某甲诉某公司劳动争议案\n【案件焦点】是否存在劳动关系。\n【法院裁判要旨】审查从属性。\n判决如下：驳回诉讼请求。"}],
+        pages=[
+            {
+                "page": 14,
+                "text": "某甲诉某公司劳动争议案\n【案件焦点】是否存在劳动关系。\n【法院裁判要旨】审查从属性。\n判决如下：驳回诉讼请求。",
+            }
+        ],
     )
 
     case = service.persist_case(source_id=source["id"], sequence_no=1, parsed=parsed)
@@ -65,12 +74,43 @@ def test_list_cases_filters_by_domain_and_case_cause(tmp_path):
     """案例列表应允许按领域和案由过滤，不读取其他领域的案例。"""
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
-    file = tmp_path / "cases.pdf"; file.write_bytes(b"cases")
-    service = CaseIngestionService(sessionmaker(bind=engine, expire_on_commit=False), page_counter=lambda _path: 1)
-    source = service.register_source(path=file, title="案例", domain="labor", publisher_note="用户提供")
+    file = tmp_path / "cases.pdf"
+    file.write_bytes(b"cases")
+    service = CaseIngestionService(
+        sessionmaker(bind=engine, expire_on_commit=False), page_counter=lambda _path: 1
+    )
+    source = service.register_source(
+        path=file, title="案例", domain="labor", publisher_note="用户提供"
+    )
     parser = AnnualCaseParser(domain="labor")
-    service.persist_case(source_id=source["id"], sequence_no=1, parsed=parser.parse_case(sequence_no=1, case_cause="确认劳动关系纠纷", pages=[{"page": 1, "text": "某甲诉某公司案\n【案件焦点】劳动关系。\n【法院裁判要旨】审查从属性。\n判决如下：驳回。"}]))
-    service.persist_case(source_id=source["id"], sequence_no=2, parsed=parser.parse_case(sequence_no=2, case_cause="劳动报酬纠纷", pages=[{"page": 2, "text": "某乙诉某公司案\n【案件焦点】工资。\n【法院裁判要旨】审查欠薪。\n判决如下：支持。"}]))
+    service.persist_case(
+        source_id=source["id"],
+        sequence_no=1,
+        parsed=parser.parse_case(
+            sequence_no=1,
+            case_cause="确认劳动关系纠纷",
+            pages=[
+                {
+                    "page": 1,
+                    "text": "某甲诉某公司案\n【案件焦点】劳动关系。\n【法院裁判要旨】审查从属性。\n判决如下：驳回。",
+                }
+            ],
+        ),
+    )
+    service.persist_case(
+        source_id=source["id"],
+        sequence_no=2,
+        parsed=parser.parse_case(
+            sequence_no=2,
+            case_cause="劳动报酬纠纷",
+            pages=[
+                {
+                    "page": 2,
+                    "text": "某乙诉某公司案\n【案件焦点】工资。\n【法院裁判要旨】审查欠薪。\n判决如下：支持。",
+                }
+            ],
+        ),
+    )
 
     cases = service.list_cases(domain="labor", case_cause="确认劳动关系纠纷")
 
@@ -84,12 +124,21 @@ def test_list_sources_and_get_case_keep_the_traceability_fields(tmp_path):
     Base.metadata.create_all(engine)
     file = tmp_path / "cases.pdf"
     file.write_bytes(b"cases")
-    service = CaseIngestionService(sessionmaker(bind=engine, expire_on_commit=False), page_counter=lambda _path: 2)
-    source = service.register_source(path=file, title="劳动案例", domain="labor", publisher_note="用户提供")
+    service = CaseIngestionService(
+        sessionmaker(bind=engine, expire_on_commit=False), page_counter=lambda _path: 2
+    )
+    source = service.register_source(
+        path=file, title="劳动案例", domain="labor", publisher_note="用户提供"
+    )
     parsed = AnnualCaseParser(domain="labor").parse_case(
         sequence_no=1,
         case_cause="确认劳动关系纠纷",
-        pages=[{"page": 2, "text": "某甲诉某公司案\n【案件焦点】劳动关系。\n【法院裁判要旨】审查从属性。\n判决如下：驳回。"}],
+        pages=[
+            {
+                "page": 2,
+                "text": "某甲诉某公司案\n【案件焦点】劳动关系。\n【法院裁判要旨】审查从属性。\n判决如下：驳回。",
+            }
+        ],
     )
     created = service.persist_case(source_id=source["id"], sequence_no=1, parsed=parsed)
 

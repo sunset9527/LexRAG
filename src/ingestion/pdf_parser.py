@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 PDF/扫描件解析器 —— 非结构化文档 → 结构化文本
 
@@ -11,9 +10,9 @@ PDF/扫描件解析器 —— 非结构化文档 → 结构化文本
 注意：本模块只负责「把字抠出来」，不做中文数字/条文章节结构识别，
 下游（如 law_parser）负责 编→章→节→条 的结构化解析。
 """
+
 import logging
 from pathlib import Path
-from typing import List, Dict, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +25,7 @@ def _get_ocr_engine():
     global _ocr_engine
     if _ocr_engine is None:
         from rapidocr_onnxruntime import RapidOCR
+
         _ocr_engine = RapidOCR()
         logger.info("RapidOCR 引擎已加载")
     return _ocr_engine
@@ -56,10 +56,10 @@ def _ocr_page(page, dpi: int = 200) -> str:
 
 
 def parse_pdf(
-    path: Union[str, Path],
+    path: str | Path,
     ocr_fallback: bool = True,
     ocr_char_threshold: int = 20,
-) -> List[Dict]:
+) -> list[dict]:
     """
     解析 PDF，逐页返回提取结果
 
@@ -79,7 +79,7 @@ def parse_pdf(
     import fitz
 
     doc = fitz.open(path)
-    pages: List[Dict] = []
+    pages: list[dict] = []
     try:
         for idx, page in enumerate(doc, start=1):
             text = page.get_text("text") or ""
@@ -100,22 +100,24 @@ def parse_pdf(
                 else:
                     source = "empty"
 
-            pages.append({
-                "page": idx,
-                "text": text,
-                "source": source,
-                "char_count": char_count,
-            })
+            pages.append(
+                {
+                    "page": idx,
+                    "text": text,
+                    "source": source,
+                    "char_count": char_count,
+                }
+            )
     finally:
         doc.close()
     return pages
 
 
 def parse_pdf_to_txt(
-    path: Union[str, Path],
-    out_txt: Optional[str] = None,
+    path: str | Path,
+    out_txt: str | None = None,
     ocr_fallback: bool = True,
-    pages: Optional[List[Dict]] = None,
+    pages: list[dict] | None = None,
 ) -> str:
     """
     解析 PDF 并导出合并纯文本（LexRAG 喂给 law_parser 前的一步）

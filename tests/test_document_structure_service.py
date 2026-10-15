@@ -9,9 +9,10 @@ from sqlalchemy.orm import sessionmaker
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.db.base import Base
 import app.models.document_job  # noqa: F401
 import app.models.knowledge_base  # noqa: F401
+import app.models.organization  # noqa: F401
+from app.db.base import Base
 from app.models.document_job import DocumentJob
 from app.models.document_page import DocumentPage
 from app.models.document_structure import DocumentStructure
@@ -77,7 +78,9 @@ def test_structure_service_records_failure_without_changing_document_job_status(
     """结构化异常必须可见，但不能把已入库文档主任务改成失败。"""
     factory = build_session_factory()
 
-    result = DocumentStructureService(factory, parser=lambda _pages: (_ for _ in ()).throw(ValueError("解析器异常"))).process("contract-1")
+    result = DocumentStructureService(
+        factory, parser=lambda _pages: (_ for _ in ()).throw(ValueError("解析器异常"))
+    ).process("contract-1")
 
     assert result["status"] == "FAILED"
     assert "解析器异常" in result["error_message"]
@@ -88,21 +91,22 @@ def test_structure_service_records_failure_without_changing_document_job_status(
 def test_structure_service_only_persists_llm_candidates_with_page_evidence():
     """LLM 候选默认不能覆盖规则结果，且没有原文依据的字段必须被丢弃。"""
     factory = build_session_factory()
-    supplementer = lambda _parsed: [
-        {
-            "field": "performance",
-            "value": "签约后7日",
-            "page_number": 1,
-            "evidence_text": "履行时间为签约后7日",
-            "confidence": 0.8,
-        },
-        {
-            "field": "remuneration",
-            "value": "每月十万元",
-            "page_number": 1,
-            "evidence_text": "模型推断",
-        },
-    ]
+    def supplementer(_parsed):
+        return [
+            {
+                "field": "performance",
+                "value": "签约后7日",
+                "page_number": 1,
+                "evidence_text": "履行时间为签约后7日",
+                "confidence": 0.8,
+            },
+            {
+                "field": "remuneration",
+                "value": "每月十万元",
+                "page_number": 1,
+                "evidence_text": "模型推断",
+            },
+        ]
 
     result = DocumentStructureService(factory, supplementer=supplementer).process("contract-1")
 

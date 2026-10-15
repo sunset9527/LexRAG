@@ -50,9 +50,7 @@ class DocumentResultService:
         with self._session_factory() as session:
             return self._get_job(session, document_id).knowledge_base_slug
 
-    def list_pages(
-        self, document_id: str, *, page: int, page_size: int
-    ) -> dict[str, Any]:
+    def list_pages(self, document_id: str, *, page: int, page_size: int) -> dict[str, Any]:
         """按页码稳定分页读取一份文档的逐页解析结果。"""
         if page < 1:
             raise ValueError("页码必须大于等于 1")
@@ -61,9 +59,7 @@ class DocumentResultService:
         with self._session_factory() as session:
             self._get_job(session, document_id)
             total = session.scalar(
-                select(func.count(DocumentPage.id)).where(
-                    DocumentPage.document_id == document_id
-                )
+                select(func.count(DocumentPage.id)).where(DocumentPage.document_id == document_id)
             )
             pages = session.scalars(
                 select(DocumentPage)

@@ -3,15 +3,16 @@
 自动任务只负责发现变化；将来源内容投入索引前必须由组织管理员确认。
 """
 
+from uuid import uuid4
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, Field, HttpUrl
 
 from app.api.admin import get_authorization_context
 from app.db import session as db_session
+from app.services.audit_service import AuditService
 from app.services.authorization_service import AuthorizationContext
 from app.services.law_update_service import LawUpdateService
-from app.services.audit_service import AuditService
-from uuid import uuid4
 
 router = APIRouter(prefix="/law-updates", tags=["法规更新"])
 
@@ -24,6 +25,7 @@ class SubscriptionRequest(BaseModel):
 
 class SnapshotRequest(BaseModel):
     """仅用于本机演示或由受信采集任务调用；不接收用户上传法规作为正式来源。"""
+
     content: str = Field(min_length=1)
 
 
@@ -38,11 +40,18 @@ def _require_admin(context: AuthorizationContext) -> None:
         raise HTTPException(status_code=403, detail="权限不足")
 
 
-def _audit(service: LawUpdateService, context: AuthorizationContext, action: str, target_id: str) -> None:
+def _audit(
+    service: LawUpdateService, context: AuthorizationContext, action: str, target_id: str
+) -> None:
     try:
         AuditService(service.session_factory).append_event(
-            event_id=str(uuid4()), organization_id=context.organization_id, actor_user_id=context.user_id,
-            action=action, target_type="law_update", target_id=target_id, status="success",
+            event_id=str(uuid4()),
+            organization_id=context.organization_id,
+            actor_user_id=context.user_id,
+            action=action,
+            target_type="law_update",
+            target_id=target_id,
+            status="success",
         )
     except Exception:
         pass
@@ -114,6 +123,7 @@ def confirm_event(
         _audit(service, context, "law_update.confirmed", str(event_id))
         if result.get("knowledge_base_slug"):
             from app.tasks.law_update_tasks import rebuild_confirmed_law_version_task
+
             rebuild_confirmed_law_version_task.delay(event_id, context.organization_id)
         return result
     except ValueError as exc:

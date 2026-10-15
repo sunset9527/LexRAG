@@ -59,10 +59,14 @@ def main() -> None:
             publisher_note="用户提供的本地年度案例 PDF；保留文件哈希和本地路径用于追溯。",
         )
         sources.append(source)
-        print(f"已登记: id={source['id']} | {source['domain']} | {path.name} | {source['page_count']} 页")
+        print(
+            f"已登记: id={source['id']} | {source['domain']} | {path.name} | {source['page_count']} 页"
+        )
 
     if not args.process:
-        print("仅完成来源登记。需要执行 OCR 时，重新运行并加 --process；建议先用 --filename 指定一本验证。")
+        print(
+            "仅完成来源登记。需要执行 OCR 时，重新运行并加 --process；建议先用 --filename 指定一本验证。"
+        )
         return
 
     processor = AnnualCaseBookProcessor(

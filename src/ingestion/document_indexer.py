@@ -33,9 +33,7 @@ class DocumentIndexer:
         ids = []
         for index, chunk in enumerate(chunks):
             metadata = {
-                key: value
-                for key, value in chunk.get("metadata", {}).items()
-                if value is not None
+                key: value for key, value in chunk.get("metadata", {}).items() if value is not None
             }
             document_id = metadata["document_id"]
             documents.append(Document(page_content=chunk["content"], metadata=metadata))

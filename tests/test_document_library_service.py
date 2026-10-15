@@ -9,8 +9,8 @@ from sqlalchemy.orm import sessionmaker
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.db.base import Base
 import app.models.knowledge_base  # noqa: F401
+from app.db.base import Base
 from app.services.knowledge_base_service import KnowledgeBaseService
 
 

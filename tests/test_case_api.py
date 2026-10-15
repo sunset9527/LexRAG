@@ -17,7 +17,14 @@ class FakeCaseService:
         assert domain == "labor"
         assert case_cause == "确认劳动关系纠纷"
         assert source_id is None
-        return [{"id": "case-1", "domain": "labor", "case_cause": "确认劳动关系纠纷", "title": "某甲诉某公司劳动争议案"}]
+        return [
+            {
+                "id": "case-1",
+                "domain": "labor",
+                "case_cause": "确认劳动关系纠纷",
+                "title": "某甲诉某公司劳动争议案",
+            }
+        ]
 
     def list_sources(self, *, domain=None):
         assert domain == "labor"

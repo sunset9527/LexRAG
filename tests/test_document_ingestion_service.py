@@ -10,9 +10,9 @@ from sqlalchemy.orm import sessionmaker
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.db.base import Base
 import app.models.document_job  # noqa: F401
 import app.models.knowledge_base  # noqa: F401
+from app.db.base import Base
 from app.models.document_job import DocumentJob
 from app.models.document_page import DocumentPage
 from app.models.document_structure import DocumentStructure
@@ -129,9 +129,15 @@ def test_process_job_marks_document_and_library_ready_after_indexing(tmp_path):
             {"content": "劳动者主张", "page": 1},
             {"content": "主张加班费", "page": 1},
         ],
-        indexer_factory=lambda collection_name: (
-            type("Indexer", (), {"upsert_chunks": lambda _, chunks: indexed.append((collection_name, chunks)) or len(chunks)})()
-        ),
+        indexer_factory=lambda collection_name: type(
+            "Indexer",
+            (),
+            {
+                "upsert_chunks": lambda _, chunks: (
+                    indexed.append((collection_name, chunks)) or len(chunks)
+                )
+            },
+        )(),
     )
 
     completed = processor.process(job["id"])
@@ -186,12 +192,18 @@ def test_process_job_persists_rich_pages_and_chunks_only_search_text(tmp_path):
                 )
             ]
         ),
-        chunker=lambda segments, _size, _overlap: captured_segments.extend(segments)
-        or [{"content": segments[0]["text"], "page": segments[0]["page"]}],
+        chunker=lambda segments, _size, _overlap: (
+            captured_segments.extend(segments)
+            or [{"content": segments[0]["text"], "page": segments[0]["page"]}]
+        ),
         indexer_factory=lambda collection_name: type(
             "Indexer",
             (),
-            {"upsert_chunks": lambda _, chunks: indexed.append((collection_name, chunks)) or len(chunks)},
+            {
+                "upsert_chunks": lambda _, chunks: (
+                    indexed.append((collection_name, chunks)) or len(chunks)
+                )
+            },
         )(),
     )
 
@@ -204,7 +216,9 @@ def test_process_job_persists_rich_pages_and_chunks_only_search_text(tmp_path):
         page = session.query(DocumentPage).filter_by(document_id=job["id"], page_number=1).one()
         assert page.source == "ocr"
         assert page.ocr_confidence == 0.93
-        assert page.tables == [{"rows": [["岗位", "研发工程师"]], "bbox": [0.0, 0.0, 1.0, 1.0], "method": "pymupdf"}]
+        assert page.tables == [
+            {"rows": [["岗位", "研发工程师"]], "bbox": [0.0, 0.0, 1.0, 1.0], "method": "pymupdf"}
+        ]
         assert page.header == "劳动合同"
         assert page.footer == "第 1 页"
         assert page.parse_warnings == ["表格结构未经验证"]

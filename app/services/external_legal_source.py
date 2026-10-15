@@ -44,12 +44,19 @@ class MediaWikiLegalConceptSource:
                 )
                 response.raise_for_status()
         except (httpx.HTTPError, ValueError) as exc:
-            return ExternalSourceResult(self.source, False, [], f"external_request_failed:{type(exc).__name__}")
+            return ExternalSourceResult(
+                self.source, False, [], f"external_request_failed:{type(exc).__name__}"
+            )
         return ExternalSourceResult(
-            self.source, True,
-            [{
-                "title": item.get("title"), "description": item.get("description"),
-                "url": f"https://zh.wikipedia.org/wiki/{item.get('key', '')}",
-                "authority": "non_authoritative",
-            } for item in response.json().get("pages", [])],
+            self.source,
+            True,
+            [
+                {
+                    "title": item.get("title"),
+                    "description": item.get("description"),
+                    "url": f"https://zh.wikipedia.org/wiki/{item.get('key', '')}",
+                    "authority": "non_authoritative",
+                }
+                for item in response.json().get("pages", [])
+            ],
         )

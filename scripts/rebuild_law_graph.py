@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import sys
-
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.graph.rebuild import LawGraphSource, build_graph_from_sources  # noqa: E402
-
 
 SOURCES = (
     ("中华人民共和国民法典", "中华人民共和国民法典.txt"),
@@ -28,8 +26,7 @@ SOURCES = (
 def main() -> int:
     laws_directory = PROJECT_ROOT / "data" / "laws"
     graph = build_graph_from_sources(
-        LawGraphSource(law_name=name, path=laws_directory / filename)
-        for name, filename in SOURCES
+        LawGraphSource(law_name=name, path=laws_directory / filename) for name, filename in SOURCES
     )
     output = PROJECT_ROOT / "data" / "law_graph.json"
     graph.to_json(output)

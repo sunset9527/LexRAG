@@ -168,9 +168,7 @@ class DocumentIngestionService:
 
     @staticmethod
     def _get_document_library(session: Session, slug: str) -> KnowledgeBase:
-        knowledge_base = session.scalar(
-            select(KnowledgeBase).where(KnowledgeBase.slug == slug)
-        )
+        knowledge_base = session.scalar(select(KnowledgeBase).where(KnowledgeBase.slug == slug))
         if knowledge_base is None:
             raise ValueError(f"知识库不存在: {slug}")
         if knowledge_base.type != "document":
