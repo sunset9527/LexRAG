@@ -1,0 +1,3113 @@
+{
+  "overall": {
+    "sample_count": 100,
+    "top_k": 5,
+    "metrics": {
+      "recall_at_k": 0.92,
+      "mrr_at_k": 0.851167,
+      "ndcg_at_k": 0.86865
+    },
+    "items": [
+      {
+        "id": "civil-001",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第17条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第21条",
+          "中华人民共和国民法典第1098条",
+          "中华人民共和国民法典第29条",
+          "中华人民共和国民法典第24条",
+          "中华人民共和国民法典第17条"
+        ],
+        "first_relevant_rank": 5
+      },
+      {
+        "id": "civil-002",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第20条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第20条",
+          "中华人民共和国民法典第21条",
+          "中华人民共和国民法典第19条",
+          "中华人民共和国民法典第17条",
+          "中华人民共和国民法典第1104条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-003",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第16条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第16条",
+          "中华人民共和国民法典第57条",
+          "中华人民共和国民法典第13条",
+          "中华人民共和国民法典第797条",
+          "中华人民共和国民法典第18条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-004",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第188条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第188条",
+          "中华人民共和国民法典第419条",
+          "中华人民共和国民法典第192条",
+          "中华人民共和国民法典第536条",
+          "中华人民共和国民法典第694条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-005",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第1082条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第1082条",
+          "中华人民共和国民法典第1050条",
+          "中华人民共和国民法典第1087条",
+          "中华人民共和国民法典第1085条",
+          "中华人民共和国民法典第192条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-006",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第1254条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第1240条",
+          "中华人民共和国民法典第1241条",
+          "中华人民共和国民法典第1218条",
+          "中华人民共和国民法典第1249条",
+          "中华人民共和国民法典第182条"
+        ],
+        "first_relevant_rank": null
+      },
+      {
+        "id": "civil-007",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第705条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第705条",
+          "中华人民共和国民法典第717条",
+          "中华人民共和国民法典第758条",
+          "中华人民共和国民法典第721条",
+          "中华人民共和国民法典第757条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-008",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第586条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第586条",
+          "中华人民共和国民法典第588条",
+          "中华人民共和国民法典第587条",
+          "中华人民共和国民法典第679条",
+          "中华人民共和国民法典第890条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-009",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第491条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第491条",
+          "中华人民共和国民法典第1196条",
+          "中华人民共和国民法典第1195条",
+          "中华人民共和国民法典第501条",
+          "中华人民共和国民法典第1197条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-010",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第180条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第180条",
+          "中华人民共和国民法典第590条",
+          "中华人民共和国民法典第187条",
+          "中华人民共和国民法典第176条",
+          "中华人民共和国民法典第563条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-011",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第1136条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第1136条",
+          "中华人民共和国民法典第1137条",
+          "中华人民共和国民法典第1138条",
+          "中华人民共和国民法典第1135条",
+          "中华人民共和国民法典第1140条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-012",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第1064条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第1064条",
+          "中华人民共和国民法典第1065条",
+          "中华人民共和国民法典第1066条",
+          "中华人民共和国民法典第1062条",
+          "中华人民共和国民法典第1092条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-013",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第658条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第658条",
+          "中华人民共和国民法典第660条",
+          "中华人民共和国民法典第665条",
+          "中华人民共和国民法典第663条",
+          "中华人民共和国民法典第662条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-014",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第1105条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第1116条",
+          "中华人民共和国民法典第1105条",
+          "中华人民共和国民法典第1196条",
+          "中华人民共和国民法典第574条",
+          "中华人民共和国民法典第349条"
+        ],
+        "first_relevant_rank": 2
+      },
+      {
+        "id": "civil-015",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第1121条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第1121条",
+          "中华人民共和国民法典第694条",
+          "中华人民共和国民法典第230条",
+          "中华人民共和国民法典第1152条",
+          "中华人民共和国民法典第1124条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-016",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第7条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第7条",
+          "中华人民共和国民法典第6条",
+          "中华人民共和国民法典第5条",
+          "中华人民共和国民法典第509条",
+          "中华人民共和国民法典第930条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-017",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第27条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第27条",
+          "中华人民共和国民法典第28条",
+          "中华人民共和国民法典第29条",
+          "中华人民共和国民法典第33条",
+          "中华人民共和国民法典第32条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-018",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第143条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第143条",
+          "中华人民共和国民法典第158条",
+          "中华人民共和国民法典第156条",
+          "中华人民共和国民法典第159条",
+          "中华人民共和国民法典第145条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-019",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第152条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第152条",
+          "中华人民共和国民法典第149条",
+          "中华人民共和国民法典第148条",
+          "中华人民共和国民法典第541条",
+          "中华人民共和国民法典第145条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-020",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第278条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第278条",
+          "中华人民共和国民法典第946条",
+          "中华人民共和国民法典第281条",
+          "中华人民共和国民法典第950条",
+          "中华人民共和国民法典第947条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-021",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第465条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第465条",
+          "中华人民共和国民法典第939条",
+          "中华人民共和国民法典第119条",
+          "中华人民共和国民法典第1016条",
+          "中华人民共和国民法典第92条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-022",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第509条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第7条",
+          "中华人民共和国民法典第509条",
+          "中华人民共和国民法典第6条",
+          "中华人民共和国民法典第5条",
+          "中华人民共和国民法典第1044条"
+        ],
+        "first_relevant_rank": 2
+      },
+      {
+        "id": "civil-023",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第577条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第577条",
+          "中华人民共和国民法典第583条",
+          "中华人民共和国民法典第584条",
+          "中华人民共和国民法典第884条",
+          "中华人民共和国民法典第578条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-024",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第585条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第588条",
+          "中华人民共和国民法典第585条",
+          "中华人民共和国民法典第580条",
+          "中华人民共和国民法典第514条",
+          "中华人民共和国民法典第533条"
+        ],
+        "first_relevant_rank": 2
+      },
+      {
+        "id": "civil-025",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第590条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第590条",
+          "中华人民共和国民法典第729条",
+          "中华人民共和国民法典第518条",
+          "中华人民共和国民法典第584条",
+          "中华人民共和国民法典第575条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-026",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第597条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第491条",
+          "中华人民共和国民法典第641条",
+          "中华人民共和国民法典第595条",
+          "中华人民共和国民法典第639条",
+          "中华人民共和国民法典第637条"
+        ],
+        "first_relevant_rank": null
+      },
+      {
+        "id": "civil-027",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第633条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第628条",
+          "中华人民共和国民法典第634条",
+          "中华人民共和国民法典第641条",
+          "中华人民共和国民法典第643条",
+          "中华人民共和国民法典第642条"
+        ],
+        "first_relevant_rank": null
+      },
+      {
+        "id": "civil-028",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第641条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第641条",
+          "中华人民共和国民法典第642条",
+          "中华人民共和国民法典第634条",
+          "中华人民共和国民法典第636条",
+          "中华人民共和国民法典第639条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-029",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第1191条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第1191条",
+          "中华人民共和国民法典第1192条",
+          "中华人民共和国民法典第1245条",
+          "中华人民共和国民法典第1241条",
+          "中华人民共和国民法典第1198条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "civil-030",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第1198条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第1198条",
+          "中华人民共和国民法典第1254条",
+          "中华人民共和国民法典第1169条",
+          "中华人民共和国民法典第1200条",
+          "中华人民共和国民法典第1221条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "criminal-001",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第13条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第13条",
+          "中华人民共和国刑法第37条",
+          "中华人民共和国刑法第30条",
+          "中华人民共和国刑法第191条",
+          "中华人民共和国刑法第287条之2"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "criminal-002",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第17条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第17条之1",
+          "中华人民共和国刑法第347条",
+          "中华人民共和国刑法第49条",
+          "中华人民共和国刑法第18条",
+          "中华人民共和国刑法第72条"
+        ],
+        "first_relevant_rank": null
+      },
+      {
+        "id": "criminal-003",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第20条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第20条",
+          "中华人民共和国刑法第21条",
+          "中华人民共和国刑法第408条",
+          "中华人民共和国刑法第63条",
+          "中华人民共和国刑法第277条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "criminal-004",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第22条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第22条",
+          "中华人民共和国刑法第120条之2",
+          "中华人民共和国刑法第445条",
+          "中华人民共和国刑法第388条之1",
+          "中华人民共和国刑法第388条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "criminal-005",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第23条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第23条",
+          "中华人民共和国刑法第67条",
+          "中华人民共和国刑法第260条",
+          "中华人民共和国刑法第26条",
+          "中华人民共和国刑法第37条之1"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "criminal-006",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第24条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第24条",
+          "中华人民共和国刑法第15条",
+          "中华人民共和国刑法第6条",
+          "中华人民共和国刑法第12条",
+          "中华人民共和国刑法第14条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "criminal-007",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第25条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第26条",
+          "中华人民共和国刑法第307条之1",
+          "中华人民共和国刑法第16条",
+          "中华人民共和国刑法第25条",
+          "中华人民共和国刑法第291条之1"
+        ],
+        "first_relevant_rank": 4
+      },
+      {
+        "id": "criminal-008",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第67条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第67条",
+          "中华人民共和国刑法第383条",
+          "中华人民共和国刑法第24条",
+          "中华人民共和国刑法第423条",
+          "中华人民共和国刑法第351条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "criminal-009",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第72条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第72条",
+          "中华人民共和国刑法第321条",
+          "中华人民共和国刑法第449条",
+          "中华人民共和国刑法第260条之1",
+          "中华人民共和国刑法第388条之1"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "criminal-010",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第133条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第133条",
+          "中华人民共和国刑法第244条之1",
+          "中华人民共和国刑法第136条",
+          "中华人民共和国刑法第286条之1",
+          "中华人民共和国刑法第86条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "criminal-011",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第232条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第238条",
+          "中华人民共和国刑法第56条",
+          "中华人民共和国刑法第290条",
+          "中华人民共和国刑法第299条",
+          "中华人民共和国刑法第251条"
+        ],
+        "first_relevant_rank": null
+      },
+      {
+        "id": "criminal-012",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第234条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第234条",
+          "中华人民共和国刑法第15条",
+          "中华人民共和国刑法第17条",
+          "中华人民共和国刑法第5条",
+          "中华人民共和国刑法第245条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "criminal-013",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第264条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第431条",
+          "中华人民共和国刑法第385条",
+          "中华人民共和国刑法第287条",
+          "中华人民共和国刑法第184条",
+          "中华人民共和国刑法第229条"
+        ],
+        "first_relevant_rank": null
+      },
+      {
+        "id": "criminal-014",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第266条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第198条",
+          "中华人民共和国刑法第224条",
+          "中华人民共和国刑法第160条",
+          "中华人民共和国刑法第191条",
+          "中华人民共和国刑法第194条"
+        ],
+        "first_relevant_rank": null
+      },
+      {
+        "id": "criminal-015",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第6条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第6条",
+          "中华人民共和国刑法第7条",
+          "中华人民共和国刑法第9条",
+          "中华人民共和国刑法第15条",
+          "中华人民共和国刑法第8条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-001",
+        "knowledge_base_slug": "labor-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动法第3条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动法第3条",
+          "中华人民共和国劳动法第70条",
+          "中华人民共和国劳动法第73条",
+          "中华人民共和国劳动法第13条",
+          "中华人民共和国劳动法第4条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-002",
+        "knowledge_base_slug": "labor-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动法第15条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动法第15条",
+          "中华人民共和国劳动法第94条",
+          "中华人民共和国劳动法第99条",
+          "中华人民共和国劳动法第58条",
+          "中华人民共和国劳动法第63条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-003",
+        "knowledge_base_slug": "labor-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动法第16条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动法第16条",
+          "中华人民共和国劳动法第12条",
+          "中华人民共和国劳动法第46条",
+          "中华人民共和国劳动法第3条",
+          "中华人民共和国劳动法第45条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-004",
+        "knowledge_base_slug": "labor-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动法第36条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动法第36条",
+          "中华人民共和国劳动法第41条",
+          "中华人民共和国劳动法第38条",
+          "中华人民共和国劳动法第44条",
+          "中华人民共和国劳动法第37条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-005",
+        "knowledge_base_slug": "labor-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动法第38条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动法第38条",
+          "中华人民共和国劳动法第37条",
+          "中华人民共和国劳动法第36条",
+          "中华人民共和国劳动法第76条",
+          "中华人民共和国劳动法第43条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-006",
+        "knowledge_base_slug": "labor-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动法第41条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动法第41条",
+          "中华人民共和国劳动法第42条",
+          "中华人民共和国劳动法第47条",
+          "中华人民共和国劳动法第39条",
+          "中华人民共和国劳动法第36条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-007",
+        "knowledge_base_slug": "labor-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动法第44条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动法第44条",
+          "中华人民共和国劳动法第45条",
+          "中华人民共和国劳动法第12条",
+          "中华人民共和国劳动法第91条",
+          "中华人民共和国劳动法第38条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-008",
+        "knowledge_base_slug": "labor-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动法第50条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动法第50条",
+          "中华人民共和国劳动法第91条",
+          "中华人民共和国劳动法第45条",
+          "中华人民共和国劳动法第44条",
+          "中华人民共和国劳动法第51条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-009",
+        "knowledge_base_slug": "labor-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动法第72条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动法第74条",
+          "中华人民共和国劳动法第72条",
+          "中华人民共和国劳动法第47条",
+          "中华人民共和国劳动法第104条",
+          "中华人民共和国劳动法第69条"
+        ],
+        "first_relevant_rank": 2
+      },
+      {
+        "id": "labor-010",
+        "knowledge_base_slug": "labor-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动法第77条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动法第77条",
+          "中华人民共和国劳动法第84条",
+          "中华人民共和国劳动法第79条",
+          "中华人民共和国劳动法第78条",
+          "中华人民共和国劳动法第66条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-contract-001",
+        "knowledge_base_slug": "labor-contract-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动合同法第7条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动合同法第10条",
+          "中华人民共和国劳动合同法第7条",
+          "中华人民共和国劳动合同法第2条",
+          "中华人民共和国劳动合同法第39条",
+          "中华人民共和国劳动合同法第6条"
+        ],
+        "first_relevant_rank": 2
+      },
+      {
+        "id": "labor-contract-002",
+        "knowledge_base_slug": "labor-contract-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动合同法第9条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动合同法第9条",
+          "中华人民共和国劳动合同法第22条",
+          "中华人民共和国劳动合同法第62条",
+          "中华人民共和国劳动合同法第84条",
+          "中华人民共和国劳动合同法第48条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-contract-003",
+        "knowledge_base_slug": "labor-contract-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动合同法第10条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动合同法第10条",
+          "中华人民共和国劳动合同法第97条",
+          "中华人民共和国劳动合同法第2条",
+          "中华人民共和国劳动合同法第7条",
+          "中华人民共和国劳动合同法第39条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-contract-004",
+        "knowledge_base_slug": "labor-contract-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动合同法第14条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动合同法第14条",
+          "中华人民共和国劳动合同法第13条",
+          "中华人民共和国劳动合同法第58条",
+          "中华人民共和国劳动合同法第12条",
+          "中华人民共和国劳动合同法第82条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-contract-005",
+        "knowledge_base_slug": "labor-contract-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动合同法第19条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动合同法第19条",
+          "中华人民共和国劳动合同法第14条",
+          "中华人民共和国劳动合同法第13条",
+          "中华人民共和国劳动合同法第41条",
+          "中华人民共和国劳动合同法第12条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-contract-006",
+        "knowledge_base_slug": "labor-contract-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动合同法第39条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动合同法第39条",
+          "中华人民共和国劳动合同法第38条",
+          "中华人民共和国劳动合同法第80条",
+          "中华人民共和国劳动合同法第57条",
+          "中华人民共和国劳动合同法第23条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-contract-007",
+        "knowledge_base_slug": "labor-contract-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动合同法第40条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动合同法第40条",
+          "中华人民共和国劳动合同法第48条",
+          "中华人民共和国劳动合同法第41条",
+          "中华人民共和国劳动合同法第22条",
+          "中华人民共和国劳动合同法第14条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-contract-008",
+        "knowledge_base_slug": "labor-contract-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动合同法第46条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动合同法第47条",
+          "中华人民共和国劳动合同法第97条",
+          "中华人民共和国劳动合同法第50条",
+          "中华人民共和国劳动合同法第85条",
+          "中华人民共和国劳动合同法第23条"
+        ],
+        "first_relevant_rank": null
+      },
+      {
+        "id": "labor-contract-009",
+        "knowledge_base_slug": "labor-contract-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动合同法第47条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动合同法第47条",
+          "中华人民共和国劳动合同法第97条",
+          "中华人民共和国劳动合同法第50条",
+          "中华人民共和国劳动合同法第85条",
+          "中华人民共和国劳动合同法第63条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "labor-contract-010",
+        "knowledge_base_slug": "labor-contract-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动合同法第82条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动合同法第82条",
+          "中华人民共和国劳动合同法第47条",
+          "中华人民共和国劳动合同法第22条",
+          "中华人民共和国劳动合同法第19条",
+          "中华人民共和国劳动合同法第10条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "company-001",
+        "knowledge_base_slug": "company-law",
+        "relevant_article_ids": [
+          "中华人民共和国公司法第3条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国公司法第3条",
+          "中华人民共和国公司法第63条",
+          "中华人民共和国公司法第186条",
+          "中华人民共和国公司法第112条",
+          "中华人民共和国公司法第20条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "company-002",
+        "knowledge_base_slug": "company-law",
+        "relevant_article_ids": [
+          "中华人民共和国公司法第7条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国公司法第7条",
+          "中华人民共和国公司法第31条",
+          "中华人民共和国公司法第157条",
+          "中华人民共和国公司法第59条",
+          "中华人民共和国公司法第76条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "company-003",
+        "knowledge_base_slug": "company-law",
+        "relevant_article_ids": [
+          "中华人民共和国公司法第11条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国公司法第11条",
+          "中华人民共和国公司法第195条",
+          "中华人民共和国公司法第14条",
+          "中华人民共和国公司法第126条",
+          "中华人民共和国公司法第216条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "company-004",
+        "knowledge_base_slug": "company-law",
+        "relevant_article_ids": [
+          "中华人民共和国公司法第13条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国公司法第13条",
+          "中华人民共和国公司法第189条",
+          "中华人民共和国公司法第40条",
+          "中华人民共和国公司法第47条",
+          "中华人民共和国公司法第101条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "company-005",
+        "knowledge_base_slug": "company-law",
+        "relevant_article_ids": [
+          "中华人民共和国公司法第20条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国公司法第20条",
+          "中华人民共和国公司法第94条",
+          "中华人民共和国公司法第63条",
+          "中华人民共和国公司法第14条",
+          "中华人民共和国公司法第3条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "company-006",
+        "knowledge_base_slug": "company-law",
+        "relevant_article_ids": [
+          "中华人民共和国公司法第51条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国公司法第51条",
+          "中华人民共和国公司法第151条",
+          "中华人民共和国公司法第100条",
+          "中华人民共和国公司法第50条",
+          "中华人民共和国公司法第70条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "company-007",
+        "knowledge_base_slug": "company-law",
+        "relevant_article_ids": [
+          "中华人民共和国公司法第72条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国公司法第72条",
+          "中华人民共和国公司法第71条",
+          "中华人民共和国公司法第74条",
+          "中华人民共和国公司法第73条",
+          "中华人民共和国公司法第34条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "company-008",
+        "knowledge_base_slug": "company-law",
+        "relevant_article_ids": [
+          "中华人民共和国公司法第83条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国公司法第77条",
+          "中华人民共和国公司法第83条",
+          "中华人民共和国公司法第93条",
+          "中华人民共和国公司法第27条",
+          "中华人民共和国公司法第30条"
+        ],
+        "first_relevant_rank": 2
+      },
+      {
+        "id": "company-009",
+        "knowledge_base_slug": "company-law",
+        "relevant_article_ids": [
+          "中华人民共和国公司法第89条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国公司法第89条",
+          "中华人民共和国公司法第91条",
+          "中华人民共和国公司法第90条",
+          "中华人民共和国公司法第92条",
+          "中华人民共和国公司法第93条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "company-010",
+        "knowledge_base_slug": "company-law",
+        "relevant_article_ids": [
+          "中华人民共和国公司法第188条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国公司法第188条",
+          "中华人民共和国公司法第206条",
+          "中华人民共和国公司法第187条",
+          "中华人民共和国公司法第184条",
+          "中华人民共和国公司法第186条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "patent-001",
+        "knowledge_base_slug": "patent-law",
+        "relevant_article_ids": [
+          "中华人民共和国专利法第6条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国专利法第6条",
+          "中华人民共和国专利法第8条",
+          "中华人民共和国专利法第26条",
+          "中华人民共和国专利法第20条",
+          "中华人民共和国专利法第59条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "patent-002",
+        "knowledge_base_slug": "patent-law",
+        "relevant_article_ids": [
+          "中华人民共和国专利法第10条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国专利法第10条",
+          "中华人民共和国专利法第47条",
+          "中华人民共和国专利法第15条",
+          "中华人民共和国专利法第69条",
+          "中华人民共和国专利法第56条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "patent-003",
+        "knowledge_base_slug": "patent-law",
+        "relevant_article_ids": [
+          "中华人民共和国专利法第11条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国专利法第11条",
+          "中华人民共和国专利法第69条",
+          "中华人民共和国专利法第52条",
+          "中华人民共和国专利法第12条",
+          "中华人民共和国专利法第56条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "patent-004",
+        "knowledge_base_slug": "patent-law",
+        "relevant_article_ids": [
+          "中华人民共和国专利法第22条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国专利法第22条",
+          "中华人民共和国专利法第48条",
+          "中华人民共和国专利法第9条",
+          "中华人民共和国专利法第42条",
+          "中华人民共和国专利法第11条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "patent-005",
+        "knowledge_base_slug": "patent-law",
+        "relevant_article_ids": [
+          "中华人民共和国专利法第42条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国专利法第42条",
+          "中华人民共和国专利法第9条",
+          "中华人民共和国专利法第61条",
+          "中华人民共和国专利法第68条",
+          "中华人民共和国专利法第40条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "trademark-001",
+        "knowledge_base_slug": "trademark-law",
+        "relevant_article_ids": [
+          "中华人民共和国商标法第8条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国商标法第8条",
+          "中华人民共和国商标法第10条",
+          "中华人民共和国商标法第11条",
+          "中华人民共和国商标法第36条",
+          "中华人民共和国商标法第16条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "trademark-002",
+        "knowledge_base_slug": "trademark-law",
+        "relevant_article_ids": [
+          "中华人民共和国商标法第10条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国商标法第10条",
+          "中华人民共和国商标法第11条",
+          "中华人民共和国商标法第8条",
+          "中华人民共和国商标法第3条",
+          "中华人民共和国商标法第16条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "trademark-003",
+        "knowledge_base_slug": "trademark-law",
+        "relevant_article_ids": [
+          "中华人民共和国商标法第11条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国商标法第11条",
+          "中华人民共和国商标法第9条",
+          "中华人民共和国商标法第16条",
+          "中华人民共和国商标法第8条",
+          "中华人民共和国商标法第10条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "trademark-004",
+        "knowledge_base_slug": "trademark-law",
+        "relevant_article_ids": [
+          "中华人民共和国商标法第15条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国商标法第15条",
+          "中华人民共和国商标法第19条",
+          "中华人民共和国商标法第63条",
+          "中华人民共和国商标法第14条",
+          "中华人民共和国商标法第56条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "trademark-005",
+        "knowledge_base_slug": "trademark-law",
+        "relevant_article_ids": [
+          "中华人民共和国商标法第33条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国商标法第33条",
+          "中华人民共和国商标法第35条",
+          "中华人民共和国商标法第30条",
+          "中华人民共和国商标法第28条",
+          "中华人民共和国商标法第31条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "trademark-006",
+        "knowledge_base_slug": "trademark-law",
+        "relevant_article_ids": [
+          "中华人民共和国商标法第49条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国商标法第49条",
+          "中华人民共和国商标法第56条",
+          "中华人民共和国商标法第48条",
+          "中华人民共和国商标法第68条",
+          "中华人民共和国商标法第24条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "trademark-007",
+        "knowledge_base_slug": "trademark-law",
+        "relevant_article_ids": [
+          "中华人民共和国商标法第57条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国商标法第30条",
+          "中华人民共和国商标法第57条",
+          "中华人民共和国商标法第56条",
+          "中华人民共和国商标法第59条",
+          "中华人民共和国商标法第48条"
+        ],
+        "first_relevant_rank": 2
+      },
+      {
+        "id": "trademark-008",
+        "knowledge_base_slug": "trademark-law",
+        "relevant_article_ids": [
+          "中华人民共和国商标法第60条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国商标法第60条",
+          "中华人民共和国商标法第62条",
+          "中华人民共和国商标法第47条",
+          "中华人民共和国商标法第56条",
+          "中华人民共和国商标法第45条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "trademark-009",
+        "knowledge_base_slug": "trademark-law",
+        "relevant_article_ids": [
+          "中华人民共和国商标法第63条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国商标法第63条",
+          "中华人民共和国商标法第60条",
+          "中华人民共和国商标法第64条",
+          "中华人民共和国商标法第67条",
+          "中华人民共和国商标法第30条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "trademark-010",
+        "knowledge_base_slug": "trademark-law",
+        "relevant_article_ids": [
+          "中华人民共和国商标法第68条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国商标法第19条",
+          "中华人民共和国商标法第68条",
+          "中华人民共和国商标法第18条",
+          "中华人民共和国商标法第2条",
+          "中华人民共和国商标法第71条"
+        ],
+        "first_relevant_rank": 2
+      },
+      {
+        "id": "copyright-001",
+        "knowledge_base_slug": "copyright-law",
+        "relevant_article_ids": [
+          "中华人民共和国著作权法第2条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国著作权法第2条",
+          "中华人民共和国著作权法第22条",
+          "中华人民共和国著作权法第16条",
+          "中华人民共和国著作权法第11条",
+          "中华人民共和国著作权法第21条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "copyright-002",
+        "knowledge_base_slug": "copyright-law",
+        "relevant_article_ids": [
+          "中华人民共和国著作权法第3条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国著作权法第3条",
+          "中华人民共和国著作权法第10条",
+          "中华人民共和国著作权法第1条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "copyright-003",
+        "knowledge_base_slug": "copyright-law",
+        "relevant_article_ids": [
+          "中华人民共和国著作权法第5条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国著作权法第5条",
+          "中华人民共和国著作权法第2条",
+          "中华人民共和国著作权法第31条",
+          "中华人民共和国著作权法第59条",
+          "中华人民共和国著作权法第48条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "copyright-004",
+        "knowledge_base_slug": "copyright-law",
+        "relevant_article_ids": [
+          "中华人民共和国著作权法第10条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国著作权法第10条",
+          "中华人民共和国著作权法第46条",
+          "中华人民共和国著作权法第34条",
+          "中华人民共和国著作权法第49条",
+          "中华人民共和国著作权法第25条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "copyright-005",
+        "knowledge_base_slug": "copyright-law",
+        "relevant_article_ids": [
+          "中华人民共和国著作权法第11条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国著作权法第11条",
+          "中华人民共和国著作权法第13条",
+          "中华人民共和国著作权法第53条",
+          "中华人民共和国著作权法第47条",
+          "中华人民共和国著作权法第50条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "copyright-006",
+        "knowledge_base_slug": "copyright-law",
+        "relevant_article_ids": [
+          "中华人民共和国著作权法第16条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国著作权法第16条",
+          "中华人民共和国著作权法第21条",
+          "中华人民共和国著作权法第37条",
+          "中华人民共和国著作权法第42条",
+          "中华人民共和国著作权法第48条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "copyright-007",
+        "knowledge_base_slug": "copyright-law",
+        "relevant_article_ids": [
+          "中华人民共和国著作权法第17条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国著作权法第17条",
+          "中华人民共和国著作权法第13条",
+          "中华人民共和国著作权法第12条",
+          "中华人民共和国著作权法第14条",
+          "中华人民共和国著作权法第16条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "copyright-008",
+        "knowledge_base_slug": "copyright-law",
+        "relevant_article_ids": [
+          "中华人民共和国著作权法第20条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国著作权法第29条",
+          "中华人民共和国著作权法第34条",
+          "中华人民共和国著作权法第20条",
+          "中华人民共和国著作权法第32条",
+          "中华人民共和国著作权法第10条"
+        ],
+        "first_relevant_rank": 3
+      },
+      {
+        "id": "copyright-009",
+        "knowledge_base_slug": "copyright-law",
+        "relevant_article_ids": [
+          "中华人民共和国著作权法第24条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国著作权法第47条",
+          "中华人民共和国著作权法第16条",
+          "中华人民共和国著作权法第24条",
+          "中华人民共和国著作权法第54条",
+          "中华人民共和国著作权法第34条"
+        ],
+        "first_relevant_rank": 3
+      },
+      {
+        "id": "copyright-010",
+        "knowledge_base_slug": "copyright-law",
+        "relevant_article_ids": [
+          "中华人民共和国著作权法第52条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国著作权法第52条",
+          "中华人民共和国著作权法第47条",
+          "中华人民共和国著作权法第48条",
+          "中华人民共和国著作权法第34条",
+          "中华人民共和国著作权法第59条"
+        ],
+        "first_relevant_rank": 1
+      }
+    ]
+  },
+  "by_knowledge_base": {
+    "civil-code": {
+      "sample_count": 30,
+      "top_k": 5,
+      "metrics": {
+        "recall_at_k": 0.9,
+        "mrr_at_k": 0.823333,
+        "ndcg_at_k": 0.842655
+      },
+      "items": [
+        {
+          "id": "civil-001",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第17条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第21条",
+            "中华人民共和国民法典第1098条",
+            "中华人民共和国民法典第29条",
+            "中华人民共和国民法典第24条",
+            "中华人民共和国民法典第17条"
+          ],
+          "first_relevant_rank": 5
+        },
+        {
+          "id": "civil-002",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第20条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第20条",
+            "中华人民共和国民法典第21条",
+            "中华人民共和国民法典第19条",
+            "中华人民共和国民法典第17条",
+            "中华人民共和国民法典第1104条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-003",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第16条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第16条",
+            "中华人民共和国民法典第57条",
+            "中华人民共和国民法典第13条",
+            "中华人民共和国民法典第797条",
+            "中华人民共和国民法典第18条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-004",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第188条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第188条",
+            "中华人民共和国民法典第419条",
+            "中华人民共和国民法典第192条",
+            "中华人民共和国民法典第536条",
+            "中华人民共和国民法典第694条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-005",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第1082条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第1082条",
+            "中华人民共和国民法典第1050条",
+            "中华人民共和国民法典第1087条",
+            "中华人民共和国民法典第1085条",
+            "中华人民共和国民法典第192条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-006",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第1254条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第1240条",
+            "中华人民共和国民法典第1241条",
+            "中华人民共和国民法典第1218条",
+            "中华人民共和国民法典第1249条",
+            "中华人民共和国民法典第182条"
+          ],
+          "first_relevant_rank": null
+        },
+        {
+          "id": "civil-007",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第705条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第705条",
+            "中华人民共和国民法典第717条",
+            "中华人民共和国民法典第758条",
+            "中华人民共和国民法典第721条",
+            "中华人民共和国民法典第757条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-008",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第586条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第586条",
+            "中华人民共和国民法典第588条",
+            "中华人民共和国民法典第587条",
+            "中华人民共和国民法典第679条",
+            "中华人民共和国民法典第890条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-009",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第491条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第491条",
+            "中华人民共和国民法典第1196条",
+            "中华人民共和国民法典第1195条",
+            "中华人民共和国民法典第501条",
+            "中华人民共和国民法典第1197条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-010",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第180条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第180条",
+            "中华人民共和国民法典第590条",
+            "中华人民共和国民法典第187条",
+            "中华人民共和国民法典第176条",
+            "中华人民共和国民法典第563条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-011",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第1136条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第1136条",
+            "中华人民共和国民法典第1137条",
+            "中华人民共和国民法典第1138条",
+            "中华人民共和国民法典第1135条",
+            "中华人民共和国民法典第1140条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-012",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第1064条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第1064条",
+            "中华人民共和国民法典第1065条",
+            "中华人民共和国民法典第1066条",
+            "中华人民共和国民法典第1062条",
+            "中华人民共和国民法典第1092条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-013",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第658条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第658条",
+            "中华人民共和国民法典第660条",
+            "中华人民共和国民法典第665条",
+            "中华人民共和国民法典第663条",
+            "中华人民共和国民法典第662条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-014",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第1105条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第1116条",
+            "中华人民共和国民法典第1105条",
+            "中华人民共和国民法典第1196条",
+            "中华人民共和国民法典第574条",
+            "中华人民共和国民法典第349条"
+          ],
+          "first_relevant_rank": 2
+        },
+        {
+          "id": "civil-015",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第1121条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第1121条",
+            "中华人民共和国民法典第694条",
+            "中华人民共和国民法典第230条",
+            "中华人民共和国民法典第1152条",
+            "中华人民共和国民法典第1124条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-016",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第7条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第7条",
+            "中华人民共和国民法典第6条",
+            "中华人民共和国民法典第5条",
+            "中华人民共和国民法典第509条",
+            "中华人民共和国民法典第930条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-017",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第27条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第27条",
+            "中华人民共和国民法典第28条",
+            "中华人民共和国民法典第29条",
+            "中华人民共和国民法典第33条",
+            "中华人民共和国民法典第32条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-018",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第143条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第143条",
+            "中华人民共和国民法典第158条",
+            "中华人民共和国民法典第156条",
+            "中华人民共和国民法典第159条",
+            "中华人民共和国民法典第145条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-019",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第152条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第152条",
+            "中华人民共和国民法典第149条",
+            "中华人民共和国民法典第148条",
+            "中华人民共和国民法典第541条",
+            "中华人民共和国民法典第145条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-020",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第278条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第278条",
+            "中华人民共和国民法典第946条",
+            "中华人民共和国民法典第281条",
+            "中华人民共和国民法典第950条",
+            "中华人民共和国民法典第947条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-021",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第465条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第465条",
+            "中华人民共和国民法典第939条",
+            "中华人民共和国民法典第119条",
+            "中华人民共和国民法典第1016条",
+            "中华人民共和国民法典第92条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-022",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第509条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第7条",
+            "中华人民共和国民法典第509条",
+            "中华人民共和国民法典第6条",
+            "中华人民共和国民法典第5条",
+            "中华人民共和国民法典第1044条"
+          ],
+          "first_relevant_rank": 2
+        },
+        {
+          "id": "civil-023",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第577条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第577条",
+            "中华人民共和国民法典第583条",
+            "中华人民共和国民法典第584条",
+            "中华人民共和国民法典第884条",
+            "中华人民共和国民法典第578条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-024",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第585条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第588条",
+            "中华人民共和国民法典第585条",
+            "中华人民共和国民法典第580条",
+            "中华人民共和国民法典第514条",
+            "中华人民共和国民法典第533条"
+          ],
+          "first_relevant_rank": 2
+        },
+        {
+          "id": "civil-025",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第590条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第590条",
+            "中华人民共和国民法典第729条",
+            "中华人民共和国民法典第518条",
+            "中华人民共和国民法典第584条",
+            "中华人民共和国民法典第575条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-026",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第597条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第491条",
+            "中华人民共和国民法典第641条",
+            "中华人民共和国民法典第595条",
+            "中华人民共和国民法典第639条",
+            "中华人民共和国民法典第637条"
+          ],
+          "first_relevant_rank": null
+        },
+        {
+          "id": "civil-027",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第633条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第628条",
+            "中华人民共和国民法典第634条",
+            "中华人民共和国民法典第641条",
+            "中华人民共和国民法典第643条",
+            "中华人民共和国民法典第642条"
+          ],
+          "first_relevant_rank": null
+        },
+        {
+          "id": "civil-028",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第641条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第641条",
+            "中华人民共和国民法典第642条",
+            "中华人民共和国民法典第634条",
+            "中华人民共和国民法典第636条",
+            "中华人民共和国民法典第639条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-029",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第1191条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第1191条",
+            "中华人民共和国民法典第1192条",
+            "中华人民共和国民法典第1245条",
+            "中华人民共和国民法典第1241条",
+            "中华人民共和国民法典第1198条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "civil-030",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第1198条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第1198条",
+            "中华人民共和国民法典第1254条",
+            "中华人民共和国民法典第1169条",
+            "中华人民共和国民法典第1200条",
+            "中华人民共和国民法典第1221条"
+          ],
+          "first_relevant_rank": 1
+        }
+      ]
+    },
+    "company-law": {
+      "sample_count": 10,
+      "top_k": 5,
+      "metrics": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 0.95,
+        "ndcg_at_k": 0.963093
+      },
+      "items": [
+        {
+          "id": "company-001",
+          "knowledge_base_slug": "company-law",
+          "relevant_article_ids": [
+            "中华人民共和国公司法第3条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国公司法第3条",
+            "中华人民共和国公司法第63条",
+            "中华人民共和国公司法第186条",
+            "中华人民共和国公司法第112条",
+            "中华人民共和国公司法第20条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "company-002",
+          "knowledge_base_slug": "company-law",
+          "relevant_article_ids": [
+            "中华人民共和国公司法第7条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国公司法第7条",
+            "中华人民共和国公司法第31条",
+            "中华人民共和国公司法第157条",
+            "中华人民共和国公司法第59条",
+            "中华人民共和国公司法第76条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "company-003",
+          "knowledge_base_slug": "company-law",
+          "relevant_article_ids": [
+            "中华人民共和国公司法第11条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国公司法第11条",
+            "中华人民共和国公司法第195条",
+            "中华人民共和国公司法第14条",
+            "中华人民共和国公司法第126条",
+            "中华人民共和国公司法第216条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "company-004",
+          "knowledge_base_slug": "company-law",
+          "relevant_article_ids": [
+            "中华人民共和国公司法第13条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国公司法第13条",
+            "中华人民共和国公司法第189条",
+            "中华人民共和国公司法第40条",
+            "中华人民共和国公司法第47条",
+            "中华人民共和国公司法第101条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "company-005",
+          "knowledge_base_slug": "company-law",
+          "relevant_article_ids": [
+            "中华人民共和国公司法第20条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国公司法第20条",
+            "中华人民共和国公司法第94条",
+            "中华人民共和国公司法第63条",
+            "中华人民共和国公司法第14条",
+            "中华人民共和国公司法第3条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "company-006",
+          "knowledge_base_slug": "company-law",
+          "relevant_article_ids": [
+            "中华人民共和国公司法第51条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国公司法第51条",
+            "中华人民共和国公司法第151条",
+            "中华人民共和国公司法第100条",
+            "中华人民共和国公司法第50条",
+            "中华人民共和国公司法第70条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "company-007",
+          "knowledge_base_slug": "company-law",
+          "relevant_article_ids": [
+            "中华人民共和国公司法第72条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国公司法第72条",
+            "中华人民共和国公司法第71条",
+            "中华人民共和国公司法第74条",
+            "中华人民共和国公司法第73条",
+            "中华人民共和国公司法第34条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "company-008",
+          "knowledge_base_slug": "company-law",
+          "relevant_article_ids": [
+            "中华人民共和国公司法第83条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国公司法第77条",
+            "中华人民共和国公司法第83条",
+            "中华人民共和国公司法第93条",
+            "中华人民共和国公司法第27条",
+            "中华人民共和国公司法第30条"
+          ],
+          "first_relevant_rank": 2
+        },
+        {
+          "id": "company-009",
+          "knowledge_base_slug": "company-law",
+          "relevant_article_ids": [
+            "中华人民共和国公司法第89条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国公司法第89条",
+            "中华人民共和国公司法第91条",
+            "中华人民共和国公司法第90条",
+            "中华人民共和国公司法第92条",
+            "中华人民共和国公司法第93条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "company-010",
+          "knowledge_base_slug": "company-law",
+          "relevant_article_ids": [
+            "中华人民共和国公司法第188条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国公司法第188条",
+            "中华人民共和国公司法第206条",
+            "中华人民共和国公司法第187条",
+            "中华人民共和国公司法第184条",
+            "中华人民共和国公司法第186条"
+          ],
+          "first_relevant_rank": 1
+        }
+      ]
+    },
+    "copyright-law": {
+      "sample_count": 10,
+      "top_k": 5,
+      "metrics": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 0.866667,
+        "ndcg_at_k": 0.9
+      },
+      "items": [
+        {
+          "id": "copyright-001",
+          "knowledge_base_slug": "copyright-law",
+          "relevant_article_ids": [
+            "中华人民共和国著作权法第2条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国著作权法第2条",
+            "中华人民共和国著作权法第22条",
+            "中华人民共和国著作权法第16条",
+            "中华人民共和国著作权法第11条",
+            "中华人民共和国著作权法第21条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "copyright-002",
+          "knowledge_base_slug": "copyright-law",
+          "relevant_article_ids": [
+            "中华人民共和国著作权法第3条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国著作权法第3条",
+            "中华人民共和国著作权法第10条",
+            "中华人民共和国著作权法第1条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "copyright-003",
+          "knowledge_base_slug": "copyright-law",
+          "relevant_article_ids": [
+            "中华人民共和国著作权法第5条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国著作权法第5条",
+            "中华人民共和国著作权法第2条",
+            "中华人民共和国著作权法第31条",
+            "中华人民共和国著作权法第59条",
+            "中华人民共和国著作权法第48条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "copyright-004",
+          "knowledge_base_slug": "copyright-law",
+          "relevant_article_ids": [
+            "中华人民共和国著作权法第10条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国著作权法第10条",
+            "中华人民共和国著作权法第46条",
+            "中华人民共和国著作权法第34条",
+            "中华人民共和国著作权法第49条",
+            "中华人民共和国著作权法第25条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "copyright-005",
+          "knowledge_base_slug": "copyright-law",
+          "relevant_article_ids": [
+            "中华人民共和国著作权法第11条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国著作权法第11条",
+            "中华人民共和国著作权法第13条",
+            "中华人民共和国著作权法第53条",
+            "中华人民共和国著作权法第47条",
+            "中华人民共和国著作权法第50条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "copyright-006",
+          "knowledge_base_slug": "copyright-law",
+          "relevant_article_ids": [
+            "中华人民共和国著作权法第16条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国著作权法第16条",
+            "中华人民共和国著作权法第21条",
+            "中华人民共和国著作权法第37条",
+            "中华人民共和国著作权法第42条",
+            "中华人民共和国著作权法第48条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "copyright-007",
+          "knowledge_base_slug": "copyright-law",
+          "relevant_article_ids": [
+            "中华人民共和国著作权法第17条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国著作权法第17条",
+            "中华人民共和国著作权法第13条",
+            "中华人民共和国著作权法第12条",
+            "中华人民共和国著作权法第14条",
+            "中华人民共和国著作权法第16条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "copyright-008",
+          "knowledge_base_slug": "copyright-law",
+          "relevant_article_ids": [
+            "中华人民共和国著作权法第20条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国著作权法第29条",
+            "中华人民共和国著作权法第34条",
+            "中华人民共和国著作权法第20条",
+            "中华人民共和国著作权法第32条",
+            "中华人民共和国著作权法第10条"
+          ],
+          "first_relevant_rank": 3
+        },
+        {
+          "id": "copyright-009",
+          "knowledge_base_slug": "copyright-law",
+          "relevant_article_ids": [
+            "中华人民共和国著作权法第24条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国著作权法第47条",
+            "中华人民共和国著作权法第16条",
+            "中华人民共和国著作权法第24条",
+            "中华人民共和国著作权法第54条",
+            "中华人民共和国著作权法第34条"
+          ],
+          "first_relevant_rank": 3
+        },
+        {
+          "id": "copyright-010",
+          "knowledge_base_slug": "copyright-law",
+          "relevant_article_ids": [
+            "中华人民共和国著作权法第52条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国著作权法第52条",
+            "中华人民共和国著作权法第47条",
+            "中华人民共和国著作权法第48条",
+            "中华人民共和国著作权法第34条",
+            "中华人民共和国著作权法第59条"
+          ],
+          "first_relevant_rank": 1
+        }
+      ]
+    },
+    "criminal-law": {
+      "sample_count": 15,
+      "top_k": 5,
+      "metrics": {
+        "recall_at_k": 0.733333,
+        "mrr_at_k": 0.683333,
+        "ndcg_at_k": 0.695378
+      },
+      "items": [
+        {
+          "id": "criminal-001",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第13条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第13条",
+            "中华人民共和国刑法第37条",
+            "中华人民共和国刑法第30条",
+            "中华人民共和国刑法第191条",
+            "中华人民共和国刑法第287条之2"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "criminal-002",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第17条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第17条之1",
+            "中华人民共和国刑法第347条",
+            "中华人民共和国刑法第49条",
+            "中华人民共和国刑法第18条",
+            "中华人民共和国刑法第72条"
+          ],
+          "first_relevant_rank": null
+        },
+        {
+          "id": "criminal-003",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第20条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第20条",
+            "中华人民共和国刑法第21条",
+            "中华人民共和国刑法第408条",
+            "中华人民共和国刑法第63条",
+            "中华人民共和国刑法第277条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "criminal-004",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第22条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第22条",
+            "中华人民共和国刑法第120条之2",
+            "中华人民共和国刑法第445条",
+            "中华人民共和国刑法第388条之1",
+            "中华人民共和国刑法第388条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "criminal-005",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第23条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第23条",
+            "中华人民共和国刑法第67条",
+            "中华人民共和国刑法第260条",
+            "中华人民共和国刑法第26条",
+            "中华人民共和国刑法第37条之1"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "criminal-006",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第24条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第24条",
+            "中华人民共和国刑法第15条",
+            "中华人民共和国刑法第6条",
+            "中华人民共和国刑法第12条",
+            "中华人民共和国刑法第14条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "criminal-007",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第25条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第26条",
+            "中华人民共和国刑法第307条之1",
+            "中华人民共和国刑法第16条",
+            "中华人民共和国刑法第25条",
+            "中华人民共和国刑法第291条之1"
+          ],
+          "first_relevant_rank": 4
+        },
+        {
+          "id": "criminal-008",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第67条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第67条",
+            "中华人民共和国刑法第383条",
+            "中华人民共和国刑法第24条",
+            "中华人民共和国刑法第423条",
+            "中华人民共和国刑法第351条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "criminal-009",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第72条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第72条",
+            "中华人民共和国刑法第321条",
+            "中华人民共和国刑法第449条",
+            "中华人民共和国刑法第260条之1",
+            "中华人民共和国刑法第388条之1"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "criminal-010",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第133条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第133条",
+            "中华人民共和国刑法第244条之1",
+            "中华人民共和国刑法第136条",
+            "中华人民共和国刑法第286条之1",
+            "中华人民共和国刑法第86条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "criminal-011",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第232条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第238条",
+            "中华人民共和国刑法第56条",
+            "中华人民共和国刑法第290条",
+            "中华人民共和国刑法第299条",
+            "中华人民共和国刑法第251条"
+          ],
+          "first_relevant_rank": null
+        },
+        {
+          "id": "criminal-012",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第234条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第234条",
+            "中华人民共和国刑法第15条",
+            "中华人民共和国刑法第17条",
+            "中华人民共和国刑法第5条",
+            "中华人民共和国刑法第245条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "criminal-013",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第264条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第431条",
+            "中华人民共和国刑法第385条",
+            "中华人民共和国刑法第287条",
+            "中华人民共和国刑法第184条",
+            "中华人民共和国刑法第229条"
+          ],
+          "first_relevant_rank": null
+        },
+        {
+          "id": "criminal-014",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第266条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第198条",
+            "中华人民共和国刑法第224条",
+            "中华人民共和国刑法第160条",
+            "中华人民共和国刑法第191条",
+            "中华人民共和国刑法第194条"
+          ],
+          "first_relevant_rank": null
+        },
+        {
+          "id": "criminal-015",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第6条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第6条",
+            "中华人民共和国刑法第7条",
+            "中华人民共和国刑法第9条",
+            "中华人民共和国刑法第15条",
+            "中华人民共和国刑法第8条"
+          ],
+          "first_relevant_rank": 1
+        }
+      ]
+    },
+    "labor-contract-law": {
+      "sample_count": 10,
+      "top_k": 5,
+      "metrics": {
+        "recall_at_k": 0.9,
+        "mrr_at_k": 0.85,
+        "ndcg_at_k": 0.863093
+      },
+      "items": [
+        {
+          "id": "labor-contract-001",
+          "knowledge_base_slug": "labor-contract-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动合同法第7条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动合同法第10条",
+            "中华人民共和国劳动合同法第7条",
+            "中华人民共和国劳动合同法第2条",
+            "中华人民共和国劳动合同法第39条",
+            "中华人民共和国劳动合同法第6条"
+          ],
+          "first_relevant_rank": 2
+        },
+        {
+          "id": "labor-contract-002",
+          "knowledge_base_slug": "labor-contract-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动合同法第9条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动合同法第9条",
+            "中华人民共和国劳动合同法第22条",
+            "中华人民共和国劳动合同法第62条",
+            "中华人民共和国劳动合同法第84条",
+            "中华人民共和国劳动合同法第48条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-contract-003",
+          "knowledge_base_slug": "labor-contract-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动合同法第10条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动合同法第10条",
+            "中华人民共和国劳动合同法第97条",
+            "中华人民共和国劳动合同法第2条",
+            "中华人民共和国劳动合同法第7条",
+            "中华人民共和国劳动合同法第39条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-contract-004",
+          "knowledge_base_slug": "labor-contract-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动合同法第14条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动合同法第14条",
+            "中华人民共和国劳动合同法第13条",
+            "中华人民共和国劳动合同法第58条",
+            "中华人民共和国劳动合同法第12条",
+            "中华人民共和国劳动合同法第82条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-contract-005",
+          "knowledge_base_slug": "labor-contract-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动合同法第19条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动合同法第19条",
+            "中华人民共和国劳动合同法第14条",
+            "中华人民共和国劳动合同法第13条",
+            "中华人民共和国劳动合同法第41条",
+            "中华人民共和国劳动合同法第12条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-contract-006",
+          "knowledge_base_slug": "labor-contract-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动合同法第39条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动合同法第39条",
+            "中华人民共和国劳动合同法第38条",
+            "中华人民共和国劳动合同法第80条",
+            "中华人民共和国劳动合同法第57条",
+            "中华人民共和国劳动合同法第23条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-contract-007",
+          "knowledge_base_slug": "labor-contract-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动合同法第40条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动合同法第40条",
+            "中华人民共和国劳动合同法第48条",
+            "中华人民共和国劳动合同法第41条",
+            "中华人民共和国劳动合同法第22条",
+            "中华人民共和国劳动合同法第14条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-contract-008",
+          "knowledge_base_slug": "labor-contract-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动合同法第46条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动合同法第47条",
+            "中华人民共和国劳动合同法第97条",
+            "中华人民共和国劳动合同法第50条",
+            "中华人民共和国劳动合同法第85条",
+            "中华人民共和国劳动合同法第23条"
+          ],
+          "first_relevant_rank": null
+        },
+        {
+          "id": "labor-contract-009",
+          "knowledge_base_slug": "labor-contract-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动合同法第47条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动合同法第47条",
+            "中华人民共和国劳动合同法第97条",
+            "中华人民共和国劳动合同法第50条",
+            "中华人民共和国劳动合同法第85条",
+            "中华人民共和国劳动合同法第63条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-contract-010",
+          "knowledge_base_slug": "labor-contract-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动合同法第82条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动合同法第82条",
+            "中华人民共和国劳动合同法第47条",
+            "中华人民共和国劳动合同法第22条",
+            "中华人民共和国劳动合同法第19条",
+            "中华人民共和国劳动合同法第10条"
+          ],
+          "first_relevant_rank": 1
+        }
+      ]
+    },
+    "labor-law": {
+      "sample_count": 10,
+      "top_k": 5,
+      "metrics": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 0.95,
+        "ndcg_at_k": 0.963093
+      },
+      "items": [
+        {
+          "id": "labor-001",
+          "knowledge_base_slug": "labor-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动法第3条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动法第3条",
+            "中华人民共和国劳动法第70条",
+            "中华人民共和国劳动法第73条",
+            "中华人民共和国劳动法第13条",
+            "中华人民共和国劳动法第4条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-002",
+          "knowledge_base_slug": "labor-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动法第15条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动法第15条",
+            "中华人民共和国劳动法第94条",
+            "中华人民共和国劳动法第99条",
+            "中华人民共和国劳动法第58条",
+            "中华人民共和国劳动法第63条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-003",
+          "knowledge_base_slug": "labor-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动法第16条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动法第16条",
+            "中华人民共和国劳动法第12条",
+            "中华人民共和国劳动法第46条",
+            "中华人民共和国劳动法第3条",
+            "中华人民共和国劳动法第45条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-004",
+          "knowledge_base_slug": "labor-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动法第36条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动法第36条",
+            "中华人民共和国劳动法第41条",
+            "中华人民共和国劳动法第38条",
+            "中华人民共和国劳动法第44条",
+            "中华人民共和国劳动法第37条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-005",
+          "knowledge_base_slug": "labor-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动法第38条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动法第38条",
+            "中华人民共和国劳动法第37条",
+            "中华人民共和国劳动法第36条",
+            "中华人民共和国劳动法第76条",
+            "中华人民共和国劳动法第43条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-006",
+          "knowledge_base_slug": "labor-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动法第41条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动法第41条",
+            "中华人民共和国劳动法第42条",
+            "中华人民共和国劳动法第47条",
+            "中华人民共和国劳动法第39条",
+            "中华人民共和国劳动法第36条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-007",
+          "knowledge_base_slug": "labor-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动法第44条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动法第44条",
+            "中华人民共和国劳动法第45条",
+            "中华人民共和国劳动法第12条",
+            "中华人民共和国劳动法第91条",
+            "中华人民共和国劳动法第38条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-008",
+          "knowledge_base_slug": "labor-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动法第50条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动法第50条",
+            "中华人民共和国劳动法第91条",
+            "中华人民共和国劳动法第45条",
+            "中华人民共和国劳动法第44条",
+            "中华人民共和国劳动法第51条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "labor-009",
+          "knowledge_base_slug": "labor-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动法第72条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动法第74条",
+            "中华人民共和国劳动法第72条",
+            "中华人民共和国劳动法第47条",
+            "中华人民共和国劳动法第104条",
+            "中华人民共和国劳动法第69条"
+          ],
+          "first_relevant_rank": 2
+        },
+        {
+          "id": "labor-010",
+          "knowledge_base_slug": "labor-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动法第77条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动法第77条",
+            "中华人民共和国劳动法第84条",
+            "中华人民共和国劳动法第79条",
+            "中华人民共和国劳动法第78条",
+            "中华人民共和国劳动法第66条"
+          ],
+          "first_relevant_rank": 1
+        }
+      ]
+    },
+    "patent-law": {
+      "sample_count": 5,
+      "top_k": 5,
+      "metrics": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0,
+        "ndcg_at_k": 1.0
+      },
+      "items": [
+        {
+          "id": "patent-001",
+          "knowledge_base_slug": "patent-law",
+          "relevant_article_ids": [
+            "中华人民共和国专利法第6条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国专利法第6条",
+            "中华人民共和国专利法第8条",
+            "中华人民共和国专利法第26条",
+            "中华人民共和国专利法第20条",
+            "中华人民共和国专利法第59条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "patent-002",
+          "knowledge_base_slug": "patent-law",
+          "relevant_article_ids": [
+            "中华人民共和国专利法第10条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国专利法第10条",
+            "中华人民共和国专利法第47条",
+            "中华人民共和国专利法第15条",
+            "中华人民共和国专利法第69条",
+            "中华人民共和国专利法第56条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "patent-003",
+          "knowledge_base_slug": "patent-law",
+          "relevant_article_ids": [
+            "中华人民共和国专利法第11条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国专利法第11条",
+            "中华人民共和国专利法第69条",
+            "中华人民共和国专利法第52条",
+            "中华人民共和国专利法第12条",
+            "中华人民共和国专利法第56条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "patent-004",
+          "knowledge_base_slug": "patent-law",
+          "relevant_article_ids": [
+            "中华人民共和国专利法第22条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国专利法第22条",
+            "中华人民共和国专利法第48条",
+            "中华人民共和国专利法第9条",
+            "中华人民共和国专利法第42条",
+            "中华人民共和国专利法第11条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "patent-005",
+          "knowledge_base_slug": "patent-law",
+          "relevant_article_ids": [
+            "中华人民共和国专利法第42条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国专利法第42条",
+            "中华人民共和国专利法第9条",
+            "中华人民共和国专利法第61条",
+            "中华人民共和国专利法第68条",
+            "中华人民共和国专利法第40条"
+          ],
+          "first_relevant_rank": 1
+        }
+      ]
+    },
+    "trademark-law": {
+      "sample_count": 10,
+      "top_k": 5,
+      "metrics": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 0.9,
+        "ndcg_at_k": 0.926186
+      },
+      "items": [
+        {
+          "id": "trademark-001",
+          "knowledge_base_slug": "trademark-law",
+          "relevant_article_ids": [
+            "中华人民共和国商标法第8条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国商标法第8条",
+            "中华人民共和国商标法第10条",
+            "中华人民共和国商标法第11条",
+            "中华人民共和国商标法第36条",
+            "中华人民共和国商标法第16条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "trademark-002",
+          "knowledge_base_slug": "trademark-law",
+          "relevant_article_ids": [
+            "中华人民共和国商标法第10条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国商标法第10条",
+            "中华人民共和国商标法第11条",
+            "中华人民共和国商标法第8条",
+            "中华人民共和国商标法第3条",
+            "中华人民共和国商标法第16条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "trademark-003",
+          "knowledge_base_slug": "trademark-law",
+          "relevant_article_ids": [
+            "中华人民共和国商标法第11条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国商标法第11条",
+            "中华人民共和国商标法第9条",
+            "中华人民共和国商标法第16条",
+            "中华人民共和国商标法第8条",
+            "中华人民共和国商标法第10条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "trademark-004",
+          "knowledge_base_slug": "trademark-law",
+          "relevant_article_ids": [
+            "中华人民共和国商标法第15条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国商标法第15条",
+            "中华人民共和国商标法第19条",
+            "中华人民共和国商标法第63条",
+            "中华人民共和国商标法第14条",
+            "中华人民共和国商标法第56条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "trademark-005",
+          "knowledge_base_slug": "trademark-law",
+          "relevant_article_ids": [
+            "中华人民共和国商标法第33条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国商标法第33条",
+            "中华人民共和国商标法第35条",
+            "中华人民共和国商标法第30条",
+            "中华人民共和国商标法第28条",
+            "中华人民共和国商标法第31条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "trademark-006",
+          "knowledge_base_slug": "trademark-law",
+          "relevant_article_ids": [
+            "中华人民共和国商标法第49条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国商标法第49条",
+            "中华人民共和国商标法第56条",
+            "中华人民共和国商标法第48条",
+            "中华人民共和国商标法第68条",
+            "中华人民共和国商标法第24条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "trademark-007",
+          "knowledge_base_slug": "trademark-law",
+          "relevant_article_ids": [
+            "中华人民共和国商标法第57条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国商标法第30条",
+            "中华人民共和国商标法第57条",
+            "中华人民共和国商标法第56条",
+            "中华人民共和国商标法第59条",
+            "中华人民共和国商标法第48条"
+          ],
+          "first_relevant_rank": 2
+        },
+        {
+          "id": "trademark-008",
+          "knowledge_base_slug": "trademark-law",
+          "relevant_article_ids": [
+            "中华人民共和国商标法第60条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国商标法第60条",
+            "中华人民共和国商标法第62条",
+            "中华人民共和国商标法第47条",
+            "中华人民共和国商标法第56条",
+            "中华人民共和国商标法第45条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "trademark-009",
+          "knowledge_base_slug": "trademark-law",
+          "relevant_article_ids": [
+            "中华人民共和国商标法第63条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国商标法第63条",
+            "中华人民共和国商标法第60条",
+            "中华人民共和国商标法第64条",
+            "中华人民共和国商标法第67条",
+            "中华人民共和国商标法第30条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "trademark-010",
+          "knowledge_base_slug": "trademark-law",
+          "relevant_article_ids": [
+            "中华人民共和国商标法第68条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国商标法第19条",
+            "中华人民共和国商标法第68条",
+            "中华人民共和国商标法第18条",
+            "中华人民共和国商标法第2条",
+            "中华人民共和国商标法第71条"
+          ],
+          "first_relevant_rank": 2
+        }
+      ]
+    }
+  },
+  "run": {
+    "mode": "bm25",
+    "persist_directory": "data\\chroma_db",
+    "collections": {
+      "civil-code": "kb_civil_code",
+      "company-law": "kb_company_law",
+      "copyright-law": "kb_copyright_law",
+      "criminal-law": "kb_criminal_law",
+      "labor-contract-law": "kb_labor_contract_law",
+      "labor-law": "kb_labor_law",
+      "patent-law": "kb_patent_law",
+      "trademark-law": "kb_trademark_law"
+    }
+  }
+}

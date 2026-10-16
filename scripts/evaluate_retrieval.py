@@ -19,7 +19,9 @@ def main() -> int:
     input_mode = parser.add_mutually_exclusive_group(required=True)
     input_mode.add_argument("--candidates", type=Path, help="按样本 ID 保存的候选法条 JSON")
     input_mode.add_argument("--live-collection", help="直接读取的 Chroma collection 名称")
-    parser.add_argument("--persist-directory", type=Path, default=Path("data/chroma_db"), help="Chroma 持久化目录")
+    parser.add_argument(
+        "--persist-directory", type=Path, default=Path("data/chroma_db"), help="Chroma 持久化目录"
+    )
     parser.add_argument("--top-k", required=True, type=int)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
@@ -35,7 +37,9 @@ def main() -> int:
                 if label["id"] not in candidates:
                     raise EvaluationDatasetError(f"样本 {label['id']} 没有候选法条，无法完成评测")
                 ranked = candidates[label["id"]]
-                if not isinstance(ranked, list) or not all(isinstance(value, str) for value in ranked):
+                if not isinstance(ranked, list) or not all(
+                    isinstance(value, str) for value in ranked
+                ):
                     raise EvaluationDatasetError(f"样本 {label['id']} 的候选法条格式无效")
                 return ranked
         else:

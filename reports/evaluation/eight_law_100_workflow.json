@@ -1,0 +1,1704 @@
+{
+  "sample_count": 100,
+  "metrics": {
+    "verification_pass_rate": 1.0,
+    "expected_citation_coverage": 0.99,
+    "repair_trigger_rate": 0.0,
+    "repair_success_rate": null,
+    "mean_end_to_end_latency_ms": 63200.453,
+    "cache_hit_count": 0
+  },
+  "human_review": {
+    "assertion_support_rate": null,
+    "reviewed_count": 0,
+    "missing_review_ids": [
+      "civil-001",
+      "civil-002",
+      "civil-003",
+      "civil-004",
+      "civil-005",
+      "civil-006",
+      "civil-007",
+      "civil-008",
+      "civil-009",
+      "civil-010",
+      "civil-011",
+      "civil-012",
+      "civil-013",
+      "civil-014",
+      "civil-015",
+      "civil-016",
+      "civil-017",
+      "civil-018",
+      "civil-019",
+      "civil-020",
+      "civil-021",
+      "civil-022",
+      "civil-023",
+      "civil-024",
+      "civil-025",
+      "civil-026",
+      "civil-027",
+      "civil-028",
+      "civil-029",
+      "civil-030",
+      "criminal-001",
+      "criminal-002",
+      "criminal-003",
+      "criminal-004",
+      "criminal-005",
+      "criminal-006",
+      "criminal-007",
+      "criminal-008",
+      "criminal-009",
+      "criminal-010",
+      "criminal-011",
+      "criminal-012",
+      "criminal-013",
+      "criminal-014",
+      "criminal-015",
+      "labor-001",
+      "labor-002",
+      "labor-003",
+      "labor-004",
+      "labor-005",
+      "labor-006",
+      "labor-007",
+      "labor-008",
+      "labor-009",
+      "labor-010",
+      "labor-contract-001",
+      "labor-contract-002",
+      "labor-contract-003",
+      "labor-contract-004",
+      "labor-contract-005",
+      "labor-contract-006",
+      "labor-contract-007",
+      "labor-contract-008",
+      "labor-contract-009",
+      "labor-contract-010",
+      "company-001",
+      "company-002",
+      "company-003",
+      "company-004",
+      "company-005",
+      "company-006",
+      "company-007",
+      "company-008",
+      "company-009",
+      "company-010",
+      "patent-001",
+      "patent-002",
+      "patent-003",
+      "patent-004",
+      "patent-005",
+      "trademark-001",
+      "trademark-002",
+      "trademark-003",
+      "trademark-004",
+      "trademark-005",
+      "trademark-006",
+      "trademark-007",
+      "trademark-008",
+      "trademark-009",
+      "trademark-010",
+      "copyright-001",
+      "copyright-002",
+      "copyright-003",
+      "copyright-004",
+      "copyright-005",
+      "copyright-006",
+      "copyright-007",
+      "copyright-008",
+      "copyright-009",
+      "copyright-010"
+    ]
+  },
+  "items": [
+    {
+      "id": "civil-001",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "17"
+      ],
+      "expected_citation_ids": [
+        "17"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 35742.93,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-002",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "20"
+      ],
+      "expected_citation_ids": [
+        "20"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 45780.557,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-003",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "1155",
+        "16"
+      ],
+      "expected_citation_ids": [
+        "16"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 59517.51,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-004",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "188"
+      ],
+      "expected_citation_ids": [
+        "188"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 38619.49,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-005",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "1082"
+      ],
+      "expected_citation_ids": [
+        "1082"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 69883.504,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-006",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "1254"
+      ],
+      "expected_citation_ids": [
+        "1254"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 65154.97,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-007",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "705"
+      ],
+      "expected_citation_ids": [
+        "705"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 32903.909,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-008",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "586"
+      ],
+      "expected_citation_ids": [
+        "586"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 31946.67,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-009",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "472",
+        "491"
+      ],
+      "expected_citation_ids": [
+        "491"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 73411.901,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-010",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "180",
+        "590"
+      ],
+      "expected_citation_ids": [
+        "180"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 26125.434,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-011",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "1136"
+      ],
+      "expected_citation_ids": [
+        "1136"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 24312.055,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-012",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "1064",
+        "1065"
+      ],
+      "expected_citation_ids": [
+        "1064"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 101048.397,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-013",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "658"
+      ],
+      "expected_citation_ids": [
+        "658"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 45576.406,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-014",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "1105"
+      ],
+      "expected_citation_ids": [
+        "1105"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 20743.694,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-015",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "1121"
+      ],
+      "expected_citation_ids": [
+        "1121"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 65217.904,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-016",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "509",
+        "7"
+      ],
+      "expected_citation_ids": [
+        "7"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 34765.938,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-017",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "27"
+      ],
+      "expected_citation_ids": [
+        "27"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 65564.038,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-018",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "143"
+      ],
+      "expected_citation_ids": [
+        "143"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 51901.101,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-019",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "152"
+      ],
+      "expected_citation_ids": [
+        "152"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 42519.467,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-020",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "278"
+      ],
+      "expected_citation_ids": [
+        "278"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 44263.58,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-021",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "119",
+        "465",
+        "502",
+        "939"
+      ],
+      "expected_citation_ids": [
+        "465"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 78510.834,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-022",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "509",
+        "510",
+        "511",
+        "7"
+      ],
+      "expected_citation_ids": [
+        "509"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 78236.06,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-023",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "577",
+        "580",
+        "582",
+        "583",
+        "585"
+      ],
+      "expected_citation_ids": [
+        "577"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 79441.097,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-024",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "585"
+      ],
+      "expected_citation_ids": [
+        "585"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 38145.647,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-025",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "180",
+        "590"
+      ],
+      "expected_citation_ids": [
+        "590"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 63845.538,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-026",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "597"
+      ],
+      "expected_citation_ids": [
+        "597"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 324102.612,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-027",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "628"
+      ],
+      "expected_citation_ids": [
+        "633"
+      ],
+      "expected_citation_coverage": 0.0,
+      "verification_attempts": 0,
+      "latency_ms": 77541.373,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-028",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "634",
+        "641",
+        "642"
+      ],
+      "expected_citation_ids": [
+        "641"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 346953.754,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-029",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "1191",
+        "1192"
+      ],
+      "expected_citation_ids": [
+        "1191"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 67886.701,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "civil-030",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "1198"
+      ],
+      "expected_citation_ids": [
+        "1198"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 36467.051,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-001",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "13"
+      ],
+      "expected_citation_ids": [
+        "13"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 33441.317,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-002",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "17"
+      ],
+      "expected_citation_ids": [
+        "17"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 112917.405,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-003",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "20"
+      ],
+      "expected_citation_ids": [
+        "20"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 74261.332,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-004",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "22"
+      ],
+      "expected_citation_ids": [
+        "22"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 67224.766,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-005",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "23"
+      ],
+      "expected_citation_ids": [
+        "23"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 49581.526,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-006",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "24"
+      ],
+      "expected_citation_ids": [
+        "24"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 68120.825,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-007",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "14",
+        "25",
+        "26",
+        "27"
+      ],
+      "expected_citation_ids": [
+        "25"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 226418.949,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-008",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "67"
+      ],
+      "expected_citation_ids": [
+        "67"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 43596.992,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-009",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "72"
+      ],
+      "expected_citation_ids": [
+        "72"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 40027.843,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-010",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "133"
+      ],
+      "expected_citation_ids": [
+        "133"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 57323.847,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-011",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "232",
+        "56"
+      ],
+      "expected_citation_ids": [
+        "232"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 47977.666,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-012",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "234",
+        "235",
+        "95"
+      ],
+      "expected_citation_ids": [
+        "234"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 31791.914,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-013",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "264",
+        "382"
+      ],
+      "expected_citation_ids": [
+        "264"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 49152.028,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-014",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "193",
+        "198",
+        "224",
+        "266"
+      ],
+      "expected_citation_ids": [
+        "266"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 56862.664,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "criminal-015",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "6"
+      ],
+      "expected_citation_ids": [
+        "6"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 42003.645,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-001",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "3",
+        "7"
+      ],
+      "expected_citation_ids": [
+        "3"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 44100.938,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-002",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "15",
+        "94"
+      ],
+      "expected_citation_ids": [
+        "15"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 62464.104,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-003",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "16"
+      ],
+      "expected_citation_ids": [
+        "16"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 36733.38,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-004",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "36"
+      ],
+      "expected_citation_ids": [
+        "36"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 82606.615,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-005",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "38"
+      ],
+      "expected_citation_ids": [
+        "38"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 33729.358,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-006",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "41"
+      ],
+      "expected_citation_ids": [
+        "41"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 30122.537,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-007",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "44"
+      ],
+      "expected_citation_ids": [
+        "44"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 30841.466,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-008",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "50",
+        "91"
+      ],
+      "expected_citation_ids": [
+        "50"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 44249.113,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-009",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "104",
+        "72",
+        "74"
+      ],
+      "expected_citation_ids": [
+        "72"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 42307.861,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-010",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "77",
+        "78",
+        "79",
+        "80",
+        "84"
+      ],
+      "expected_citation_ids": [
+        "77"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 105367.682,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-contract-001",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "10",
+        "7"
+      ],
+      "expected_citation_ids": [
+        "7"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 51255.564,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-contract-002",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "84",
+        "9"
+      ],
+      "expected_citation_ids": [
+        "9"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 46648.959,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-contract-003",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "10",
+        "14",
+        "82"
+      ],
+      "expected_citation_ids": [
+        "10"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 66690.916,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-contract-004",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "12",
+        "13",
+        "14",
+        "82"
+      ],
+      "expected_citation_ids": [
+        "14"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 49262.212,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-contract-005",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "19"
+      ],
+      "expected_citation_ids": [
+        "19"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 32541.78,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-contract-006",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "39",
+        "43"
+      ],
+      "expected_citation_ids": [
+        "39"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 24941.627,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-contract-007",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "40",
+        "46"
+      ],
+      "expected_citation_ids": [
+        "40"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 75918.957,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-contract-008",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "46",
+        "47",
+        "85",
+        "87"
+      ],
+      "expected_citation_ids": [
+        "46"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 83022.929,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-contract-009",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "47",
+        "97"
+      ],
+      "expected_citation_ids": [
+        "47"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 90333.6,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "labor-contract-010",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "11",
+        "82"
+      ],
+      "expected_citation_ids": [
+        "82"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 76412.41,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "company-001",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "176",
+        "20",
+        "3",
+        "63"
+      ],
+      "expected_citation_ids": [
+        "3"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 54983.507,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "company-002",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "211",
+        "31",
+        "6",
+        "7"
+      ],
+      "expected_citation_ids": [
+        "7"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 90388.427,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "company-003",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "11"
+      ],
+      "expected_citation_ids": [
+        "11"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 45472.799,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "company-004",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "13",
+        "25",
+        "29",
+        "7",
+        "81"
+      ],
+      "expected_citation_ids": [
+        "13"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 98669.229,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "company-005",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "20",
+        "3",
+        "63"
+      ],
+      "expected_citation_ids": [
+        "20"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 59263.989,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "company-006",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "51",
+        "70"
+      ],
+      "expected_citation_ids": [
+        "51"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 70276.916,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "company-007",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "72"
+      ],
+      "expected_citation_ids": [
+        "72"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 48221.594,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "company-008",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "80",
+        "83",
+        "93"
+      ],
+      "expected_citation_ids": [
+        "83"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 116665.534,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "company-009",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "89"
+      ],
+      "expected_citation_ids": [
+        "89"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 34494.701,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "company-010",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "188"
+      ],
+      "expected_citation_ids": [
+        "188"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 43124.686,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "patent-001",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "6"
+      ],
+      "expected_citation_ids": [
+        "6"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 39493.547,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "patent-002",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "10"
+      ],
+      "expected_citation_ids": [
+        "10"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 33157.123,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "patent-003",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "11",
+        "60",
+        "69"
+      ],
+      "expected_citation_ids": [
+        "11"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 67327.166,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "patent-004",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "22",
+        "24"
+      ],
+      "expected_citation_ids": [
+        "22"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 84496.497,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "patent-005",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "42"
+      ],
+      "expected_citation_ids": [
+        "42"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 101267.799,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "trademark-001",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "11",
+        "12",
+        "8",
+        "9"
+      ],
+      "expected_citation_ids": [
+        "8"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 43662.066,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "trademark-002",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "10"
+      ],
+      "expected_citation_ids": [
+        "10"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 73664.366,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "trademark-003",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "11",
+        "9"
+      ],
+      "expected_citation_ids": [
+        "11"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 46138.561,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "trademark-004",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "15",
+        "45",
+        "68"
+      ],
+      "expected_citation_ids": [
+        "15"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 105414.271,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "trademark-005",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "33"
+      ],
+      "expected_citation_ids": [
+        "33"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 28363.88,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "trademark-006",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "49",
+        "55"
+      ],
+      "expected_citation_ids": [
+        "49"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 39331.869,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "trademark-007",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "57",
+        "67"
+      ],
+      "expected_citation_ids": [
+        "57"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 35874.269,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "trademark-008",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "60",
+        "61",
+        "65"
+      ],
+      "expected_citation_ids": [
+        "60"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 61705.471,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "trademark-009",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "63",
+        "64"
+      ],
+      "expected_citation_ids": [
+        "63"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 48168.091,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "trademark-010",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "68"
+      ],
+      "expected_citation_ids": [
+        "68"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 55913.88,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "copyright-001",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "2"
+      ],
+      "expected_citation_ids": [
+        "2"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 53462.762,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "copyright-002",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "3"
+      ],
+      "expected_citation_ids": [
+        "3"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 36959.927,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "copyright-003",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "5"
+      ],
+      "expected_citation_ids": [
+        "5"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 80045.741,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "copyright-004",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "10"
+      ],
+      "expected_citation_ids": [
+        "10"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 60226.821,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "copyright-005",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "11"
+      ],
+      "expected_citation_ids": [
+        "11"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 27425.961,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "copyright-006",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "16"
+      ],
+      "expected_citation_ids": [
+        "16"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 54054.332,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "copyright-007",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "17"
+      ],
+      "expected_citation_ids": [
+        "17"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 35995.396,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "copyright-008",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "20"
+      ],
+      "expected_citation_ids": [
+        "20"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 36522.32,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "copyright-009",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "24",
+        "37"
+      ],
+      "expected_citation_ids": [
+        "24"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 70543.264,
+      "cache_hit": null,
+      "human_assertion_review": null
+    },
+    {
+      "id": "copyright-010",
+      "verification_status": "pass",
+      "verified_citation_ids": [
+        "48",
+        "52"
+      ],
+      "expected_citation_ids": [
+        "52"
+      ],
+      "expected_citation_coverage": 1.0,
+      "verification_attempts": 0,
+      "latency_ms": 62883.673,
+      "cache_hit": null,
+      "human_assertion_review": null
+    }
+  ],
+  "dataset": "data\\evaluation\\eight_law_evaluation_100.jsonl",
+  "api_url": "http://127.0.0.1:8000/query"
+}

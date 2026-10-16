@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import json
 import math
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
-
+from typing import Any
 
 REQUIRED_FIELDS = {
     "id",
@@ -22,8 +22,8 @@ class EvaluationDatasetError(ValueError):
     """评测集不符合可审计数据契约。"""
 
 
-def load_labels(path: Path) -> list[dict[str, Any]]:
-    """加载并校验 JSONL 人工标注，拒绝不完整或重复样本。"""
+def load_labels(path: Path, *, require_reviewed: bool = False) -> list[dict[str, Any]]:
+    """加载并校验 JSONL 人工标注，拒绝不完整、重复或未核验的正式样本。"""
     labels: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
     for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
@@ -35,13 +35,20 @@ def load_labels(path: Path) -> list[dict[str, Any]]:
             raise EvaluationDatasetError(f"第 {line_number} 行不是合法 JSON") from exc
         missing = REQUIRED_FIELDS - item.keys()
         if missing:
-            raise EvaluationDatasetError(f"第 {line_number} 行缺少字段: {', '.join(sorted(missing))}")
+            raise EvaluationDatasetError(
+                f"第 {line_number} 行缺少字段: {', '.join(sorted(missing))}"
+            )
         if not isinstance(item["id"], str) or not item["id"].strip() or item["id"] in seen_ids:
             raise EvaluationDatasetError(f"第 {line_number} 行 id 为空或重复")
         if not isinstance(item["relevant_article_ids"], list) or not item["relevant_article_ids"]:
             raise EvaluationDatasetError(f"第 {line_number} 行缺少人工核验的相关法条")
-        if not all(isinstance(article_id, str) and article_id.strip() for article_id in item["relevant_article_ids"]):
+        if not all(
+            isinstance(article_id, str) and article_id.strip()
+            for article_id in item["relevant_article_ids"]
+        ):
             raise EvaluationDatasetError(f"第 {line_number} 行包含无效法条 ID")
+        if require_reviewed and item.get("review_status") != "approved":
+            raise EvaluationDatasetError(f"第 {line_number} 行未经人工核验，不能用于正式评测")
         seen_ids.add(item["id"])
         labels.append(item)
     if not labels:
@@ -65,13 +72,25 @@ def evaluate_labels(
     items: list[dict[str, Any]] = []
 
     for label in labels:
-        ranked_article_ids = list(retrieve(label))[:top_k]
+        ranked_article_ids: list[str] = []
+        seen_article_ids: set[str] = set()
+        for article_id in retrieve(label):
+            if article_id in seen_article_ids:
+                continue
+            seen_article_ids.add(article_id)
+            ranked_article_ids.append(article_id)
+            if len(ranked_article_ids) >= top_k:
+                break
         relevant = set(label["relevant_article_ids"])
         hits = [article_id for article_id in ranked_article_ids if article_id in relevant]
         recall_scores.append(len(set(hits)) / len(relevant))
 
         first_rank = next(
-            (index + 1 for index, article_id in enumerate(ranked_article_ids) if article_id in relevant),
+            (
+                index + 1
+                for index, article_id in enumerate(ranked_article_ids)
+                if article_id in relevant
+            ),
             None,
         )
         reciprocal_ranks.append(1 / first_rank if first_rank else 0.0)
@@ -104,4 +123,24 @@ def evaluate_labels(
             "ndcg_at_k": round(sum(ndcg_scores) / count, 6),
         },
         "items": items,
+    }
+
+
+def evaluate_labels_by_knowledge_base(
+    labels: list[dict[str, Any]],
+    retrieve: Callable[[dict[str, Any]], list[str]],
+    *,
+    top_k: int,
+) -> dict[str, Any]:
+    """计算总体指标，并保留每个知识库的独立指标和命中明细。"""
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for label in labels:
+        grouped.setdefault(label["knowledge_base_slug"], []).append(label)
+
+    return {
+        "overall": evaluate_labels(labels, retrieve, top_k=top_k),
+        "by_knowledge_base": {
+            slug: evaluate_labels(grouped_labels, retrieve, top_k=top_k)
+            for slug, grouped_labels in sorted(grouped.items())
+        },
     }
