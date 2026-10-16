@@ -20,6 +20,12 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = ["src", "app", "config"]
 
+[tool.ruff.lint.per-file-ignores]
+# Standalone maintenance scripts and tests deliberately prepend the repository
+# root to sys.path so they can run directly from a checkout.
+"scripts/*.py" = ["E402"]
+"tests/*.py" = ["E402"]
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"

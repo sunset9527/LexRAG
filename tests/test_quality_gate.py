@@ -1,9 +1,26 @@
-from scripts.quality_gate import CommandResult, build_report, package_manager_command
+from scripts.quality_gate import (
+    CommandResult,
+    build_quality_commands,
+    build_report,
+    package_manager_command,
+)
 
 
 def test_quality_gate_uses_cmd_shim_for_npm_on_windows():
     assert package_manager_command("nt") == "npm.cmd"
     assert package_manager_command("posix") == "npm"
+
+
+def test_quality_gate_includes_ruff_for_maintained_python_code(tmp_path):
+    """静态检查必须覆盖当前运行代码、脚本、测试与迁移，而非仅依赖 pytest。"""
+    commands = build_quality_commands(output_dir=tmp_path, skip_build=True)
+
+    ruff_command = next(command for name, command, _ in commands if name == "ruff")
+    assert ruff_command[1:4] == ["-m", "ruff", "check"]
+    assert ruff_command[4:] == ["api.py", "app", "src", "scripts", "tests", "alembic"]
+
+    pytest_command = next(command for name, command, _ in commands if name == "backend pytest")
+    assert pytest_command[pytest_command.index("--basetemp") + 1] == str(tmp_path / "pytest-tmp")
 
 
 def test_quality_report_counts_commands_and_keeps_real_execution_metadata():

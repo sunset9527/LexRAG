@@ -2,9 +2,9 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
 
-import app.models.case_source  # noqa: F401
-import app.models.audit_log  # noqa: F401
 import app.models.agent_config  # noqa: F401
+import app.models.audit_log  # noqa: F401
+import app.models.case_source  # noqa: F401
 import app.models.document_job  # noqa: F401
 import app.models.document_page  # noqa: F401
 import app.models.document_relation  # noqa: F401
@@ -15,8 +15,8 @@ import app.models.law_update  # noqa: F401
 import app.models.organization  # noqa: F401
 import app.models.rbac  # noqa: F401
 import app.models.scenario_job  # noqa: F401
-import app.models.user  # noqa: F401
 import app.models.usage_daily  # noqa: F401
+import app.models.user  # noqa: F401
 from alembic import context
 from app.db.base import Base
 from app.db.session import get_database_url
