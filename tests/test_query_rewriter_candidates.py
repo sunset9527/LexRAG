@@ -10,7 +10,7 @@ from src.retrieval.query_rewriter import QueryRewriter
 
 
 class FakeResponse:
-    content = '''{
+    content = """{
       "rewritten_queries": [
         "劳动关系认定标准",
         "劳动关系认定标准",
@@ -19,7 +19,7 @@ class FakeResponse:
         "超出上限的候选"
       ],
       "search_keywords": ["劳动关系", "从属性"]
-    }'''
+    }"""
 
 
 class FakeLLM:

@@ -30,7 +30,9 @@ def upgrade() -> None:
         sa.Column("result_data", sa.JSON(), nullable=True),
         sa.Column("status", sa.String(length=16), nullable=False),
         sa.Column("error_message", sa.Text(), nullable=True),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+        ),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
     )
     op.create_index("ix_scenario_jobs_user_id", "scenario_jobs", ["user_id"])

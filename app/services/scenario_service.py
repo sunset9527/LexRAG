@@ -48,7 +48,12 @@ class ScenarioService:
         }
 
     def create(
-        self, *, user_id: int, scenario_type: str, input_data: dict[str, Any], organization_id: int | None = None
+        self,
+        *,
+        user_id: int,
+        scenario_type: str,
+        input_data: dict[str, Any],
+        organization_id: int | None = None,
     ) -> dict[str, Any]:
         if scenario_type not in self.ALLOWED_TYPES:
             raise ValueError("不支持的法律场景")
@@ -66,7 +71,9 @@ class ScenarioService:
             db.refresh(job)
             return self._to_dict(job)
 
-    def list_for_user(self, *, user_id: int, organization_id: int | None = None) -> list[dict[str, Any]]:
+    def list_for_user(
+        self, *, user_id: int, organization_id: int | None = None
+    ) -> list[dict[str, Any]]:
         with self._session_factory() as db:
             query = db.query(ScenarioJob).filter(ScenarioJob.user_id == user_id)
             if organization_id is not None:
@@ -74,17 +81,25 @@ class ScenarioService:
             jobs = query.order_by(ScenarioJob.created_at.desc()).all()
             return [self._to_dict(job) for job in jobs]
 
-    def get(self, *, user_id: int, scenario_id: str, organization_id: int | None = None) -> dict[str, Any] | None:
+    def get(
+        self, *, user_id: int, scenario_id: str, organization_id: int | None = None
+    ) -> dict[str, Any] | None:
         with self._session_factory() as db:
-            query = db.query(ScenarioJob).filter(ScenarioJob.id == scenario_id, ScenarioJob.user_id == user_id)
+            query = db.query(ScenarioJob).filter(
+                ScenarioJob.id == scenario_id, ScenarioJob.user_id == user_id
+            )
             if organization_id is not None:
                 query = query.filter(ScenarioJob.organization_id == organization_id)
             job = query.first()
             return self._to_dict(job) if job else None
 
-    def process(self, *, user_id: int, scenario_id: str, organization_id: int | None = None) -> dict[str, Any] | None:
+    def process(
+        self, *, user_id: int, scenario_id: str, organization_id: int | None = None
+    ) -> dict[str, Any] | None:
         with self._session_factory() as db:
-            query = db.query(ScenarioJob).filter(ScenarioJob.id == scenario_id, ScenarioJob.user_id == user_id)
+            query = db.query(ScenarioJob).filter(
+                ScenarioJob.id == scenario_id, ScenarioJob.user_id == user_id
+            )
             if organization_id is not None:
                 query = query.filter(ScenarioJob.organization_id == organization_id)
             job = query.first()
@@ -110,7 +125,9 @@ class ScenarioService:
         if self._advice_generator is None:
             raise ValueError("未配置运行时模型，无法生成修改建议")
         with self._session_factory() as db:
-            query = db.query(ScenarioJob).filter(ScenarioJob.id == scenario_id, ScenarioJob.user_id == user_id)
+            query = db.query(ScenarioJob).filter(
+                ScenarioJob.id == scenario_id, ScenarioJob.user_id == user_id
+            )
             if organization_id is not None:
                 query = query.filter(ScenarioJob.organization_id == organization_id)
             job = query.first()

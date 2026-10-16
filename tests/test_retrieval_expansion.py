@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """引用图增强召回 + 检索/生成字段分离 的离线单元测试（不调 LLM / 不依赖向量库）
 
 覆盖：
@@ -10,6 +9,7 @@
 
 秒级可跑：python -m pytest tests/test_retrieval_expansion.py -v
 """
+
 import sys
 from pathlib import Path
 
@@ -143,9 +143,7 @@ class TestFormatGroupedContext:
     def test_reference_annotation(self):
         """引用扩展补充的条号在上下文中标注「引用相关」"""
         lookup = {395: "可抵押财产范围条文", 402: "抵押登记条文"}
-        ctx = ropt.format_grouped_context(
-            {395, 402}, lookup, expanded_articles={395}
-        )
+        ctx = ropt.format_grouped_context({395, 402}, lookup, expanded_articles={395})
         assert "第395条·引用相关" in ctx
         assert "第402条】" in ctx  # 命中条文不加标注
 
@@ -161,4 +159,7 @@ class TestFormatGroupedContext:
     def test_backward_compatible_no_new_args(self):
         """不传新参数时输出与 P0 完全一致（无摘要、无标注）"""
         lookup = {586: "条文内容"}
-        assert ropt.format_grouped_context({586}, lookup) == "【中华人民共和国民法典第586条】\n条文内容"
+        assert (
+            ropt.format_grouped_context({586}, lookup)
+            == "【中华人民共和国民法典第586条】\n条文内容"
+        )

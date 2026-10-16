@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from time import perf_counter
-from typing import Any, Callable, Iterable
+from typing import Any
 
 from .evidence import CitationVerifier, EvidenceItem, EvidenceLedger, VerifiedCitation
 
@@ -125,7 +126,9 @@ class LegalEvidenceWorkflow:
             )
         except Exception as exc:
             degraded = True
-            self._add_trace(trace, "statute_retrieval", "degraded", started, reason=type(exc).__name__)
+            self._add_trace(
+                trace, "statute_retrieval", "degraded", started, reason=type(exc).__name__
+            )
 
         if decision.include_case and self.case_retriever is not None:
             started = perf_counter()
@@ -136,10 +139,14 @@ class LegalEvidenceWorkflow:
                     item = self._to_case_evidence(case)
                     if item is not None and ledger.add(item):
                         case_count += 1
-                self._add_trace(trace, "case_retrieval", "completed", started, output_count=case_count)
+                self._add_trace(
+                    trace, "case_retrieval", "completed", started, output_count=case_count
+                )
             except Exception as exc:
                 degraded = True
-                self._add_trace(trace, "case_retrieval", "degraded", started, reason=type(exc).__name__)
+                self._add_trace(
+                    trace, "case_retrieval", "degraded", started, reason=type(exc).__name__
+                )
 
         if decision.include_graph and self.graph_retriever is not None and ledger.items:
             started = perf_counter()
@@ -151,10 +158,14 @@ class LegalEvidenceWorkflow:
                     item = self._to_graph_evidence(graph_item, knowledge_base_slug)
                     if item is not None and ledger.add(item):
                         graph_count += 1
-                self._add_trace(trace, "graph_retrieval", "completed", started, output_count=graph_count)
+                self._add_trace(
+                    trace, "graph_retrieval", "completed", started, output_count=graph_count
+                )
             except Exception as exc:
                 degraded = True
-                self._add_trace(trace, "graph_retrieval", "degraded", started, reason=type(exc).__name__)
+                self._add_trace(
+                    trace, "graph_retrieval", "degraded", started, reason=type(exc).__name__
+                )
 
         started = perf_counter()
         evidence = ledger.items
@@ -179,7 +190,9 @@ class LegalEvidenceWorkflow:
 
         started = perf_counter()
         answer = self.answer_generator(question, evidence, None)
-        self._add_trace(trace, "answer", "completed", started, input_count=len(evidence), output_count=1)
+        self._add_trace(
+            trace, "answer", "completed", started, input_count=len(evidence), output_count=1
+        )
 
         started = perf_counter()
         verification = self.citation_verifier.verify(
@@ -200,7 +213,14 @@ class LegalEvidenceWorkflow:
             verification_attempts = 1
             started = perf_counter()
             answer = self.answer_generator(question, evidence, verification.issues)
-            self._add_trace(trace, "repair", "completed", started, input_count=len(verification.issues), output_count=1)
+            self._add_trace(
+                trace,
+                "repair",
+                "completed",
+                started,
+                input_count=len(verification.issues),
+                output_count=1,
+            )
 
             started = perf_counter()
             verification = self.citation_verifier.verify(
@@ -248,7 +268,9 @@ class LegalEvidenceWorkflow:
 
     @staticmethod
     def _is_complex(question: str) -> bool:
-        return len(question) > 80 or any(marker in question for marker in ("并且", "同时", "分别", "流程", "以及"))
+        return len(question) > 80 or any(
+            marker in question for marker in ("并且", "同时", "分别", "流程", "以及")
+        )
 
     @staticmethod
     def _normalize_plan(planned: Any, fallback_question: str) -> list[dict[str, str]]:
@@ -259,10 +281,12 @@ class LegalEvidenceWorkflow:
             if isinstance(item, str) and item.strip():
                 items.append({"question": item.strip(), "depends_on": ""})
             elif isinstance(item, dict) and str(item.get("question", "")).strip():
-                items.append({
-                    "question": str(item["question"]).strip(),
-                    "depends_on": str(item.get("depends_on", "")),
-                })
+                items.append(
+                    {
+                        "question": str(item["question"]).strip(),
+                        "depends_on": str(item.get("depends_on", "")),
+                    }
+                )
         return items or [{"question": fallback_question, "depends_on": ""}]
 
     @staticmethod
@@ -292,9 +316,7 @@ class LegalEvidenceWorkflow:
             return result
         source_id = str(getattr(result, "case_id", ""))
         content = str(
-            getattr(result, "summary", "")
-            or getattr(result, "judgment_result", "")
-            or ""
+            getattr(result, "summary", "") or getattr(result, "judgment_result", "") or ""
         )
         if not source_id or not content:
             return None

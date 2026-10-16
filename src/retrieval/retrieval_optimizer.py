@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 检索优化器：LexRAG 检索优化（对应滴普科技 HR 建议「召回颗粒度 + 重排 + 上下文瘦身」）
 
@@ -29,17 +28,17 @@
     生成上下文标注「·引用相关」（单元测试另覆盖 max_hops/max_add/循环引用安全）
   - 检索/生成字段分离实测：生成上下文单条 ≤500 字硬上限，长条文场景 2356 -> 2100 字（max=200/条）
 """
+
 import ast
 import logging
 import re
-from typing import Dict, List, Tuple, Set, Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 # ==================== 中文数字转换（与 law_parser 保持一致） ====================
-DIGITS = {'零': 0, '一': 1, '二': 2, '三': 3, '四': 4,
-          '五': 5, '六': 6, '七': 7, '八': 8, '九': 9}
-UNITS = {'十': 10, '百': 100, '千': 1000, '万': 10000, '亿': 100000000}
+DIGITS = {"零": 0, "一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9}
+UNITS = {"十": 10, "百": 100, "千": 1000, "万": 10000, "亿": 100000000}
 
 
 def cn2num(num_str: str) -> str:
@@ -65,10 +64,10 @@ def cn2num(num_str: str) -> str:
     return str(result) if result else num_str
 
 
-ARTICLE_PATTERN = re.compile(r'第([一二三四五六七八九十百千零\d]+)条')
+ARTICLE_PATTERN = re.compile(r"第([一二三四五六七八九十百千零\d]+)条")
 
 
-def extract_article_nums(query: str) -> List[str]:
+def extract_article_nums(query: str) -> list[str]:
     """从 query 提取所有「第X条」条号（如 第188条 -> ['188']）"""
     return [cn2num(m.group(1)) for m in ARTICLE_PATTERN.finditer(query)]
 
@@ -81,11 +80,12 @@ def is_number_query(query: str) -> bool:
 
 def is_semantic_query(query: str) -> bool:
     """语义类：问「什么/哪些/如何/是否/能否」等"""
-    return any(k in query for k in ['什么', '哪些', '如何', '是否', '能否',
-                                    '怎样', '怎么办', '吗', '吗？'])
+    return any(
+        k in query for k in ["什么", "哪些", "如何", "是否", "能否", "怎样", "怎么办", "吗", "吗？"]
+    )
 
 
-def rrf_weights(query: str) -> Tuple[float, float]:
+def rrf_weights(query: str) -> tuple[float, float]:
     """返回 (BM25 权重, 向量权重)"""
     if is_number_query(query):
         return 1.4, 0.6
@@ -96,10 +96,8 @@ def rrf_weights(query: str) -> Tuple[float, float]:
 
 # ==================== 精确条号置顶 ====================
 def exact_article_boost(
-    ranked: List[Tuple[str, float]],
-    info: Dict[str, Dict[str, Any]],
-    query: str
-) -> List[Tuple[str, float]]:
+    ranked: list[tuple[str, float]], info: dict[str, dict[str, Any]], query: str
+) -> list[tuple[str, float]]:
     """
     精确条号置顶：query 提到第X条 -> 该条文档直接置顶 rank1。
     ranked: [(chunk_id, score)] 已按分数降序
@@ -116,9 +114,9 @@ def exact_article_boost(
 
 
 # ==================== 条款组聚合 ====================
-def build_chapter_article_map(metadatas: List[Dict[str, Any]]) -> Dict[str, Set[int]]:
+def build_chapter_article_map(metadatas: list[dict[str, Any]]) -> dict[str, set[int]]:
     """从全部 chunk metadata 构建 章节 -> 条号集合 映射"""
-    chapter_map: Dict[str, Set[int]] = {}
+    chapter_map: dict[str, set[int]] = {}
     for md in metadatas:
         ch = str(md.get("chapter", ""))
         an = str(md.get("article_number", ""))
@@ -127,7 +125,7 @@ def build_chapter_article_map(metadatas: List[Dict[str, Any]]) -> Dict[str, Set[
     return chapter_map
 
 
-def find_chapter(article_num: int, chapter_map: Dict[str, Set[int]]) -> Optional[str]:
+def find_chapter(article_num: int, chapter_map: dict[str, set[int]]) -> str | None:
     """查找条号所属章节"""
     for ch, arts in chapter_map.items():
         if article_num in arts:
@@ -136,15 +134,13 @@ def find_chapter(article_num: int, chapter_map: Dict[str, Set[int]]) -> Optional
 
 
 def chapter_window_aggregate(
-    article_numbers: List[str],
-    chapter_map: Dict[str, Set[int]],
-    window: int = 2
-) -> Set[int]:
+    article_numbers: list[str], chapter_map: dict[str, set[int]], window: int = 2
+) -> set[int]:
     """
     章节窗口聚合：命中条号 -> 所在章节 ±window 条号窗口 -> 并集返回。
     返回聚合后的条号集合（作为生成上下文的一组规则）。
     """
-    covered: Set[int] = set()
+    covered: set[int] = set()
     for a in article_numbers:
         if not a.isdigit():
             continue
@@ -156,7 +152,7 @@ def chapter_window_aggregate(
 
 
 # ==================== 引用图增强召回 ====================
-def parse_referenced_articles(ref_str: Any) -> Set[str]:
+def parse_referenced_articles(ref_str: Any) -> set[str]:
     """
     解析 metadata.referenced_articles 为阿拉伯数字条号集合。
 
@@ -165,7 +161,7 @@ def parse_referenced_articles(ref_str: Any) -> Set[str]:
     """
     if not ref_str:
         return set()
-    items: List[str] = []
+    items: list[str] = []
     if isinstance(ref_str, (list, tuple)):
         items = [str(x) for x in ref_str]
     elif isinstance(ref_str, str):
@@ -178,7 +174,7 @@ def parse_referenced_articles(ref_str: Any) -> Set[str]:
         if not items:
             # 回退：直接从字符串里抓所有「第X条」
             items = [m.group(0) for m in ARTICLE_PATTERN.finditer(ref_str)]
-    nums: Set[str] = set()
+    nums: set[str] = set()
     for it in items:
         m = ARTICLE_PATTERN.search(it)
         if m:
@@ -186,14 +182,14 @@ def parse_referenced_articles(ref_str: Any) -> Set[str]:
     return nums
 
 
-def build_references_map(metadatas: List[Dict[str, Any]]) -> Dict[str, Set[str]]:
+def build_references_map(metadatas: list[dict[str, Any]]) -> dict[str, set[str]]:
     """
     从全部 chunk metadata 构建 条号 -> 被引用条号集合 映射（多 chunk 取并集）。
 
     与 build_chapter_article_map 同源（整库 metadata 懒加载一次），
     作为 expand_by_references 的引用图边集合（等价于 law_graph 的 cites 边）。
     """
-    ref_map: Dict[str, Set[str]] = {}
+    ref_map: dict[str, set[str]] = {}
     for md in metadatas:
         an = str(md.get("article_number", ""))
         if not an.isdigit():
@@ -204,7 +200,7 @@ def build_references_map(metadatas: List[Dict[str, Any]]) -> Dict[str, Set[str]]
     return ref_map
 
 
-def _in_lookup(num_str: str, article_lookup: Dict[int, str]) -> bool:
+def _in_lookup(num_str: str, article_lookup: dict[int, str]) -> bool:
     """条号是否存在于知识库（兼容 int/str 键）"""
     if num_str in article_lookup:
         return True
@@ -215,12 +211,12 @@ def _in_lookup(num_str: str, article_lookup: Dict[int, str]) -> bool:
 
 
 def expand_by_references(
-    article_numbers: List[str],
-    article_lookup: Dict[int, str],
-    references_map: Optional[Dict[str, Set[str]]] = None,
+    article_numbers: list[str],
+    article_lookup: dict[int, str],
+    references_map: dict[str, set[str]] | None = None,
     max_hops: int = 1,
     max_add: int = 3,
-) -> Set[int]:
+) -> set[int]:
     """
     引用图增强召回：对检索命中的条文，沿引用边做受限 BFS 扩展。
 
@@ -243,16 +239,16 @@ def expand_by_references(
         return set()
     seeds = {str(a) for a in article_numbers}
     # 反向索引：被引用条号 -> 引用它的条号（命中被引条文时找回引用方）
-    reverse: Dict[str, Set[str]] = {}
+    reverse: dict[str, set[str]] = {}
     for src, targets in references_map.items():
         for t in targets:
             reverse.setdefault(t, set()).add(src)
-    expanded: Set[int] = set()
-    frontier: Set[str] = seeds
+    expanded: set[int] = set()
+    frontier: set[str] = seeds
     for _hop in range(max_hops):
         if len(expanded) >= max_add:
             break
-        candidates: Set[str] = set()
+        candidates: set[str] = set()
         for a in frontier:
             for nb in references_map.get(a, set()) | reverse.get(a, set()):
                 if nb in seeds or nb in candidates:
@@ -271,11 +267,11 @@ def expand_by_references(
 
 
 def format_grouped_context(
-    grouped_articles: Set[int],
-    article_lookup: Dict[int, str],
+    grouped_articles: set[int],
+    article_lookup: dict[int, str],
     law_name: str = "中华人民共和国民法典",
-    max_chars_per_article: Optional[int] = None,
-    expanded_articles: Optional[Set[int]] = None,
+    max_chars_per_article: int | None = None,
+    expanded_articles: set[int] | None = None,
 ) -> str:
     """
     将聚合后的条号集合格式化为生成上下文文本。
@@ -294,6 +290,7 @@ def format_grouped_context(
             continue
         if max_chars_per_article:
             from .context_compressor import compress_context_simple
+
             content = compress_context_simple(content, max_chars=max_chars_per_article)
         tag = "·引用相关" if an in expanded else ""
         parts.append(f"【{law_name}第{an}条{tag}】\n{content}")

@@ -82,11 +82,23 @@ def test_compliance_rules_and_rights_graph_keep_legal_scope_and_transition_data(
 def test_document_template_rejects_missing_required_facts_and_keeps_submitted_facts_only():
     template = DOCUMENT_TEMPLATES["arbitration_application"]
 
-    assert validate_document_fields(template, {"applicant": "张三"}) == ["respondent", "claims", "facts"]
-    assert validate_document_fields(
-        template,
-        {"applicant": "张三", "respondent": "某公司", "claims": "支付工资", "facts": "拖欠工资"},
-    ) == []
+    assert validate_document_fields(template, {"applicant": "张三"}) == [
+        "respondent",
+        "claims",
+        "facts",
+    ]
+    assert (
+        validate_document_fields(
+            template,
+            {
+                "applicant": "张三",
+                "respondent": "某公司",
+                "claims": "支付工资",
+                "facts": "拖欠工资",
+            },
+        )
+        == []
+    )
 
 
 def test_pdf_export_returns_a_valid_pdf_with_disclaimer():
@@ -158,7 +170,14 @@ def test_compliance_review_uses_the_same_evidence_gate():
 
     service = ScenarioService(
         lambda: None,
-        evidence_provider=lambda query: [{"law_name": "中华人民共和国劳动法", "article_id": "44", "content": "延长工作时间的工资报酬。", "source_id": "labor-44"}],
+        evidence_provider=lambda query: [
+            {
+                "law_name": "中华人民共和国劳动法",
+                "article_id": "44",
+                "content": "延长工作时间的工资报酬。",
+                "source_id": "labor-44",
+            }
+        ],
     )
     result = service._run("compliance_check", {"domain": "labor", "text": "公司规定不支付加班费。"})
 
@@ -193,9 +212,27 @@ def test_document_and_rights_path_expose_only_verified_citations():
 
     service = ScenarioService(
         lambda: None,
-        evidence_provider=lambda query: [{"law_name": "中华人民共和国民法典", "article_id": "577", "content": "当事人一方不履行合同义务。", "source_id": "civil-577"}],
+        evidence_provider=lambda query: [
+            {
+                "law_name": "中华人民共和国民法典",
+                "article_id": "577",
+                "content": "当事人一方不履行合同义务。",
+                "source_id": "civil-577",
+            }
+        ],
     )
-    document = service._run("document_draft", {"template": "complaint", "fields": {"plaintiff": "张三", "defendant": "李四", "claims": "继续履行", "facts": "合同到期未履行"}})
+    document = service._run(
+        "document_draft",
+        {
+            "template": "complaint",
+            "fields": {
+                "plaintiff": "张三",
+                "defendant": "李四",
+                "claims": "继续履行",
+                "facts": "合同到期未履行",
+            },
+        },
+    )
     path = service._run("rights_path", {"dispute_type": "contract"})
 
     assert document["evidence_status"] == "verified"
@@ -210,8 +247,17 @@ def test_contract_advice_is_generated_only_after_evidence_verification():
     calls = []
     service = ScenarioService(
         lambda: None,
-        evidence_provider=lambda query: [{"law_name": "中华人民共和国民法典", "article_id": "506", "content": "合同中的下列免责条款无效。", "source_id": "civil-506"}],
-        advice_generator=lambda clause, citations: calls.append((clause, citations)) or "建议明确责任范围并删除绝对免责表述。",
+        evidence_provider=lambda query: [
+            {
+                "law_name": "中华人民共和国民法典",
+                "article_id": "506",
+                "content": "合同中的下列免责条款无效。",
+                "source_id": "civil-506",
+            }
+        ],
+        advice_generator=lambda clause, citations: (
+            calls.append((clause, citations)) or "建议明确责任范围并删除绝对免责表述。"
+        ),
     )
 
     result = service._run("contract_review", {"text": "第一条 甲方对任何损失概不负责。"})
@@ -280,14 +326,25 @@ def test_contract_review_keeps_case_evidence_separate_from_statute_citations():
 
     service = ScenarioService(
         lambda: None,
-        evidence_provider=lambda query: [{"law_name": "中华人民共和国民法典", "article_id": "506", "content": "免责条款。", "source_id": "civil-506"}],
-        case_provider=lambda query: [{"case_id": "annual-1", "summary": "年度案例中的免责条款争议摘要。", "score": 0.8}],
+        evidence_provider=lambda query: [
+            {
+                "law_name": "中华人民共和国民法典",
+                "article_id": "506",
+                "content": "免责条款。",
+                "source_id": "civil-506",
+            }
+        ],
+        case_provider=lambda query: [
+            {"case_id": "annual-1", "summary": "年度案例中的免责条款争议摘要。", "score": 0.8}
+        ],
     )
 
     result = service._run("contract_review", {"text": "第一条 甲方对任何损失概不负责。"})
 
     assert result["findings"][0]["citations"] == ["【中华人民共和国民法典第506条】"]
-    assert result["findings"][0]["case_evidence"] == [{"case_id": "annual-1", "summary": "年度案例中的免责条款争议摘要。", "score": 0.8}]
+    assert result["findings"][0]["case_evidence"] == [
+        {"case_id": "annual-1", "summary": "年度案例中的免责条款争议摘要。", "score": 0.8}
+    ]
 
 
 def test_scenario_routes_bind_requests_to_authenticated_user(monkeypatch):
@@ -318,12 +375,16 @@ def test_scenario_routes_bind_requests_to_authenticated_user(monkeypatch):
     app = FastAPI()
     app.include_router(scenarios.router)
     app.dependency_overrides[scenarios.get_current_user] = lambda: SimpleNamespace(id=7)
-    app.dependency_overrides[scenarios.get_authorization_context] = lambda: SimpleNamespace(organization_id=1)
+    app.dependency_overrides[scenarios.get_authorization_context] = lambda: SimpleNamespace(
+        organization_id=1
+    )
     monkeypatch.setattr(scenarios, "_service", lambda *args, **kwargs: fake)
     monkeypatch.setattr(
         scenarios.process_scenario_task,
         "delay",
-        lambda user_id, scenario_id, organization_id: dispatched.append((user_id, scenario_id, organization_id)),
+        lambda user_id, scenario_id, organization_id: dispatched.append(
+            (user_id, scenario_id, organization_id)
+        ),
     )
 
     async def request():
@@ -360,10 +421,15 @@ def test_scenario_celery_task_uses_runtime_service_without_a_user_api_key(monkey
     monkeypatch.setattr(
         scenario_tasks,
         "create_runtime_scenario_service",
-        lambda: SimpleNamespace(process=lambda **kwargs: calls.append(kwargs) or {"status": "READY"}),
+        lambda: SimpleNamespace(
+            process=lambda **kwargs: calls.append(kwargs) or {"status": "READY"}
+        ),
     )
 
     result = scenario_tasks.process_scenario_task(7, "scenario-1")
 
     assert result == {"status": "READY"}
-    assert calls == ["init_db", {"user_id": 7, "scenario_id": "scenario-1", "organization_id": None}]
+    assert calls == [
+        "init_db",
+        {"user_id": 7, "scenario_id": "scenario-1", "organization_id": None},
+    ]

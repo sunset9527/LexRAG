@@ -425,12 +425,17 @@ def build_structured_report(scenario_type: str, result: dict[str, Any]) -> dict[
     sections = [
         {
             "title": "处理摘要",
-            "content": "已取得并校验证据" if result.get("evidence_status") == "verified" else "未取得可验证法条，以下项目均需人工核验。",
+            "content": "已取得并校验证据"
+            if result.get("evidence_status") == "verified"
+            else "未取得可验证法条，以下项目均需人工核验。",
         },
         {"title": "风险与核验项目", "content": "\n".join(finding_lines) or "未识别到预设核验项。"},
         {"title": "法条依据", "content": "\n".join(unique_citations) or "本次未取得可验证法条。"},
         {"title": "参考案例", "content": "\n".join(case_lines) or "本次未检索到可追溯参考案例。"},
-        {"title": "修改建议", "content": "\n".join(advice_lines) or "未生成建议；请结合完整事实人工核验。"},
+        {
+            "title": "修改建议",
+            "content": "\n".join(advice_lines) or "未生成建议；请结合完整事实人工核验。",
+        },
         {"title": "使用提示", "content": str(result.get("disclaimer") or DISCLAIMER)},
     ]
     return {"title": title, "sections": sections}

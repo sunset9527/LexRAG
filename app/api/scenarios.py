@@ -16,13 +16,13 @@ from fastapi import (
 )
 from pydantic import BaseModel, Field
 
-from app.api.auth import get_current_user
 from app.api.admin import get_authorization_context
+from app.api.auth import get_current_user
 from app.models.user import User
+from app.services.authorization_service import AuthorizationContext
 from app.services.langfuse_helper import create_llm
 from app.services.scenario_runtime import create_runtime_scenario_service
 from app.services.scenario_service import ScenarioService
-from app.services.authorization_service import AuthorizationContext
 from app.tasks.scenario_tasks import process_scenario_task
 from config import settings
 from src.ingestion.document_parser import parse_document
@@ -76,7 +76,9 @@ def create_scenario(
 ):
     try:
         service = _service(x_api_key, x_base_url, x_model)
-        result = service.create(user_id=current_user.id, organization_id=context.organization_id, **request.model_dump())
+        result = service.create(
+            user_id=current_user.id, organization_id=context.organization_id, **request.model_dump()
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     process_scenario_task.delay(current_user.id, result["id"], context.organization_id)
@@ -118,13 +120,26 @@ async def create_contract_file_review(
 
 
 @router.get("")
-def list_scenarios(current_user: User = Depends(get_current_user), context: AuthorizationContext = Depends(get_authorization_context)):
-    return {"items": _service().list_for_user(user_id=current_user.id, organization_id=context.organization_id)}
+def list_scenarios(
+    current_user: User = Depends(get_current_user),
+    context: AuthorizationContext = Depends(get_authorization_context),
+):
+    return {
+        "items": _service().list_for_user(
+            user_id=current_user.id, organization_id=context.organization_id
+        )
+    }
 
 
 @router.get("/{scenario_id}")
-def get_scenario(scenario_id: str, current_user: User = Depends(get_current_user), context: AuthorizationContext = Depends(get_authorization_context)):
-    result = _service().get(user_id=current_user.id, scenario_id=scenario_id, organization_id=context.organization_id)
+def get_scenario(
+    scenario_id: str,
+    current_user: User = Depends(get_current_user),
+    context: AuthorizationContext = Depends(get_authorization_context),
+):
+    result = _service().get(
+        user_id=current_user.id, scenario_id=scenario_id, organization_id=context.organization_id
+    )
     if result is None:
         raise HTTPException(status_code=404, detail="场景任务不存在")
     return result
@@ -136,7 +151,14 @@ def retry_scenario(
     current_user: User = Depends(get_current_user),
     context: AuthorizationContext = Depends(get_authorization_context),
 ):
-    if _service().get(user_id=current_user.id, scenario_id=scenario_id, organization_id=context.organization_id) is None:
+    if (
+        _service().get(
+            user_id=current_user.id,
+            scenario_id=scenario_id,
+            organization_id=context.organization_id,
+        )
+        is None
+    ):
         raise HTTPException(status_code=404, detail="场景任务不存在")
     process_scenario_task.delay(current_user.id, scenario_id, context.organization_id)
     return {"id": scenario_id, "status": "PENDING"}
@@ -156,7 +178,9 @@ def generate_contract_advice(
         raise HTTPException(status_code=422, detail="请先在设置中填写 API Key")
     try:
         result = _service(x_api_key, x_base_url, x_model).generate_contract_advice(
-            user_id=current_user.id, scenario_id=scenario_id, organization_id=context.organization_id
+            user_id=current_user.id,
+            scenario_id=scenario_id,
+            organization_id=context.organization_id,
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -166,8 +190,14 @@ def generate_contract_advice(
 
 
 @router.get("/{scenario_id}/report.pdf")
-def download_report(scenario_id: str, current_user: User = Depends(get_current_user), context: AuthorizationContext = Depends(get_authorization_context)):
-    scenario = _service().get(user_id=current_user.id, scenario_id=scenario_id, organization_id=context.organization_id)
+def download_report(
+    scenario_id: str,
+    current_user: User = Depends(get_current_user),
+    context: AuthorizationContext = Depends(get_authorization_context),
+):
+    scenario = _service().get(
+        user_id=current_user.id, scenario_id=scenario_id, organization_id=context.organization_id
+    )
     if scenario is None:
         raise HTTPException(status_code=404, detail="场景任务不存在")
     if scenario["status"] != "READY":

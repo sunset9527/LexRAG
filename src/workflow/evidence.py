@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Iterable
 
 
 @dataclass
@@ -129,22 +129,16 @@ class CitationVerifier:
         issues: list[str] = []
         for citation in citations:
             same_article = [
-                item
-                for item in allowed
-                if item.normalized_article_id == citation.article_id
+                item for item in allowed if item.normalized_article_id == citation.article_id
             ]
             exact_items = [item for item in same_article if item.law_name == citation.law_name]
             if exact_items:
                 citation.is_verified = True
                 citation.original_text = max(exact_items, key=lambda item: item.score).content
             elif same_article:
-                issues.append(
-                    f"引用法律名称不匹配：{citation.citation_text}"
-                )
+                issues.append(f"引用法律名称不匹配：{citation.citation_text}")
             else:
-                issues.append(
-                    f"引用不在本次证据账本中：{citation.citation_text}"
-                )
+                issues.append(f"引用不在本次证据账本中：{citation.citation_text}")
 
         return CitationVerificationResult(
             status="pass" if not issues else "fail",

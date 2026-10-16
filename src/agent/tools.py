@@ -5,8 +5,7 @@
 """
 
 import logging
-import json
-from typing import Optional, List, Dict, Any
+from typing import Any
 
 from langchain.tools import tool
 
@@ -16,7 +15,7 @@ from app.services.langfuse_helper import create_llm
 logger = logging.getLogger(__name__)
 
 # 工具之间共享的检索器引用（在init_tools中设置）
-_retriever_registry: Dict[str, Any] = {}
+_retriever_registry: dict[str, Any] = {}
 
 
 def init_tools(
@@ -27,13 +26,13 @@ def init_tools(
     reranker=None,
     query_rewriter=None,
     context_compressor=None,
-    api_key: Optional[str] = None,
+    api_key: str | None = None,
     base_url: str = "https://api.deepseek.com/v1",
-    model: str = "deepseek-chat"
+    model: str = "deepseek-chat",
 ):
     """
     初始化工具注册表
-    
+
     在应用启动时调用，将检索器实例注入到工具模块
     """
     _retriever_registry["law_retriever"] = law_retriever
@@ -58,10 +57,10 @@ def search_statute(query: str) -> str:
     bm25_retriever = _retriever_registry.get("bm25_retriever")
     reranker = _retriever_registry.get("reranker")
     query_rewriter = _retriever_registry.get("query_rewriter")
-    
+
     if not law_retriever:
         return "错误：法条检索器未初始化"
-    
+
     try:
         # v2.0：原问题、LLM 改写候选与 HyDE 假设文本分路召回后 RRF 融合。
         # 任何增强步骤失败时，仍使用原问题检索，避免 LLM 不稳定中断法律问答。
@@ -80,37 +79,32 @@ def search_statute(query: str) -> str:
                 law_results = law_retriever.retrieve(query, top_k=10)
         else:
             law_results = law_retriever.retrieve(query, top_k=10)
-        
+
         # BM25检索（如果可用）
-        bm25_results = []
         if bm25_retriever:
             from src.retrieval.fusion import reciprocal_rank_fusion
+
             # 将law_results转为统一格式
             vector_docs = [
                 {
                     "doc_id": r.article_id,
                     "content": r.full_content or r.content,
                     "score": float(r.score) if r.score else 0.0,
-                    "metadata": r.to_dict()
+                    "metadata": r.to_dict(),
                 }
                 for r in law_results
             ]
-            
+
             # BM25检索
             bm25_raw = bm25_retriever.retrieve(query, top_k=10)
             bm25_docs = [
-                {
-                    "doc_id": r.doc_id,
-                    "content": r.content,
-                    "score": r.score,
-                    "metadata": r.metadata
-                }
+                {"doc_id": r.doc_id, "content": r.content, "score": r.score, "metadata": r.metadata}
                 for r in bm25_raw
             ]
-            
+
             # RRF融合
             fused = reciprocal_rank_fusion([vector_docs, bm25_docs], k=60)
-            
+
             # 转换为文档列表供reranker
             documents = [
                 {"doc_id": f.doc_id, "content": f.content, "score": f.score, "metadata": f.metadata}
@@ -118,10 +112,15 @@ def search_statute(query: str) -> str:
             ]
         else:
             documents = [
-                {"doc_id": r.article_id, "content": r.full_content or r.content, "score": float(r.score) if r.score else 0.0, "metadata": r.to_dict()}
+                {
+                    "doc_id": r.article_id,
+                    "content": r.full_content or r.content,
+                    "score": float(r.score) if r.score else 0.0,
+                    "metadata": r.to_dict(),
+                }
                 for r in law_results
             ]
-        
+
         # Reranker精排（如果可用）
         if reranker:
             reranked = reranker.rerank(query, documents, top_k=5)
@@ -134,7 +133,7 @@ def search_statute(query: str) -> str:
             for doc in documents[:5]:
                 results_text.append(f"【{doc['doc_id']}】\n{doc['content']}")
             return "\n\n".join(results_text)
-            
+
     except Exception as e:
         logger.error(f"法条检索失败: {e}")
         return f"法条检索失败: {str(e)}"
@@ -144,15 +143,15 @@ def search_statute(query: str) -> str:
 def search_case(query: str) -> str:
     """检索类似判例。输入案情描述，返回相关判例和裁判要旨。用于查找与当前案情相似的已有判决案例。"""
     case_retriever = _retriever_registry.get("case_retriever")
-    
+
     if not case_retriever:
         return "判例检索器未初始化，暂无法提供判例参考。请基于法条分析回答。"
-    
+
     try:
         results = case_retriever.retrieve(query, top_k=3)
         if not results:
             return "未找到相关判例。"
-        
+
         case_texts = []
         for r in results:
             case_texts.append(
@@ -172,19 +171,20 @@ def search_case(query: str) -> str:
 def lookup_article(article_id: str) -> str:
     """精确查阅法条全文。输入法条编号如'第712条'或'712'，返回完整条款内容。用于确认或查看某个具体法条的完整原文。"""
     law_retriever = _retriever_registry.get("law_retriever")
-    
+
     if not law_retriever:
         return "错误：法条检索器未初始化"
-    
+
     try:
         # 提取数字
         import re
-        match = re.search(r'第?(\d+)条?', article_id)
+
+        match = re.search(r"第?(\d+)条?", article_id)
         if match:
             article_num = match.group(1)
         else:
             article_num = article_id
-        
+
         result = law_retriever.retrieve_by_article_number(article_num)
         if result:
             return f"【{result.article_id}】\n{result.full_content}"
@@ -199,10 +199,10 @@ def lookup_article(article_id: str) -> str:
 def analyze_legal_relation(case_description: str) -> str:
     """分析法律关系。输入案情描述，输出法律主体/客体/权利义务分析。用于梳理复杂案情中的法律关系。"""
     llm = _retriever_registry.get("llm")
-    
+
     if not llm:
         return "错误：LLM未初始化"
-    
+
     prompt = f"""你是一个法律专家，请分析以下案情中的法律关系。
 
 案情描述：{case_description}
@@ -215,7 +215,7 @@ def analyze_legal_relation(case_description: str) -> str:
 5. 法律关系类型（合同/侵权/物权等）
 
 请简洁分析，每个维度不超过2-3句话。"""
-    
+
     try:
         response = llm.invoke(prompt)
         return response.content

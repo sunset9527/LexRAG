@@ -6,18 +6,17 @@ Embedding 工厂 — 统一创建 Embedding 实例
 
 import logging
 import os
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 # 全局缓存，避免重复加载模型
-_embedding_instance: Optional[object] = None
+_embedding_instance: object | None = None
 _embedding_source: str = "unknown"
 
 
 def create_embeddings(
     model_path: str = "E:/huggingface/model",
-    zhipuai_api_key: Optional[str] = None,
+    zhipuai_api_key: str | None = None,
     zhipuai_model: str = "embedding-3",
 ) -> object:
     """
@@ -84,11 +83,10 @@ def create_embeddings(
             raise RuntimeError(
                 "无法初始化任何 Embedding 模型。"
                 f"本地模型路径 {model_path} 加载失败，智谱AI API 也不可用。"
-            )
+            ) from e
 
     raise RuntimeError(
-        f"无法初始化 Embedding：本地模型路径 {model_path} 不可用，"
-        "且未提供 ZHIPUAI_API_KEY"
+        f"无法初始化 Embedding：本地模型路径 {model_path} 不可用，且未提供 ZHIPUAI_API_KEY"
     )
 
 

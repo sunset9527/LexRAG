@@ -7,25 +7,25 @@ from .law_retriever import LawRetriever, RetrievalResult
 
 # 可选模块：依赖未安装时降级
 try:
-    from .case_retriever import CaseRetriever, CaseRetrievalResult
+    from .case_retriever import CaseRetrievalResult, CaseRetriever
 except ImportError:
     CaseRetriever = None
     CaseRetrievalResult = None
 
 try:
-    from .graph_retriever import GraphRetriever, GraphRetrievalResult
+    from .graph_retriever import GraphRetrievalResult, GraphRetriever
 except ImportError:
     GraphRetriever = None
     GraphRetrievalResult = None
 
 try:
-    from .bm25_retriever import BM25Retriever, BM25Result
+    from .bm25_retriever import BM25Result, BM25Retriever
 except ImportError:
     BM25Retriever = None
     BM25Result = None
 
 try:
-    from .fusion import reciprocal_rank_fusion, FusedResult
+    from .fusion import FusedResult, reciprocal_rank_fusion
 except ImportError:
     reciprocal_rank_fusion = None
     FusedResult = None

@@ -4,13 +4,11 @@
 复杂问题拆解为子问题，独立检索后合并
 """
 
-import logging
 import json
-from typing import List, Dict, Any, Optional, Tuple
+import logging
 from dataclasses import dataclass
-from enum import Enum
-
-from langchain_core.prompts import ChatPromptTemplate
+from enum import StrEnum
+from typing import Any
 
 # v1.7: Langfuse 可观测工厂
 from app.services.langfuse_helper import create_llm
@@ -18,18 +16,20 @@ from app.services.langfuse_helper import create_llm
 logger = logging.getLogger(__name__)
 
 
-class ReasoningStepType(str, Enum):
+class ReasoningStepType(StrEnum):
     """推理步骤类型"""
-    DECOMPOSE = "decompose"       # 问题分解
-    RETRIEVE = "retrieve"         # 检索
-    SYNTHESIZE = "synthesize"     # 综合
-    INFER = "infer"               # 推理
-    VERIFY = "verify"             # 验证
+
+    DECOMPOSE = "decompose"  # 问题分解
+    RETRIEVE = "retrieve"  # 检索
+    SYNTHESIZE = "synthesize"  # 综合
+    INFER = "infer"  # 推理
+    VERIFY = "verify"  # 验证
 
 
 @dataclass
 class ReasoningStep:
     """推理步骤"""
+
     step_id: int
     step_type: ReasoningStepType
     description: str
@@ -41,25 +41,26 @@ class ReasoningStep:
 @dataclass
 class SubQuestion:
     """子问题"""
+
     question_id: str
     question_text: str
-    reasoning_needed: List[str]  # 需要用到的法条
-    retrieved_content: Optional[str] = None
-    answer: Optional[str] = None
+    reasoning_needed: list[str]  # 需要用到的法条
+    retrieved_content: str | None = None
+    answer: str | None = None
     confidence: float = 0.0
 
 
 class MultiHopReasoner:
     """
     多跳法律推理器
-    
+
     功能：
     1. 将复杂法律问题拆解为多个子问题
     2. 对每个子问题独立检索相关法条
     3. 综合多个子问题的答案形成最终回答
     4. 追踪完整的推理链
     """
-    
+
     # 问题拆解提示词
     DECOMPOSITION_PROMPT = """你是一个专业的法律助手，需要将复杂的法律问题拆解为简单的子问题。
 
@@ -86,7 +87,7 @@ class MultiHopReasoner:
 }}
 
 只输出JSON，不要有其他内容。"""
-    
+
     # 子问题回答提示词
     SUB_QUESTION_ANSWER_PROMPT = """你是一个专业的法律助手，需要根据检索到的法条回答子问题。
 
@@ -101,7 +102,7 @@ class MultiHopReasoner:
 3. 保持回答简洁准确
 
 只输出回答内容。"""
-    
+
     # 综合回答提示词
     SYNTHESIS_PROMPT = """你是一个专业的法律助手，需要综合多个子问题的答案，形成完整的法律回答。
 
@@ -120,16 +121,16 @@ class MultiHopReasoner:
 - 引用法条时使用【法条编号】的格式
 
 只输出回答内容。"""
-    
+
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         base_url: str = "https://api.deepseek.com/v1",
-        model: str = "deepseek-chat"
+        model: str = "deepseek-chat",
     ):
         """
         初始化推理器
-        
+
         Args:
             api_key: API密钥
             base_url: API基础URL
@@ -141,16 +142,16 @@ class MultiHopReasoner:
             model=model,
             temperature=0.1,
         )
-        self.reasoning_steps: List[ReasoningStep] = []
-        self.sub_questions: List[SubQuestion] = []
-    
-    def decompose(self, query: str) -> List[SubQuestion]:
+        self.reasoning_steps: list[ReasoningStep] = []
+        self.sub_questions: list[SubQuestion] = []
+
+    def decompose(self, query: str) -> list[SubQuestion]:
         """
         将问题分解为子问题
-        
+
         Args:
             query: 原始问题
-            
+
         Returns:
             子问题列表
         """
@@ -159,44 +160,41 @@ class MultiHopReasoner:
             response = self.llm.invoke(prompt)
             content = response.content.strip().replace("```json", "").replace("```", "").strip()
             result = json.loads(content)
-            
+
             sub_questions = []
             for sq in result.get("sub_questions", []):
-                sub_questions.append(SubQuestion(
-                    question_id=sq["id"],
-                    question_text=sq["question"],
-                    reasoning_needed=sq.get("reasoning_needed", [])
-                ))
-            
+                sub_questions.append(
+                    SubQuestion(
+                        question_id=sq["id"],
+                        question_text=sq["question"],
+                        reasoning_needed=sq.get("reasoning_needed", []),
+                    )
+                )
+
             self.sub_questions = sub_questions
             self._add_step(ReasoningStepType.DECOMPOSE, query, sub_questions)
-            
+
             logger.info(f"问题分解完成，共{len(sub_questions)}个子问题")
             return sub_questions
-            
+
         except Exception as e:
             logger.error(f"问题分解失败: {e}")
             return [SubQuestion("q1", query, [])]
-    
-    def answer_sub_question(
-        self,
-        sub_question: SubQuestion,
-        retrieved_content: str
-    ) -> str:
+
+    def answer_sub_question(self, sub_question: SubQuestion, retrieved_content: str) -> str:
         """
         回答单个子问题
-        
+
         Args:
             sub_question: 子问题
             retrieved_content: 检索到的内容
-            
+
         Returns:
             回答
         """
         try:
             prompt = self.SUB_QUESTION_ANSWER_PROMPT.format(
-                question=sub_question.question_text,
-                retrieved_content=retrieved_content
+                question=sub_question.question_text, retrieved_content=retrieved_content
             )
             response = self.llm.invoke(prompt)
             sub_question.retrieved_content = retrieved_content
@@ -205,87 +203,76 @@ class MultiHopReasoner:
         except Exception as e:
             logger.error(f"子问题回答失败: {e}")
             return "无法回答该子问题"
-    
-    def synthesize(
-        self,
-        original_query: str,
-        sub_questions: List[SubQuestion]
-    ) -> str:
+
+    def synthesize(self, original_query: str, sub_questions: list[SubQuestion]) -> str:
         """
         综合子问题答案形成最终回答
-        
+
         Args:
             original_query: 原始问题
             sub_questions: 子问题列表
-            
+
         Returns:
             综合后的回答
         """
         try:
             # 构建子问题答案文本
-            sub_answers_text = "\n".join([
-                f"问题{ sq.question_id}: {sq.question_text}\n回答: {sq.answer or '未回答'}"
-                for sq in sub_questions
-            ])
-            
+            sub_answers_text = "\n".join(
+                [
+                    f"问题{sq.question_id}: {sq.question_text}\n回答: {sq.answer or '未回答'}"
+                    for sq in sub_questions
+                ]
+            )
+
             # 构建检索到的法条文本
-            retrieved_laws_text = "\n".join([
-                sq.retrieved_content or ""
-                for sq in sub_questions
-                if sq.retrieved_content
-            ])
-            
+            retrieved_laws_text = "\n".join(
+                [sq.retrieved_content or "" for sq in sub_questions if sq.retrieved_content]
+            )
+
             prompt = self.SYNTHESIS_PROMPT.format(
                 original_query=original_query,
                 sub_answers=sub_answers_text,
-                retrieved_laws=retrieved_laws_text
+                retrieved_laws=retrieved_laws_text,
             )
-            
+
             response = self.llm.invoke(prompt)
-            
+
             self._add_step(
-                ReasoningStepType.SYNTHESIZE,
-                {"sub_questions": sub_answers_text},
-                response.content
+                ReasoningStepType.SYNTHESIZE, {"sub_questions": sub_answers_text}, response.content
             )
-            
+
             return response.content
-            
+
         except Exception as e:
             logger.error(f"综合回答失败: {e}")
             return "综合回答失败"
-    
-    def reason(
-        self,
-        query: str,
-        retrieval_func,
-        max_hops: int = 3
-    ) -> Dict[str, Any]:
+
+    def reason(self, query: str, retrieval_func, max_hops: int = 3) -> dict[str, Any]:
         """
         执行完整的多跳推理流程
-        
+
         Args:
             query: 用户问题
             retrieval_func: 检索函数，接收子问题文本，返回检索结果
             max_hops: 最大推理跳数
-            
+
         Returns:
             推理结果字典
         """
         self.reasoning_steps = []
         self.sub_questions = []
-        
+
         # 1. 问题分解
         sub_questions = self.decompose(query)
-        
+
         # 2. 子问题独立检索和回答
         for sq in sub_questions:
             retrieved = retrieval_func(sq.question_text)
             self.answer_sub_question(sq, retrieved)
-        
+
         # 3. 综合回答
         final_answer = self.synthesize(query, sub_questions)
-        
+
         # 4. 构建结果
         return {
             "original_query": query,
@@ -294,7 +281,7 @@ class MultiHopReasoner:
                     "id": sq.question_id,
                     "question": sq.question_text,
                     "answer": sq.answer,
-                    "retrieved_content": sq.retrieved_content
+                    "retrieved_content": sq.retrieved_content,
                 }
                 for sq in sub_questions
             ],
@@ -303,36 +290,31 @@ class MultiHopReasoner:
                 {
                     "step_type": step.step_type.value,
                     "description": step.description,
-                    "confidence": step.confidence
+                    "confidence": step.confidence,
                 }
                 for step in self.reasoning_steps
-            ]
+            ],
         }
-    
-    def _add_step(
-        self,
-        step_type: ReasoningStepType,
-        input_data: Any,
-        output_data: Any
-    ):
+
+    def _add_step(self, step_type: ReasoningStepType, input_data: Any, output_data: Any):
         """添加推理步骤"""
         step = ReasoningStep(
             step_id=len(self.reasoning_steps) + 1,
             step_type=step_type,
             description=f"{step_type.value} - 步骤 {len(self.reasoning_steps) + 1}",
             input_data=input_data,
-            output_data=output_data
+            output_data=output_data,
         )
         self.reasoning_steps.append(step)
-    
-    def get_reasoning_trace(self) -> List[Dict[str, Any]]:
+
+    def get_reasoning_trace(self) -> list[dict[str, Any]]:
         """获取推理追踪"""
         return [
             {
                 "step_id": step.step_id,
                 "step_type": step.step_type.value,
                 "description": step.description,
-                "confidence": step.confidence
+                "confidence": step.confidence,
             }
             for step in self.reasoning_steps
         ]

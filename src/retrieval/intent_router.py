@@ -4,11 +4,11 @@
 使用LLM分类用户意图，路由到不同检索器
 """
 
-import logging
 import json
-from typing import Dict, List, Optional, Any
-from enum import Enum
-from dataclasses import dataclass
+import logging
+from enum import StrEnum
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 # v1.7: Langfuse 可观测工厂
@@ -17,34 +17,36 @@ from app.services.langfuse_helper import create_llm
 logger = logging.getLogger(__name__)
 
 
-class IntentType(str, Enum):
+class IntentType(StrEnum):
     """查询意图类型枚举"""
-    LAW_ARTICLE = "law_article"           # 法条查询：直接问某个法条内容
-    CASE_QUERY = "case_query"             # 案例查询：查找类似案例
+
+    LAW_ARTICLE = "law_article"  # 法条查询：直接问某个法条内容
+    CASE_QUERY = "case_query"  # 案例查询：查找类似案例
     LEGAL_APPLICATION = "legal_application"  # 法律适用：某情况应适用什么法条
-    COMPARISON = "comparison"             # 对比分析：比较不同法条/规定
-    ANALYSIS = "analysis"                 # 综合分析：需要多法条联合分析
-    CLARIFICATION = "clarification"       # 释义咨询：法条含义解释
-    UNKNOWN = "unknown"                   # 未知意图
+    COMPARISON = "comparison"  # 对比分析：比较不同法条/规定
+    ANALYSIS = "analysis"  # 综合分析：需要多法条联合分析
+    CLARIFICATION = "clarification"  # 释义咨询：法条含义解释
+    UNKNOWN = "unknown"  # 未知意图
 
 
 class QueryIntent(BaseModel):
     """查询意图结构"""
+
     intent_type: IntentType = Field(description="意图类型")
     confidence: float = Field(description="置信度 0-1")
-    key_entities: List[str] = Field(default_factory=list, description="关键实体")
-    sub_questions: List[str] = Field(default_factory=list, description="拆分的子问题")
-    search_keywords: List[str] = Field(default_factory=list, description="搜索关键词")
-    reasoning_chain: List[str] = Field(default_factory=list, description="推理链")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="其他元数据")
+    key_entities: list[str] = Field(default_factory=list, description="关键实体")
+    sub_questions: list[str] = Field(default_factory=list, description="拆分的子问题")
+    search_keywords: list[str] = Field(default_factory=list, description="搜索关键词")
+    reasoning_chain: list[str] = Field(default_factory=list, description="推理链")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="其他元数据")
 
 
 class IntentRouter:
     """
     查询意图路由器
-    
+
     使用LLM进行意图识别，识别用户的查询类型并路由到不同的检索器
-    
+
     意图类型：
     1. 法条查询 (law_article): 用户直接询问某个具体法条的内容
     2. 案例查询 (case_query): 用户查找类似案例
@@ -53,7 +55,7 @@ class IntentRouter:
     5. 综合分析 (analysis): 需要多个法条联合分析
     6. 释义咨询 (clarification): 询问法条的含义
     """
-    
+
     # 意图识别提示词模板
     INTENT_CLASSIFICATION_PROMPT = """你是一个法律助手，需要分析用户的法律问题并识别其意图类型。
 
@@ -91,7 +93,7 @@ class IntentRouter:
 }}
 
 只输出JSON，不要有其他内容。"""
-    
+
     # 问题拆解提示词
     PROBLEM_DECOMPOSITION_PROMPT = """你是一个法律助手，需要将复杂的法律问题拆解为子问题。
 
@@ -109,16 +111,16 @@ class IntentRouter:
 }}
 
 请严格按照JSON格式返回，不要包含markdown代码块标记或其他内容。"""
-    
+
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         base_url: str = "https://api.deepseek.com/v1",
-        model: str = "deepseek-chat"
+        model: str = "deepseek-chat",
     ):
         """
         初始化意图路由器
-        
+
         Args:
             api_key: API密钥
             base_url: API基础URL
@@ -130,26 +132,26 @@ class IntentRouter:
             model=model,
             temperature=0.1,
         )
-    
+
     def classify_intent(self, query: str) -> QueryIntent:
         """
         分类用户查询意图
-        
+
         Args:
             query: 用户查询文本
-            
+
         Returns:
             QueryIntent对象
         """
         try:
             prompt = self.INTENT_CLASSIFICATION_PROMPT.format(query=query)
             response = self.llm.invoke(prompt)
-            content = response.content.strip().replace('```json', '').replace('```', '').strip()
+            content = response.content.strip().replace("```json", "").replace("```", "").strip()
             result = json.loads(content)
-            
+
             intent_type = IntentType(result.get("intent_type", "unknown"))
             confidence = float(result.get("confidence", 0.5))
-            
+
             return QueryIntent(
                 intent_type=intent_type,
                 confidence=confidence,
@@ -157,7 +159,7 @@ class IntentRouter:
                 sub_questions=result.get("sub_questions", []),
                 search_keywords=result.get("search_keywords", []),
                 reasoning_chain=result.get("reasoning_chain", []),
-                metadata=result.get("metadata", {})
+                metadata=result.get("metadata", {}),
             )
         except json.JSONDecodeError as e:
             logger.error(f"意图分类JSON解析失败: {e}")
@@ -165,79 +167,80 @@ class IntentRouter:
         except Exception as e:
             logger.error(f"意图分类失败: {e}")
             return self._create_unknown_intent(query)
-    
-    def decompose_problem(self, query: str) -> List[str]:
+
+    def decompose_problem(self, query: str) -> list[str]:
         """
         将复杂问题拆解为子问题
-        
+
         Args:
             query: 用户查询
-            
+
         Returns:
             子问题列表
         """
         try:
             prompt = self.PROBLEM_DECOMPOSITION_PROMPT.format(query=query)
             response = self.llm.invoke(prompt)
-            content = response.content.strip().replace('```json', '').replace('```', '').strip()
+            content = response.content.strip().replace("```json", "").replace("```", "").strip()
             result = json.loads(content)
             return result.get("sub_questions", [])
         except Exception as e:
             logger.error(f"问题拆解失败: {e}")
             return [query]  # 返回原问题作为单一子问题
-    
-    def route_query(
-        self, 
-        query: str, 
-        enable_decomposition: bool = True
-    ) -> QueryIntent:
+
+    def route_query(self, query: str, enable_decomposition: bool = True) -> QueryIntent:
         """
         路由用户查询
-        
+
         Args:
             query: 用户查询
             enable_decomposition: 是否启用问题拆解
-            
+
         Returns:
             QueryIntent对象
         """
         intent = self.classify_intent(query)
-        
+
         # 如果置信度低或问题复杂，进行问题拆解
         if intent.confidence < 0.7 or enable_decomposition:
             if not intent.sub_questions:
                 intent.sub_questions = self.decompose_problem(query)
-        
+
         # 根据意图类型设置搜索关键词
         if not intent.search_keywords:
             intent.search_keywords = self._generate_search_keywords(query, intent)
-        
+
         logger.info(f"意图分类结果: {intent.intent_type.value}, 置信度: {intent.confidence}")
         return intent
-    
-    def _generate_search_keywords(
-        self, 
-        query: str, 
-        intent: QueryIntent
-    ) -> List[str]:
+
+    def _generate_search_keywords(self, query: str, intent: QueryIntent) -> list[str]:
         """生成搜索关键词"""
         keywords = []
-        
+
         # 从查询中提取法律术语
         legal_terms = [
-            "合同", "法", "条", "责任", "义务", "权利",
-            "规定", "情形", "情况", "行为", "事项"
+            "合同",
+            "法",
+            "条",
+            "责任",
+            "义务",
+            "权利",
+            "规定",
+            "情形",
+            "情况",
+            "行为",
+            "事项",
         ]
-        
+
         for term in legal_terms:
             if term in query:
                 keywords.append(term)
-        
+
         # 从key_entities获取
         keywords.extend(intent.key_entities[:3])
-        
+
         return list(set(keywords)) if keywords else [query]
-    
+
     def _create_unknown_intent(self, query: str) -> QueryIntent:
         """创建未知意图"""
         return QueryIntent(
@@ -247,16 +250,16 @@ class IntentRouter:
             sub_questions=[query],
             search_keywords=[query],
             reasoning_chain=["无法确定意图类型，返回原始查询"],
-            metadata={}
+            metadata={},
         )
-    
+
     def get_retriever_type(self, intent: QueryIntent) -> str:
         """
         根据意图类型返回应使用的检索器类型
-        
+
         Args:
             intent: 查询意图
-            
+
         Returns:
             检索器类型标识
         """

@@ -80,8 +80,7 @@ def test_citation_verifier_returns_source_text_and_deduplicates_repeated_citatio
     ledger = EvidenceLedger([statute()])
 
     result = CitationVerifier().verify(
-        "依据【中华人民共和国民法典第1254条】处理。"
-        "再次参照【中华人民共和国民法典第1254条】。",
+        "依据【中华人民共和国民法典第1254条】处理。再次参照【中华人民共和国民法典第1254条】。",
         ledger,
         knowledge_base_slug="civil-code",
     )
@@ -174,9 +173,7 @@ def test_routing_and_optional_retrieval_failures_degrade_to_statute_evidence_wit
         ),
     )
 
-    result = workflow.query(
-        "我的私人案情 SECRET-DO-NOT-LEAK", knowledge_base_slug="civil-code"
-    )
+    result = workflow.query("我的私人案情 SECRET-DO-NOT-LEAK", knowledge_base_slug="civil-code")
 
     assert result.verification_status == "pass"
     assert result.metadata["workflow_status"] == "degraded"

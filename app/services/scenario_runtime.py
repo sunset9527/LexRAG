@@ -29,9 +29,7 @@ def create_runtime_scenario_service(
 
     def evidence_provider(query: str, knowledge_base_slug: str) -> list[dict[str, Any]]:
         try:
-            collection_name = knowledge_base_service.get_ready_collection_name(
-                knowledge_base_slug
-            )
+            collection_name = knowledge_base_service.get_ready_collection_name(knowledge_base_slug)
             indexer = LawIndexer(
                 persist_directory=settings.chroma_persist_directory,
                 embedding_model=settings.embedding_model,
@@ -48,17 +46,12 @@ def create_runtime_scenario_service(
             return []
         return [
             {
-                "source_id": str(
-                    getattr(row, "chunk_id", "") or getattr(row, "article_id", "")
-                ),
+                "source_id": str(getattr(row, "chunk_id", "") or getattr(row, "article_id", "")),
                 "law_name": str(getattr(row, "law_name", "")),
                 "article_id": str(
-                    getattr(row, "article_number", "")
-                    or getattr(row, "article_id", "")
+                    getattr(row, "article_number", "") or getattr(row, "article_id", "")
                 ),
-                "content": str(
-                    getattr(row, "full_content", "") or getattr(row, "content", "")
-                ),
+                "content": str(getattr(row, "full_content", "") or getattr(row, "content", "")),
                 "score": float(getattr(row, "score", 0) or 0),
                 "knowledge_base_slug": knowledge_base_slug,
             }
