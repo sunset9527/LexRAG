@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
 ![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white)
-![Tests](https://img.shields.io/badge/Backend%20tests-225%20passed-2ea44f)
+![Tests](https://img.shields.io/badge/Backend%20tests-235%20passed-2ea44f)
 
 > **法律信息免责声明**：项目用于法律信息检索与学习展示，不构成法律意见。具体案件需要结合完整事实、法律时效并咨询专业人士。
 
@@ -27,13 +27,13 @@ LexRAG 建立一条可检查的证据链，而不是把所有材料混进一个�
 
 | 维度 | 可验证事实 |
 | --- | --- |
-| 法规数据 | 民法典 **1,260** 条、**1,636** 个检索 chunks；7 部核心法律分别隔离为独立知识库 |
-| 检索效果 | 15 条人工核验民法典基线：Recall@5 **1.0000**、MRR@5 **0.9667**、NDCG@5 **0.9754** |
-| 证据工作流 | 同一基线：引用校验通过率 **1.0000**、标注法条覆盖率 **1.0000**、平均端到端延迟 **18,978ms** |
+| 法规数据 | 仓库包含民法典及刑法、劳动法、劳动合同法、公司法、专利法、商标法、著作权法 8 部法规文本；民法典历史入库记录为 **1,260** 条、**1,636** 个 chunks，权威来源与版本链仍待阶段 4 收口 |
+| 当前主链 | `/query` 调用确定性 Python `LegalEvidenceWorkflow`：规划、路由、检索、证据账本、回答、引用校验和最多一次受控修复；尚未迁移为 LangGraph `StateGraph` |
+| 评测状态 | 15 条民法典数据仅保留为历史回归基线；八部法律 100 条快照中有 85 条缺少逐条人工审核记录，相关报告只作临时工程记录，不作为正式效果指标 |
 | 案例与文档 | 10 本本地案例汇编、3,661 页 OCR、623 条结构化案例；PDF/DOCX 支持异步解析与页级来源 |
-| 工程质量 | **225** 项后端测试、3 项前端契约测试、Ruff 与生产构建均纳入一键质量门禁；后端行覆盖率 **66%** |
+| 工程质量 | 代码基线 `1295e2c`：2026-10-17 本机运行 **235 passed**、总覆盖率 **67%**，Ruff 通过；3 项前端 Node 契约测试和生产构建通过。告警与复现边界见 `docs/status/v3.0-closure-baseline.md` |
 
-上述检索指标仅代表这 15 条已标注样本的“目标法条是否被召回”，不等同于泛化法律问答正确率；法律结论的人审支持率尚未作为项目指标宣称。
+历史 15 条本机记录曾得到 Recall@5 1.0000、MRR@5 0.9667、NDCG@5 0.9754；证据工作流记录曾得到引用校验通过率 1.0000、标注法条覆盖率 1.0000、平均端到端延迟 18,978ms。它们来自 2026-10-01 的未冻结工作树，缺少可对应的代码提交和保留报告，因此不作为当前 Release 指标。法律结论的人审支持率尚未形成正式指标。
 
 ## 核心技术闭环
 
@@ -46,10 +46,11 @@ LexRAG 建立一条可检查的证据链，而不是把所有材料混进一个�
 
 ### 证据驱动回答
 
-- LangGraph 固定节点工作流：拆解、路由、检索、证据聚合、回答、校验、一次受控修复。
+- 当前主链是确定性 Python 固定节点工作流：拆解、路由、检索、证据聚合、回答、校验、一次受控修复。
 - Evidence Ledger 按来源与知识库记录证据，阻断跨库、跨会话或跨用户的引用穿透。
 - Citation Verifier 校验回答引用真实存在于本轮账本，并返回可定位原文。
 - 最近 5 轮会话记忆仅作为非证据上下文，不能绕过当前轮证据门控。
+- `src/agent/` 中的 LangGraph/ReAct 实现是遗留教学链路，不承载当前 `/query`；主链迁移为 LangGraph `StateGraph` 属于阶段 1。
 
 ### 可追溯文档与案例处理
 
@@ -63,7 +64,7 @@ LexRAG 建立一条可检查的证据链，而不是把所有材料混进一个�
 Vue 3 + TypeScript
   └─ 咨询工作台 / 引用原文 / 法规浏览 / 知识库 / 文档与案例管理
                  │
-FastAPI ── LangGraph：路由 → 混合检索 → Evidence Ledger → 回答 → 引用校验
+FastAPI ── 确定性 Python 工作流：路由 → 混合检索 → Evidence Ledger → 回答 → 引用校验
   ├─ MySQL：用户、知识库、任务、会话、审计元数据
   ├─ Redis → Celery Worker：PDF/DOCX/案例异步处理
   └─ Chroma：法规 / 案例 / 文档独立向量集合
@@ -71,7 +72,7 @@ FastAPI ── LangGraph：路由 → 混合检索 → Evidence Ledger → 回�
 本地模型：BGE-M3 Embedding（1024 维）
 ```
 
-`Python` · `FastAPI` · `LangGraph` · `Chroma` · `BGE-M3` · `MySQL` · `SQLAlchemy/Alembic` · `Redis` · `Celery` · `Vue 3` · `TypeScript` · `Docker` · `Prometheus/Grafana`
+`Python` · `FastAPI` · `Chroma` · `BGE-M3` · `MySQL` · `SQLAlchemy/Alembic` · `Redis` · `Celery` · `Vue 3` · `TypeScript` · `Docker` · `Prometheus/Grafana` · `LangGraph（遗留链路，主链迁移待完成）`
 
 ## 快速开始（Windows）
 
@@ -135,7 +136,7 @@ LexRAG/
 │  └─ evaluation/         # 可复现检索评测
 ├─ frontend/              # Vue 3 + TypeScript
 ├─ scripts/               # 质量门禁、处理与评测脚本
-├─ tests/                 # 225 项后端自动化测试
+├─ tests/                 # 当前质量基线收集 235 项后端自动化测试
 ├─ infra/                 # Prometheus / Grafana 配置
 └─ docker-compose.v3.yml  # 本机企业化演示编排
 ```
@@ -143,8 +144,10 @@ LexRAG/
 ## 设计边界
 
 - 15 条评测不被夸大为通用法律问答正确率。
+- 100 条八部法律快照存在批量 `approved` 与“待人工核验”冲突，已明确降级为临时工程记录；修正前不对外引用其指标。
 - OCR/文档解析已完成真实处理链路验收，但没有人工逐页字符和表格标注，因此不宣称 OCR 准确率。
 - Compose 已通过静态解析；Docker 冷启动与浏览器人工端到端验收仍待在可用本机环境完成。
+- BYOK 自定义 Base URL、原始问题日志、遗留 `/verify/{query_id}` 和上传权限仍处于安全收口清单中，当前版本不表述为生产可用。
 
 ## License
 
