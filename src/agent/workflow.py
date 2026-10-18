@@ -1,8 +1,4 @@
-"""
-LangGraph ReAct Agent工作流
-
-使用LangGraph + LangChain Tools实现真正的ReAct Agent
-"""
+"""Legacy LangGraph ReAct 教学工作流，不承载当前 ``POST /query`` 主链。"""
 
 import logging
 import uuid
@@ -29,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class LegalRAGWorkflow:
     """
-    法律RAG智能体工作流（ReAct版）
+    Legacy 法律 RAG 智能体工作流（ReAct 版，非当前主链）。
 
     使用LangGraph ReAct Agent实现：
     1. Agent自主决策调用4个工具

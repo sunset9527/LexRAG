@@ -4,8 +4,8 @@ langchain-core>=0.1.0
 langchain-community>=0.0.10
 langchain-openai>=0.0.5
 
-# LangGraph
-langgraph>=0.0.20
+# LangGraph（Stage 1 使用 context_schema 与 per-run context API）
+langgraph>=1.2,<2
 
 # Vector Database
 chromadb>=0.4.0

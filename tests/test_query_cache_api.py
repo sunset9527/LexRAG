@@ -179,8 +179,21 @@ def test_query_rejects_invalid_runtime_base_url_before_cache_or_llm(monkeypatch)
     assert "Base URL" in response.json()["detail"]
 
 
-def test_query_uses_the_scoped_collection_without_passing_organization_to_workflow(monkeypatch):
-    """组织隔离在 collection 选择完成，工作流只接收其公开的查询参数。"""
+def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypatch):
+    """缓存未命中时应调用 Graph 入口，并显式传入非敏感请求上下文。"""
+
+    memory_turns = [
+        {
+            "question": "之前的问题",
+            "answer": "之前的回答",
+            "verified_citations": [],
+        }
+    ]
+    observed = {}
+
+    class MemorySessionService(FakeSessionService):
+        def load_memory(self, **_kwargs):
+            return memory_turns
 
     class FakeIndexer:
         def __init__(self, **_kwargs):
@@ -190,9 +203,22 @@ def test_query_uses_the_scoped_collection_without_passing_organization_to_workfl
         def __init__(self, **_kwargs):
             pass
 
-        def query(self, question, *, knowledge_base_slug):
-            assert question == "合同成立需要满足哪些条件？"
-            assert knowledge_base_slug == "civil-code"
+        def invoke(
+            self,
+            question,
+            *,
+            knowledge_base_slug,
+            conversation_context,
+            request_context,
+        ):
+            observed.update(
+                {
+                    "question": question,
+                    "knowledge_base_slug": knowledge_base_slug,
+                    "conversation_context": conversation_context,
+                    "request_context": request_context,
+                }
+            )
             return SimpleNamespace(
                 query=question,
                 answer="合同成立需符合要约与承诺等条件。",
@@ -220,6 +246,7 @@ def test_query_uses_the_scoped_collection_without_passing_organization_to_workfl
     monkeypatch.setattr(api, "LawRetriever", lambda **_kwargs: object())
     monkeypatch.setattr(api, "create_llm", lambda **_kwargs: object())
     monkeypatch.setattr(api, "LegalEvidenceWorkflow", FakeWorkflow)
+    monkeypatch.setattr(api, "SessionService", MemorySessionService)
     monkeypatch.setattr(api, "build_evidence_answer_generator", lambda *_args, **_kwargs: object())
     monkeypatch.setattr(api, "build_evidence_planner", lambda *_args, **_kwargs: object())
 
@@ -240,6 +267,17 @@ def test_query_uses_the_scoped_collection_without_passing_organization_to_workfl
 
     assert response.status_code == 200
     assert response.json()["answer"] == "合同成立需符合要约与承诺等条件。"
+    assert observed == {
+        "question": "合同成立需要满足哪些条件？",
+        "knowledge_base_slug": "civil-code",
+        "conversation_context": memory_turns,
+        "request_context": {
+            "user_id": 7,
+            "organization_id": 9,
+            "session_id": "session-1",
+            "model_id": api.settings.deepseek_model,
+        },
+    }
 
 
 def test_only_verified_evidence_workflow_results_are_cacheable():

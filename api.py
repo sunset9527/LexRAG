@@ -1224,9 +1224,16 @@ async def query(
                 case_retriever=components.get("case_retriever"),
                 graph_retriever=components.get("graph_retriever"),
             )
-            result = workflow.query(
+            result = workflow.invoke(
                 request.query,
                 knowledge_base_slug=selected_ids[0],
+                conversation_context=memory_turns,
+                request_context={
+                    "user_id": current_user.id,
+                    "organization_id": authorization_context.organization_id,
+                    "session_id": session_id,
+                    "model_id": effective_model,
+                },
             )
         if cache_bypass:
             result.metadata["cache_bypassed"] = True

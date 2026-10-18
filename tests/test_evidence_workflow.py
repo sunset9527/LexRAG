@@ -1,5 +1,10 @@
-"""v2.1 证据驱动法律工作流：先固定账本和确定性引用校验契约。"""
+"""证据驱动法律工作流与 LangGraph 主链契约。"""
 
+import asyncio
+
+from langgraph.graph.state import CompiledStateGraph
+
+from src.workflow import legal_evidence_workflow as workflow_module
 from src.workflow.evidence import CitationVerifier, EvidenceItem, EvidenceLedger
 from src.workflow.legal_evidence_workflow import (
     LegalEvidenceWorkflow,
@@ -128,6 +133,37 @@ class FakeLawRetriever:
         return self.results
 
 
+def test_workflow_exports_one_shared_compiled_langgraph_with_explicit_nodes():
+    graph = getattr(workflow_module, "COMPILED_LEGAL_EVIDENCE_GRAPH", None)
+
+    assert isinstance(graph, CompiledStateGraph)
+    assert {
+        "planning",
+        "routing",
+        "statute_retrieval",
+        "case_retrieval",
+        "graph_retrieval",
+        "evidence_ledger",
+        "answer",
+        "citation_verifier",
+        "repair",
+        "finalize",
+        "evidence_insufficient",
+    }.issubset(graph.get_graph().nodes)
+
+    first = LegalEvidenceWorkflow(
+        law_retriever=FakeLawRetriever(),
+        answer_generator=lambda question, evidence, issues=None: "",
+    )
+    second = LegalEvidenceWorkflow(
+        law_retriever=FakeLawRetriever(),
+        answer_generator=lambda question, evidence, issues=None: "",
+    )
+
+    assert first.graph is graph
+    assert second.graph is graph
+
+
 def test_simple_question_skips_planning_and_returns_verified_workflow_result():
     planner_calls = []
 
@@ -144,6 +180,7 @@ def test_simple_question_skips_planning_and_returns_verified_workflow_result():
     assert planner_calls == []
     assert result.verification_status == "pass"
     assert result.metadata["evidence_count"] == 1
+    assert result.metadata["orchestration_engine"] == "langgraph-stategraph"
     assert [event["node"] for event in result.metadata["workflow_trace"]] == [
         "planning",
         "routing",
@@ -151,6 +188,7 @@ def test_simple_question_skips_planning_and_returns_verified_workflow_result():
         "evidence_ledger",
         "answer",
         "citation_verifier",
+        "finalize",
     ]
 
 
@@ -321,4 +359,53 @@ def test_case_and_graph_results_are_recorded_in_evidence_ledger_when_routed():
     assert any(
         event["node"] == "graph_retrieval" and event["output_count"] == 1
         for event in result.metadata["workflow_trace"]
+    )
+
+
+def test_ainvoke_returns_the_graph_backed_result_contract():
+    workflow = LegalEvidenceWorkflow(
+        law_retriever=FakeLawRetriever(),
+        answer_generator=lambda question, evidence, issues=None: (
+            "依据【中华人民共和国民法典第1254条】，应当依法调查责任主体。"
+        ),
+    )
+
+    result = asyncio.run(
+        asyncio.wait_for(
+            workflow.ainvoke("第1254条规定什么？", knowledge_base_slug="civil-code"),
+            timeout=3,
+        )
+    )
+
+    assert result.verification_status == "pass"
+    assert result.metadata["orchestration_engine"] == "langgraph-stategraph"
+    assert result.metadata["workflow_trace"][-1]["node"] == "finalize"
+
+
+def test_astream_events_exposes_the_compiled_graph_node_sequence():
+    workflow = LegalEvidenceWorkflow(
+        law_retriever=FakeLawRetriever(),
+        answer_generator=lambda question, evidence, issues=None: (
+            "依据【中华人民共和国民法典第1254条】，应当依法调查责任主体。"
+        ),
+    )
+
+    assert callable(getattr(workflow, "astream_events", None))
+
+    async def collect_events():
+        return [
+            event
+            async for event in workflow.astream_events(
+                "第1254条规定什么？", knowledge_base_slug="civil-code"
+            )
+        ]
+
+    events = asyncio.run(asyncio.wait_for(collect_events(), timeout=3))
+    started_names = {
+        event["name"] for event in events if event.get("event") == "on_chain_start"
+    }
+
+    assert "legal_evidence_workflow" in started_names
+    assert {"planning", "routing", "statute_retrieval", "citation_verifier", "finalize"} <= (
+        started_names
     )
