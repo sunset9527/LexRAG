@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-18
 
-**Status:** Approved for implementation planning
+**Status:** Implemented in `697a2d8`
 
 ## 1. Objective
 

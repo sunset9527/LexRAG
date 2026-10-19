@@ -1,6 +1,6 @@
 # LexRAG Feature Ledger
 
-**Baseline:** code through `1295e2c`, inventoried and verified 2026-10-17
+**Baseline:** code through `697a2d8`, inventoried and verified 2026-10-18
 
 ## State definitions
 
@@ -15,7 +15,7 @@
 | Authentication and identity | `/auth/register`, `/auth/login`, `/auth/me` | `app/api/auth.py`, `AuthService` | MySQL, JWT secret | Register/login public; `/me` authenticated | Stable 4xx for invalid credentials; production registration policy still pending | `test_admin_rbac_api.py`, `test_rbac_service.py` and related tests passed | Historical local login/proxy smoke only; production bootstrap not verified |
 | Organization and RBAC | `/admin/organization`, members, usage, audit, agent config | `AuthorizationService`, admin router, RBAC models | MySQL | Organization roles and explicit permission codes | 401/403 on missing identity or permission | Platform-focused suite passed | No retained multi-tenant deployment acceptance |
 | Knowledge-base management | `/knowledge-bases`, rebuild, law listing, delete | `KnowledgeBaseService`, `LawIndexer` | MySQL, Chroma, embedding model | `knowledge_bases:read/manage` plus organization scope | Busy/not-ready and authorization errors are explicit | Knowledge-base and organization tests passed | Historical local collections exist; clean bootstrap not verified |
-| Main legal query | `POST /query` | `LegalEvidenceWorkflow`, retrievers, evidence ledger, verifier | Chroma, BM25, BGE-M3, optional case/graph sources, external LLM, MySQL/Redis for session/cache | Authenticated `queries:create` plus knowledge-base visibility | Retrieval branches degrade structurally; failed citation repair returns evidence-insufficient output; failed results are not cached | Evidence and retrieval suites passed | Historical 15-query local run only; not current frozen-release evidence |
+| Main legal query | `POST /query` | Shared compiled LangGraph `StateGraph`, typed invocation state/context, evidence ledger, verifier | Chroma, BM25, BGE-M3, optional case/graph sources, external LLM, MySQL/Redis for session/cache | Authenticated `queries:create` plus knowledge-base visibility | Retrieval branches degrade structurally; failed citation repair returns evidence-insufficient output; failed results are not cached | Graph structure/branch/API tests passed; full backend suite 238 passed | Historical 15-query local run only; not current frozen-release evidence |
 | Conversation memory | `/sessions`, `/recommendations`, `session_id` in `/query` | `SessionService` | MySQL | User and organization ownership | Missing/archived/cross-user sessions are rejected; only verified citations enter memory context | Session and conversation tests passed | Real multi-turn LLM acceptance remains pending |
 | Document libraries | `/document-libraries`, `/documents/*` | document ingestion/result/structure/relation services and Celery task | MySQL, Redis, Celery, filesystem, parser/OCR, Chroma | Knowledge-base read/manage and document-to-library ownership | State machine records failure; retry endpoint available; temporary cleanup limits need security hardening | Document-focused tests passed | Historical PDF/DOCX/OCR local chain verified on earlier uncommitted tree |
 | Case library | `/cases`, `/case-sources`, similar-case lookup | case source/ingestion services, annual case index and retrievers | Local case corpus, OCR output, Chroma, MySQL | Current read routes are effectively public; final boundary pending | Empty/unavailable retriever yields empty or degraded results | Case tests passed | Historical 10-book, 3,661-page, 623-case local dataset record; current rebuild not rerun |
@@ -30,10 +30,9 @@
 
 ## Deliberately incomplete items
 
-- LangGraph `StateGraph` main-chain migration;
 - security and privacy closure for logs, SSRF, legacy verification, uploads, and public/private route boundaries;
 - reproducible Docker cold start and data bootstrap;
 - authoritative legal-source manifests and effective-version selection;
 - automatic multi-knowledge-base routing and cross-library evidence orchestration;
-- streaming event delivery and final frontend end-to-end acceptance;
+- consumer-facing streaming event delivery and final frontend end-to-end acceptance;
 - frozen 300-row retrieval evaluation and 100-answer human legal review.

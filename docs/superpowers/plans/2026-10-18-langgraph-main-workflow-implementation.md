@@ -2,6 +2,8 @@
 
 **Design:** `docs/superpowers/specs/2026-10-18-langgraph-main-workflow-design.md`
 
+**Implementation:** `697a2d8` (`feat(workflow): migrate query orchestration to LangGraph`)
+
 **Goal:** Replace the active sequential workflow orchestration with one reusable compiled LangGraph `StateGraph` without changing retrieval, prompt, evidence, verification, cache, or response semantics.
 
 ## Task 1: Establish the graph structure contract
@@ -127,3 +129,10 @@ After tests pass:
 - No second repair edge exists.
 - No evaluation data or labels are changed.
 - No remote push or history rewrite occurs.
+
+## Completion evidence
+
+- Changed-file Ruff check passed.
+- Focused workflow/API/cache/session/evaluation regression: 28 passed.
+- Full backend regression: 238 passed with 67% total coverage and 51 previously tracked warnings.
+- No formal legal-quality evaluation or evaluation-data modification was performed.
