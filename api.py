@@ -2,7 +2,8 @@
 FastAPI 后端服务 — LexRAG API
 
 提供 RESTful API 接口
-v1.7: 新增认证系统、Prompt 管理、数据库、Langfuse 可观测性
+当前应用口径：v3.0 收口期
+历史说明：v1.7 引入认证系统、Prompt 管理、数据库和 Langfuse 可观测性
 """
 
 # ⚠️ HF_ENDPOINT 必须在所有 import 之前设置，否则 sentence_transformers 会直连 huggingface.co
@@ -53,7 +54,7 @@ from app.api.scenarios import router as scenarios_router
 from app.api.sessions import router as sessions_router
 from app.db import session as db_session
 
-# v1.7: 新增模块
+# v1.7 历史增量：认证、数据库与平台服务模块
 from app.db.session import init_db
 from app.models.user import User
 from app.services.audit_service import AuditService
