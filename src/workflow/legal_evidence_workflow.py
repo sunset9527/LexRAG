@@ -17,6 +17,22 @@ EVIDENCE_INSUFFICIENT_ANSWER = (
     "现有证据不足以支持可靠结论。请补充事实、选择相关知识库，或咨询专业律师。"
 )
 
+WORKFLOW_NODE_NAMES = frozenset(
+    {
+        "planning",
+        "routing",
+        "statute_retrieval",
+        "case_retrieval",
+        "graph_retrieval",
+        "evidence_ledger",
+        "answer",
+        "citation_verifier",
+        "repair",
+        "finalize",
+        "evidence_insufficient",
+    }
+)
+
 
 @dataclass(frozen=True)
 class RouteDecision:
@@ -111,7 +127,7 @@ def _is_complex(question: str) -> bool:
 
 
 def _normalize_plan(planned: Any, fallback_question: str) -> list[dict[str, str]]:
-    if not isinstance(planned, Iterable) or isinstance(planned, (str, bytes, dict)):
+    if not isinstance(planned, Iterable) or isinstance(planned, str | bytes | dict):
         return [{"question": fallback_question, "depends_on": ""}]
     items = []
     for item in planned:
@@ -690,7 +706,8 @@ class LegalEvidenceWorkflow:
         request_context: Mapping[str, Any] | None = None,
     ) -> AsyncIterator[dict[str, Any]]:
         runtime_context = self._runtime_context_for(request_context)
-        async for event in self.graph.astream_events(
+        started_at: dict[str, float] = {}
+        async for raw_event in self.graph.astream_events(
             self._initial_state(
                 question,
                 knowledge_base_slug=knowledge_base_slug,
@@ -699,7 +716,63 @@ class LegalEvidenceWorkflow:
             context=runtime_context,
             version="v2",
         ):
-            yield event
+            node = raw_event.get("name")
+            if node not in WORKFLOW_NODE_NAMES:
+                continue
+
+            event_type = raw_event.get("event")
+            run_id = str(raw_event.get("run_id", ""))
+            if event_type == "on_chain_start":
+                started_at[run_id] = perf_counter()
+                yield {"event": "node_start", "node": node, "status": "started"}
+                continue
+
+            started = started_at.pop(run_id, perf_counter())
+            duration_ms = max(round((perf_counter() - started) * 1000, 3), 0.0)
+            if event_type == "on_chain_error":
+                error = raw_event.get("data", {}).get("error")
+                yield {
+                    "event": "node_error",
+                    "node": node,
+                    "status": "failed",
+                    "duration_ms": duration_ms,
+                    "reason": type(error).__name__,
+                }
+                continue
+
+            if event_type != "on_chain_end":
+                continue
+
+            safe_event: dict[str, Any] = {
+                "event": "node_end",
+                "node": node,
+                "status": "completed",
+                "duration_ms": duration_ms,
+            }
+            data = raw_event.get("data")
+            output = data.get("output") if isinstance(data, Mapping) else None
+            trace = output.get("trace") if isinstance(output, Mapping) else None
+            if isinstance(trace, list):
+                node_trace = next(
+                    (
+                        item
+                        for item in reversed(trace)
+                        if isinstance(item, Mapping) and item.get("node") == node
+                    ),
+                    None,
+                )
+                if node_trace is not None:
+                    status = node_trace.get("status")
+                    if status in {"completed", "degraded", "failed"}:
+                        safe_event["status"] = status
+                    for count_key in ("input_count", "output_count"):
+                        count = node_trace.get(count_key)
+                        if isinstance(count, int) and count >= 0:
+                            safe_event[count_key] = count
+                    reason = node_trace.get("reason")
+                    if isinstance(reason, str) and reason.isidentifier():
+                        safe_event["reason"] = reason
+            yield safe_event
 
     def _runtime_context_for(
         self, request_context: Mapping[str, Any] | None

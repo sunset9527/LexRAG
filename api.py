@@ -485,9 +485,9 @@ def initialize_components():
         else:
             law_graph = LawGraph()
 
-        # v2.1 的工作流按请求创建，以支持用户选择的知识库和运行时模型配置。
-        # 此处保留就绪标记供健康检查和已有 API 契约使用，不再初始化 ReAct Agent。
-        workflow = "evidence-v2.1"
+        # v3.0 的 LangGraph 工作流门面按请求装配依赖，以支持知识库和运行时模型配置。
+        # 此处只保留就绪标记供健康检查和已有 API 契约使用，不保存请求状态或密钥。
+        workflow = "evidence-v3.0"
         graph_retriever = GraphRetriever(law_graph.graph)
 
         components = {

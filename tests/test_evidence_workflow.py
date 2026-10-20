@@ -1,6 +1,7 @@
 """证据驱动法律工作流与 LangGraph 主链契约。"""
 
 import asyncio
+import json
 
 from langgraph.graph.state import CompiledStateGraph
 
@@ -192,6 +193,59 @@ def test_simple_question_skips_planning_and_returns_verified_workflow_result():
     ]
 
 
+def test_complex_question_uses_normalized_planner_output():
+    planned = [
+        {"question": "劳动合同解除是否合法？", "depends_on": ""},
+        {"question": "可以主张哪些补偿？", "depends_on": "劳动合同解除是否合法？"},
+    ]
+    planner_calls = []
+    workflow = LegalEvidenceWorkflow(
+        law_retriever=FakeLawRetriever(),
+        planner=lambda question: planner_calls.append(question) or planned,
+        answer_generator=lambda question, evidence, issues=None: (
+            "依据【中华人民共和国民法典第1254条】，应当依法调查责任主体。"
+        ),
+    )
+
+    result = workflow.query(
+        "公司解除劳动合同是否合法，并且劳动者可以主张哪些补偿？",
+        knowledge_base_slug="civil-code",
+    )
+
+    assert planner_calls == ["公司解除劳动合同是否合法，并且劳动者可以主张哪些补偿？"]
+    assert result.sub_questions == planned
+    planning_event = result.metadata["workflow_trace"][0]
+    assert planning_event["node"] == "planning"
+    assert planning_event["status"] == "completed"
+    assert planning_event["output_count"] == 2
+
+
+def test_planner_failure_uses_original_question_and_records_only_exception_type():
+    private_question = "合同解除是否合法，并且如何赔偿？PRIVATE-QUESTION"
+
+    def failing_planner(question):
+        raise RuntimeError("PRIVATE-PLANNER-ERROR")
+
+    workflow = LegalEvidenceWorkflow(
+        law_retriever=FakeLawRetriever(),
+        planner=failing_planner,
+        answer_generator=lambda question, evidence, issues=None: (
+            "依据【中华人民共和国民法典第1254条】，应当依法调查责任主体。"
+        ),
+    )
+
+    result = workflow.query(private_question, knowledge_base_slug="civil-code")
+
+    assert result.sub_questions == [{"question": private_question, "depends_on": ""}]
+    assert result.metadata["workflow_status"] == "degraded"
+    assert result.metadata["degradation_reasons"] == [
+        {"node": "planning", "reason": "RuntimeError"}
+    ]
+    serialized_trace = json.dumps(result.metadata["workflow_trace"], ensure_ascii=False)
+    assert private_question not in serialized_trace
+    assert "PRIVATE-PLANNER-ERROR" not in serialized_trace
+
+
 def test_routing_and_optional_retrieval_failures_degrade_to_statute_evidence_without_leaking_query():
     class FailingCaseRetriever:
         def retrieve(self, query, top_k=3):
@@ -258,6 +312,80 @@ def test_second_failed_answer_returns_evidence_insufficient_response_and_is_not_
     assert result.metadata["verification_attempts"] == 1
     assert result.metadata["cacheable"] is False
     assert "现有证据不足以支持可靠结论" in result.answer
+
+
+def test_empty_statute_retrieval_stops_before_answer_and_is_not_cacheable():
+    answer_calls = []
+
+    class EmptyLawRetriever:
+        def retrieve(self, query, top_k=5):
+            return []
+
+    workflow = LegalEvidenceWorkflow(
+        law_retriever=EmptyLawRetriever(),
+        answer_generator=lambda question, evidence, issues=None: answer_calls.append(
+            (question, evidence, issues)
+        ),
+    )
+
+    result = workflow.query("没有匹配法条的问题", knowledge_base_slug="civil-code")
+
+    assert answer_calls == []
+    assert result.verification_status == "fail"
+    assert result.verification_issues == ["本次检索未获得可引用的法条证据"]
+    assert result.metadata["cacheable"] is False
+    assert result.metadata["workflow_trace"][-1]["node"] == "evidence_insufficient"
+
+
+def test_failed_statute_retrieval_is_safely_degraded_and_not_cacheable():
+    answer_calls = []
+
+    class FailingLawRetriever:
+        def retrieve(self, query, top_k=5):
+            raise RuntimeError("PRIVATE-RETRIEVER-ERROR")
+
+    workflow = LegalEvidenceWorkflow(
+        law_retriever=FailingLawRetriever(),
+        answer_generator=lambda question, evidence, issues=None: answer_calls.append(
+            (question, evidence, issues)
+        ),
+    )
+
+    result = workflow.query("检索失败的问题", knowledge_base_slug="civil-code")
+
+    assert answer_calls == []
+    assert result.verification_status == "fail"
+    assert result.metadata["cacheable"] is False
+    assert result.metadata["workflow_status"] == "degraded"
+    assert {"node": "statute_retrieval", "reason": "RuntimeError"} in result.metadata[
+        "degradation_reasons"
+    ]
+    serialized_metadata = json.dumps(result.metadata, ensure_ascii=False)
+    assert "PRIVATE-RETRIEVER-ERROR" not in serialized_metadata
+
+
+def test_conversation_context_never_enters_evidence_or_result_metadata():
+    private_history = "PRIVATE-HISTORY-CONTENT"
+    evidence_seen_by_answer = []
+
+    def answer_generator(question, evidence, issues=None):
+        evidence_seen_by_answer.extend(evidence)
+        return "依据【中华人民共和国民法典第1254条】，应当依法调查责任主体。"
+
+    workflow = LegalEvidenceWorkflow(
+        law_retriever=FakeLawRetriever(),
+        answer_generator=answer_generator,
+    )
+
+    result = workflow.query(
+        "第1254条规定什么？",
+        knowledge_base_slug="civil-code",
+        conversation_context=[{"role": "user", "content": private_history}],
+    )
+
+    assert [item.source_id for item in evidence_seen_by_answer] == ["civil-1254"]
+    assert private_history not in json.dumps(result.metadata, ensure_ascii=False)
+    assert all(private_history not in item.content for item in evidence_seen_by_answer)
 
 
 def test_query_enhanced_retriever_preserves_v2_multi_query_and_hyde_retrieval():
@@ -382,7 +510,7 @@ def test_ainvoke_returns_the_graph_backed_result_contract():
     assert result.metadata["workflow_trace"][-1]["node"] == "finalize"
 
 
-def test_astream_events_exposes_the_compiled_graph_node_sequence():
+def test_astream_events_exposes_only_safe_structural_node_events():
     workflow = LegalEvidenceWorkflow(
         law_retriever=FakeLawRetriever(),
         answer_generator=lambda question, evidence, issues=None: (
@@ -396,16 +524,49 @@ def test_astream_events_exposes_the_compiled_graph_node_sequence():
         return [
             event
             async for event in workflow.astream_events(
-                "第1254条规定什么？", knowledge_base_slug="civil-code"
+                "第1254条规定什么？ PRIVATE-QUESTION",
+                knowledge_base_slug="civil-code",
+                conversation_context=[
+                    {"role": "user", "content": "PRIVATE-HISTORY-CONTENT"}
+                ],
             )
         ]
 
     events = asyncio.run(asyncio.wait_for(collect_events(), timeout=3))
-    started_names = {
-        event["name"] for event in events if event.get("event") == "on_chain_start"
+    serialized_events = json.dumps(events, ensure_ascii=False)
+    allowed_keys = {
+        "event",
+        "node",
+        "status",
+        "duration_ms",
+        "input_count",
+        "output_count",
+        "reason",
+    }
+    known_nodes = {
+        "planning",
+        "routing",
+        "statute_retrieval",
+        "case_retrieval",
+        "graph_retrieval",
+        "evidence_ledger",
+        "answer",
+        "citation_verifier",
+        "repair",
+        "finalize",
+        "evidence_insufficient",
     }
 
-    assert "legal_evidence_workflow" in started_names
-    assert {"planning", "routing", "statute_retrieval", "citation_verifier", "finalize"} <= (
-        started_names
-    )
+    assert events
+    assert all(set(event) <= allowed_keys for event in events)
+    assert all(event["node"] in known_nodes for event in events)
+    assert all(event["event"] in {"node_start", "node_end", "node_error"} for event in events)
+    assert all(event["status"] in {"started", "completed", "degraded", "failed"} for event in events)
+    assert any(event["node"] == "planning" and event["event"] == "node_start" for event in events)
+    assert any(event["node"] == "finalize" and event["event"] == "node_end" for event in events)
+    assert "PRIVATE-QUESTION" not in serialized_events
+    assert "PRIVATE-HISTORY-CONTENT" not in serialized_events
+    assert all("data" not in event for event in events)
+    assert all("input" not in event for event in events)
+    assert all("output" not in event for event in events)
+    assert all("metadata" not in event for event in events)
