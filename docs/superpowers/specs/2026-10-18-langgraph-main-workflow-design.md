@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-18
 
-**Status:** Implemented in `697a2d8`
+**Status:** Implemented in `697a2d8`; acceptance closure completed in `32ad4ed`
 
 ## 1. Objective
 
@@ -10,7 +10,7 @@ Replace the active deterministic Python orchestration inside `LegalEvidenceWorkf
 
 The migration must make the implementation, runtime trace, and documentation agree that the main legal-query path uses LangGraph. It must not reintroduce autonomous ReAct tool selection, multi-agent conversation, or unrelated changes to retrieval, prompts, datasets, authorization, or legal-answer evaluation.
 
-## 2. Current state
+## 2. Pre-implementation state
 
 `POST /query` currently creates request-scoped retrieval and LLM components, constructs `LegalEvidenceWorkflow`, and calls its ordinary Python `query()` method. That method performs planning, routing, retrieval, evidence normalization, answer generation, citation verification, and one repair attempt through sequential control flow.
 

@@ -2,6 +2,8 @@
 
 **Design:** `docs/superpowers/specs/2026-10-19-stage-0-1-closure-completion-design.md`
 
+**Implementation:** `32ad4ed` (`fix(workflow): close stage 1 acceptance gaps`)
+
 **Goal:** Close the remaining Stage 0/1 engineering-acceptance gaps, excluding résumé wording, without changing retrieval or legal-answer semantics.
 
 ## Task 1: Complete workflow branch acceptance tests
@@ -93,3 +95,12 @@ Create cohesive local commits for:
 2. Stage 0/1 documentation reconciliation.
 
 Do not push, rewrite history, run formal Stage 8 evaluation, or claim production readiness.
+
+## Completion evidence
+
+- Changed-file Ruff: passed.
+- Workflow regression: 21 passed.
+- Workflow/API/cache/session/evaluation focused regression: 35 passed with 3 warnings.
+- Full backend regression with repository-local `--basetemp`: 243 passed, 68% coverage, 50 warnings.
+- No résumé, evaluation data, labels, retrieval algorithm, or Prompt was modified.
+- Formal legal-effect evaluation remains reserved for Stage 8.
