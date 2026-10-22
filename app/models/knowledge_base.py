@@ -28,6 +28,9 @@ class KnowledgeBase(Base):
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="EMPTY")
     document_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     chunk_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    source_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    embedding_fingerprint: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    index_schema_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
     last_indexed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(

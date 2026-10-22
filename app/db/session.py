@@ -53,9 +53,9 @@ def create_engine_instance() -> Engine:
 
 def init_db():
     """
-    初始化数据库连接
+    初始化数据库连接和会话工厂。
 
-    在应用启动时调用，创建引擎和会话工厂
+    Schema 由 Alembic 迁移创建；调用方必须先完成 ``alembic upgrade head``。
     """
     global _engine, SessionLocal
 
@@ -67,34 +67,10 @@ def init_db():
         expire_on_commit=False,
     )
 
-    # 自动创建所有表（开发便利，生产应使用 Alembic 迁移）
-    import app.models.agent_config  # noqa: F401
-    import app.models.audit_log  # noqa: F401
-    import app.models.case_source  # noqa: F401
-    import app.models.chat_history  # noqa: F401
-    import app.models.document_job  # noqa: F401
-    import app.models.document_page  # noqa: F401
-    import app.models.document_relation  # noqa: F401
-    import app.models.document_structure  # noqa: F401
-    import app.models.favorite  # noqa: F401
-    import app.models.knowledge_base  # noqa: F401
-    import app.models.law_update  # noqa: F401
-    import app.models.organization  # noqa: F401
-    import app.models.prompt  # noqa: F401
-    import app.models.rbac  # noqa: F401
-    import app.models.scenario_job  # noqa: F401
-    import app.models.session  # noqa: F401
-    import app.models.usage_daily  # noqa: F401
-    import app.models.user  # noqa: F401
-    import app.models.user_profile  # noqa: F401
-    from app.db.base import Base
-
-    Base.metadata.create_all(bind=_engine)
-
-    logger.info("数据库初始化完成，所有表已就绪")
+    logger.info("数据库引擎和会话工厂已初始化")
 
 
-def get_db() -> Generator[Session, None, None]:
+def get_db() -> Generator[Session]:
     """
     获取数据库会话（FastAPI Depends 使用）
 
