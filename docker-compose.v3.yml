@@ -19,6 +19,11 @@ services:
       REDIS_URL: redis://redis:6379/0
       LAW_UPDATE_SNAPSHOT_DIR: /app/data/law_snapshots
       JWT_SECRET_KEY: "${JWT_SECRET_KEY:?set-a-local-demo-secret}"
+      APP_MODE: "${APP_MODE:-development}"
+      OPEN_REGISTRATION: "${OPEN_REGISTRATION:-true}"
+      AUTH_COOKIE_SECURE: "${AUTH_COOKIE_SECURE:-false}"
+      AUTH_COOKIE_SAMESITE: "${AUTH_COOKIE_SAMESITE:-lax}"
+      RUNTIME_LLM_TRUSTED_BASE_URLS: "${RUNTIME_LLM_TRUSTED_BASE_URLS:-https://api.deepseek.com}"
     volumes: [lexrag_v3_chroma:/app/data/chroma_db, lexrag_v3_data:/app/data/uploads, lexrag_v3_law_snapshots:/app/data/law_snapshots]
     depends_on: { mysql: { condition: service_healthy }, redis: { condition: service_healthy } }
     networks: [private]

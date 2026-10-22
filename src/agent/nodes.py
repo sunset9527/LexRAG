@@ -105,7 +105,7 @@ class WorkflowNodes:
         识别用户查询意图，决定后续检索路径
         """
         try:
-            logger.info(f"开始意图识别: {state.query}")
+            logger.info("开始意图识别 query_length=%s", len(state.query))
             intent = self.intent_router.route_query(state.query)
 
             state.intent = intent
@@ -128,7 +128,7 @@ class WorkflowNodes:
             }
 
         except Exception as e:
-            logger.error(f"意图识别失败: {e}")
+            logger.error("意图识别失败 error_type=%s", type(e).__name__)
             state.error = str(e)
             state.status = WorkflowStatus.FAILED
             return {"error": str(e), "status": WorkflowStatus.FAILED.value}
@@ -140,7 +140,7 @@ class WorkflowNodes:
         根据意图类型执行相应的检索
         """
         try:
-            logger.info(f"开始检索: {state.query}")
+            logger.info("开始检索 query_length=%s", len(state.query))
 
             intent = state.intent
             retrieved_docs = []
@@ -200,7 +200,7 @@ class WorkflowNodes:
             }
 
         except Exception as e:
-            logger.error(f"检索失败: {e}")
+            logger.error("检索失败 error_type=%s", type(e).__name__)
             state.error = str(e)
             state.status = WorkflowStatus.FAILED
             return {"error": str(e), "status": WorkflowStatus.FAILED.value}
@@ -244,7 +244,7 @@ class WorkflowNodes:
             return {"sub_questions": state.sub_questions, "status": state.status.value}
 
         except Exception as e:
-            logger.error(f"多跳推理失败: {e}")
+            logger.error("多跳推理失败 error_type=%s", type(e).__name__)
             state.error = str(e)
             return {"error": str(e)}
 
@@ -287,7 +287,7 @@ class WorkflowNodes:
             }
 
         except Exception as e:
-            logger.error(f"生成回答失败: {e}")
+            logger.error("生成回答失败 error_type=%s", type(e).__name__)
             state.error = str(e)
             state.status = WorkflowStatus.FAILED
             return {"error": str(e), "status": WorkflowStatus.FAILED.value}
@@ -342,7 +342,7 @@ class WorkflowNodes:
             }
 
         except Exception as e:
-            logger.error(f"校验失败: {e}")
+            logger.error("校验失败 error_type=%s", type(e).__name__)
             state.verification_status = VerificationStatus.FAIL
             state.verification_issues.append(str(e))
             return {
@@ -389,7 +389,7 @@ class WorkflowNodes:
             return {"answer": state.answer, "status": state.status.value}
 
         except Exception as e:
-            logger.error(f"修正失败: {e}")
+            logger.error("修正失败 error_type=%s", type(e).__name__)
             state.error = str(e)
             return {"error": str(e)}
 

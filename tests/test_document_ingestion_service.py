@@ -332,5 +332,8 @@ def test_submit_documents_returns_independent_batch_outcomes(tmp_path):
 
     assert result[0]["original_filename"] == "材料.pdf"
     assert result[0]["job"]["status"] == "UPLOADED"
-    assert result[1] == {"original_filename": "说明.txt", "error": "仅支持 PDF 或 DOCX 文件"}
+    assert result[1] == {
+        "original_filename": "说明.txt",
+        "error": "SUBMISSION_FAILED:ValueError",
+    }
     assert len(dispatched) == 1

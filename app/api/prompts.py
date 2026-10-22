@@ -10,20 +10,57 @@ Prompt 管理 API 路由
 - GET    /prompts/{name}/history — 查看版本历史
 """
 
+import hashlib
 import logging
+import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.api.admin import get_authorization_context
 from app.api.auth import get_current_user
+from app.db import session as db_session
 from app.db.session import get_db
 from app.models.user import User
 from app.services import prompt_service
+from app.services.audit_service import AuditService
 from app.services.authorization_service import AuthorizationContext
 
 logger = logging.getLogger(__name__)
+
+
+def _audit_prompt_mutation(
+    http_request: Request,
+    context: AuthorizationContext,
+    *,
+    action: str,
+    prompt_name: str,
+    version: int | None = None,
+) -> None:
+    if db_session.SessionLocal is None:
+        return
+    request_id = getattr(http_request.state, "request_id", None)
+    seed = f"{request_id or uuid.uuid4().hex}:{action}:{prompt_name}"
+    try:
+        AuditService(db_session.SessionLocal).append_event(
+            event_id=hashlib.sha256(seed.encode("utf-8")).hexdigest(),
+            organization_id=context.organization_id,
+            actor_user_id=context.user_id,
+            action=action,
+            target_type="prompt",
+            target_id=prompt_name,
+            status="success",
+            request_id=request_id,
+            metadata={"version": version},
+        )
+    except Exception as exc:
+        logger.error(
+            "Prompt 审计写入失败 request_id=%s action=%s error_type=%s",
+            request_id,
+            action,
+            type(exc).__name__,
+        )
 
 
 def require_prompt_management(
@@ -104,9 +141,12 @@ class MessageResponse(BaseModel):
 def list_prompts(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    context: AuthorizationContext = Depends(get_authorization_context),
 ):
     """返回所有活跃 Prompt 模板（每个 name 返回最新版本）"""
-    prompts = prompt_service.get_all_active_prompts(db)
+    prompts = prompt_service.get_all_active_prompts(
+        db, organization_id=context.organization_id
+    )
     return PromptListResponse(
         total=len(prompts),
         prompts=[PromptResponse.from_orm_obj(p) for p in prompts],
@@ -118,9 +158,12 @@ def get_prompt(
     name: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    context: AuthorizationContext = Depends(get_authorization_context),
 ):
     """按名称获取 Prompt 的最新活跃版本"""
-    prompt = prompt_service.get_prompt_by_name(db, name)
+    prompt = prompt_service.get_prompt_by_name(
+        db, name, organization_id=context.organization_id
+    )
     if prompt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -133,18 +176,28 @@ def get_prompt(
     "", response_model=PromptResponse, status_code=status.HTTP_201_CREATED, summary="创建新 Prompt"
 )
 def create_prompt(
+    http_request: Request,
     request: PromptCreateRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    context: AuthorizationContext = Depends(get_authorization_context),
 ):
     """创建新的 Prompt 模板，版本号从 1 开始"""
     try:
         prompt = prompt_service.create_prompt(
             db,
+            organization_id=context.organization_id,
             name=request.name,
             content=request.content,
             description=request.description,
             category=request.category,
+        )
+        _audit_prompt_mutation(
+            http_request,
+            context,
+            action="prompt.created",
+            prompt_name=prompt.name,
+            version=prompt.version,
         )
         return PromptResponse.from_orm_obj(prompt)
     except ValueError as e:
@@ -157,9 +210,11 @@ def create_prompt(
 @router.put("/{name}", response_model=PromptResponse, summary="更新 Prompt")
 def update_prompt(
     name: str,
+    http_request: Request,
     request: PromptUpdateRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    context: AuthorizationContext = Depends(get_authorization_context),
 ):
     """
     更新 Prompt 内容，版本号自动 +1
@@ -169,9 +224,17 @@ def update_prompt(
     try:
         prompt = prompt_service.update_prompt(
             db,
+            organization_id=context.organization_id,
             name=name,
             content=request.content,
             description=request.description,
+        )
+        _audit_prompt_mutation(
+            http_request,
+            context,
+            action="prompt.updated",
+            prompt_name=prompt.name,
+            version=prompt.version,
         )
         return PromptResponse.from_orm_obj(prompt)
     except ValueError as e:
@@ -184,16 +247,26 @@ def update_prompt(
 @router.delete("/{name}", response_model=MessageResponse, summary="删除 Prompt")
 def delete_prompt(
     name: str,
+    http_request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    context: AuthorizationContext = Depends(get_authorization_context),
 ):
     """软删除 Prompt（标记为 inactive，可恢复）"""
-    success = prompt_service.delete_prompt(db, name)
+    success = prompt_service.delete_prompt(
+        db, name, organization_id=context.organization_id
+    )
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Prompt '{name}' 不存在",
         )
+    _audit_prompt_mutation(
+        http_request,
+        context,
+        action="prompt.deleted",
+        prompt_name=name,
+    )
     return MessageResponse(message=f"Prompt '{name}' 已删除")
 
 
@@ -202,9 +275,12 @@ def get_prompt_history(
     name: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    context: AuthorizationContext = Depends(get_authorization_context),
 ):
     """返回指定 Prompt 的所有历史版本（包括 inactive）"""
-    versions = prompt_service.get_prompt_history(db, name)
+    versions = prompt_service.get_prompt_history(
+        db, name, organization_id=context.organization_id
+    )
     if not versions:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

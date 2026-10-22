@@ -112,7 +112,7 @@ class LegalRAGWorkflow:
         Returns:
             QueryResult对象
         """
-        logger.info(f"开始处理查询: {question}")
+        logger.info("开始处理 legacy 查询 query_length=%s", len(question))
         query_id = str(uuid.uuid4())
         created_at = datetime.now().isoformat()
 
@@ -156,9 +156,9 @@ class LegalRAGWorkflow:
                             confidence=1.0,
                         )
                     )
-                    logger.info(f"查询改写: {question} -> {enhanced_query}")
+                    logger.info("legacy 查询改写完成 rewritten_length=%s", len(enhanced_query))
                 except Exception as e:
-                    logger.warning(f"查询改写失败，使用原始查询: {e}")
+                    logger.warning("legacy 查询改写失败 error_type=%s", type(e).__name__)
                     reasoning_trace.append(
                         ReasoningTrace(
                             step_type="query_rewriting",
@@ -185,7 +185,7 @@ class LegalRAGWorkflow:
                 )
                 logger.info(f"意图识别: {intent_type}, 置信度: {intent.confidence}")
             except Exception as e:
-                logger.warning(f"意图识别失败: {e}")
+                logger.warning("legacy 意图识别失败 error_type=%s", type(e).__name__)
                 reasoning_trace.append(
                     ReasoningTrace(
                         step_type="intent_routing",
@@ -347,7 +347,7 @@ class LegalRAGWorkflow:
                             if verification_status != VerificationStatus.FAIL:
                                 break
             except Exception as e:
-                logger.error(f"自校验失败: {e}")
+                logger.error("legacy 自校验失败 error_type=%s", type(e).__name__)
                 verification_issues.append(str(e))
 
             # 6. 构建结果
@@ -370,7 +370,7 @@ class LegalRAGWorkflow:
             )
 
         except Exception as e:
-            logger.error(f"查询处理失败: {e}")
+            logger.error("legacy 查询处理失败 error_type=%s", type(e).__name__)
             return QueryResult(
                 query=question,
                 answer=f"处理查询时发生错误: {str(e)}",

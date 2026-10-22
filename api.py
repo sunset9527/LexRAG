@@ -11,9 +11,9 @@ import os
 
 os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
 
+import hashlib
 import json
 import logging
-import re
 import threading
 import time
 import uuid
@@ -22,10 +22,8 @@ from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 
 from fastapi import (
-    BackgroundTasks,
     Depends,
     FastAPI,
     File,
@@ -33,6 +31,7 @@ from fastapi import (
     Header,
     HTTPException,
     Query,
+    Request,
     UploadFile,
 )
 from fastapi.middleware.cors import CORSMiddleware
@@ -57,6 +56,13 @@ from app.db import session as db_session
 # v1.7 历史增量：认证、数据库与平台服务模块
 from app.db.session import init_db
 from app.models.user import User
+from app.security.request_security import RequestSecurityMiddleware, SensitiveValueFilter
+from app.security.runtime_llm import RuntimeLLMPolicy
+from app.security.uploads import (
+    UploadValidationError,
+    build_isolated_upload_path,
+    save_upload_file,
+)
 from app.services.audit_service import AuditService
 from app.services.authorization_service import AuthorizationContext
 from app.services.case_ingestion_service import CaseIngestionService
@@ -70,13 +76,11 @@ from app.services.query_cache_service import QueryCacheService
 from app.services.session_service import ConversationTurn, SessionNotFoundError, SessionService
 from app.services.usage_service import UsageService
 from app.tasks.document_tasks import process_document_task
-from config import get_project_root, settings
+from config import get_project_root, settings, validate_security_settings
 from src.graph.law_graph import LawGraph
 from src.ingestion.annual_case_indexer import AnnualCaseIndexer
 from src.ingestion.case_ocr import count_pdf_pages
-from src.ingestion.chunker import StructuredLawChunker
 from src.ingestion.indexer import LawIndexer
-from src.ingestion.law_parser import LawParser
 from src.retrieval.annual_case_retriever import AnnualCaseRetriever
 from src.retrieval.bm25_retriever import BM25Retriever
 from src.retrieval.case_retriever import CaseRetriever
@@ -96,6 +100,47 @@ from src.workflow.legal_evidence_workflow import (
 # 配置日志
 logging.basicConfig(level=getattr(logging, settings.log_level), format=settings.log_format)
 logger = logging.getLogger(__name__)
+for _handler in logging.getLogger().handlers:
+    _handler.addFilter(SensitiveValueFilter())
+runtime_llm_policy = RuntimeLLMPolicy(settings)
+
+
+def _append_audit_event(
+    http_request: Request,
+    context: AuthorizationContext,
+    *,
+    action: str,
+    target_type: str,
+    target_id: str | None,
+    status: str = "success",
+    metadata: dict[str, Any] | None = None,
+) -> None:
+    """Best-effort append-only audit for sensitive mutations, without payloads."""
+
+    service = components.get("audit_service")
+    if service is None:
+        return
+    request_id = getattr(http_request.state, "request_id", None)
+    seed = f"{request_id or uuid.uuid4().hex}:{action}:{target_type}:{target_id or ''}"
+    try:
+        service.append_event(
+            event_id=hashlib.sha256(seed.encode("utf-8")).hexdigest(),
+            organization_id=context.organization_id,
+            actor_user_id=context.user_id,
+            action=action,
+            target_type=target_type,
+            target_id=target_id,
+            status=status,
+            request_id=request_id,
+            metadata=metadata,
+        )
+    except Exception as exc:
+        logger.error(
+            "审计写入失败 request_id=%s action=%s error_type=%s",
+            request_id,
+            action,
+            type(exc).__name__,
+        )
 
 
 # ==================== 数据模型 ====================
@@ -127,6 +172,7 @@ class QueryResponse(BaseModel):
 class UploadRequest(BaseModel):
     """上传请求"""
 
+    knowledge_base_slug: str = Field(..., pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     content: str = Field(..., description="法律文档内容")
     law_name: str = Field(..., description="法律名称")
     version: str = Field("v1.0", description="版本号")
@@ -187,7 +233,6 @@ def _require_knowledge_base_access(
 # ==================== 全局组件 ====================
 
 components: dict[str, Any] = {}
-query_results: dict[str, Any] = {}
 scoped_query_lock = threading.Lock()
 
 
@@ -346,7 +391,7 @@ def initialize_components():
                 semantic_threshold=settings.query_cache_semantic_threshold,
             )
         except Exception as exc:
-            logger.warning(f"查询缓存初始化失败，将旁路缓存: {exc}")
+            logger.warning("查询缓存初始化失败 error_type=%s", type(exc).__name__)
         if db_session.SessionLocal is not None:
             knowledge_base_service = KnowledgeBaseService(db_session.SessionLocal)
             document_ingestion_service = DocumentIngestionService(
@@ -366,7 +411,7 @@ def initialize_components():
                     case_loader=case_ingestion_service.get_case,
                 )
             except Exception as exc:
-                logger.warning(f"年度案例检索器初始化失败: {exc}")
+                logger.warning("年度案例检索器初始化失败 error_type=%s", type(exc).__name__)
 
         # 初始化意图路由器
         intent_router = IntentRouter(
@@ -417,8 +462,8 @@ def initialize_components():
                 logger.info("判例检索器初始化成功")
             else:
                 logger.info("判例数据库不存在，跳过判例检索器初始化")
-        except Exception as e:
-            logger.warning(f"判例检索器初始化失败: {e}")
+        except Exception as exc:
+            logger.warning("判例检索器初始化失败 error_type=%s", type(exc).__name__)
 
         # BM25检索器
         bm25_retriever = None
@@ -441,19 +486,19 @@ def initialize_components():
                                 }
                             )
                         bm25_retriever.build_index(bm25_docs)
-                except Exception as e:
-                    logger.warning(f"BM25索引构建失败: {e}")
+                except Exception as exc:
+                    logger.warning("BM25索引构建失败 error_type=%s", type(exc).__name__)
                     bm25_retriever = None
-            except Exception as e:
-                logger.warning(f"BM25初始化失败: {e}")
+            except Exception as exc:
+                logger.warning("BM25初始化失败 error_type=%s", type(exc).__name__)
 
         # Reranker
         reranker = None
         if settings.reranker_enabled:
             try:
                 reranker = CrossEncoderReranker(model_name=settings.reranker_model)
-            except Exception as e:
-                logger.warning(f"Reranker初始化失败: {e}")
+            except Exception as exc:
+                logger.warning("Reranker初始化失败 error_type=%s", type(exc).__name__)
 
         # Query Rewriter
         query_rewriter = None
@@ -464,8 +509,8 @@ def initialize_components():
                     base_url=settings.deepseek_base_url,
                     model=settings.deepseek_model,
                 )
-            except Exception as e:
-                logger.warning(f"Query Rewriter初始化失败: {e}")
+            except Exception as exc:
+                logger.warning("Query Rewriter初始化失败 error_type=%s", type(exc).__name__)
 
         # Context Compressor
         _context_compressor = None
@@ -476,8 +521,8 @@ def initialize_components():
                     base_url=settings.deepseek_base_url,
                     model=settings.deepseek_model,
                 )
-            except Exception as e:
-                logger.warning(f"Context Compressor初始化失败: {e}")
+            except Exception as exc:
+                logger.warning("Context Compressor初始化失败 error_type=%s", type(exc).__name__)
 
         # 初始化知识图谱
         law_graph_path = get_project_root() / settings.law_graph_path
@@ -513,8 +558,8 @@ def initialize_components():
         logger.info("组件初始化完成")
         return True
 
-    except Exception as e:
-        logger.error(f"组件初始化失败: {e}")
+    except Exception as exc:
+        logger.error("组件初始化失败 error_type=%s", type(exc).__name__)
         return False
 
 
@@ -524,6 +569,7 @@ def initialize_components():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用生命周期"""
+    validate_security_settings(settings)
     logger.info("启动 LexRAG 应用...")
 
     # v1.7: 设置 HuggingFace 镜像（国内加速）
@@ -540,8 +586,8 @@ async def lifespan(app: FastAPI):
             components["audit_service"] = AuditService(db_session.SessionLocal)
             components["usage_service"] = UsageService(db_session.SessionLocal)
         logger.info("数据库已就绪")
-    except Exception as e:
-        logger.error(f"数据库初始化失败: {e}")
+    except Exception as exc:
+        logger.error("数据库初始化失败 error_type=%s", type(exc).__name__)
 
     # 初始化检索组件
     initialize_components()
@@ -556,8 +602,8 @@ async def lifespan(app: FastAPI):
                 seed_default_prompts(db)
             finally:
                 db.close()
-    except Exception as e:
-        logger.warning(f"默认 Prompt 初始化失败（非致命）: {e}")
+    except Exception as exc:
+        logger.warning("默认 Prompt 初始化失败 error_type=%s", type(exc).__name__)
 
     # 打印 Embedding 来源
     from src.utils.embedding_factory import get_embedding_source
@@ -594,6 +640,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(RequestSecurityMiddleware)
 app.mount("/metrics", make_asgi_app())
 
 # v1.7: 注册新路由
@@ -698,6 +745,7 @@ async def create_document_library(
 @app.post("/document-libraries/{slug}/documents", status_code=202)
 async def upload_document(
     slug: str,
+    http_request: Request,
     file: UploadFile = File(...),
     chunk_size: int = Form(800),
     chunk_overlap: int = Form(120),
@@ -708,20 +756,37 @@ async def upload_document(
     if service is None:
         raise HTTPException(status_code=503, detail="文档解析服务未初始化")
     _require_knowledge_base_access(slug, authorization_context, manage=True)
-    original_filename = file.filename or "upload"
-    incoming_path = (
-        Path(settings.document_uploads_path) / ".incoming" / f"{uuid.uuid4()}_{original_filename}"
+    incoming_path = build_isolated_upload_path(
+        settings.document_uploads_path,
+        organization_id=authorization_context.organization_id,
+        knowledge_base_slug=slug,
+        original_filename=file.filename,
     )
-    incoming_path.parent.mkdir(parents=True, exist_ok=True)
     try:
-        incoming_path.write_bytes(await file.read())
-        return service.submit_document(
+        artifact = await save_upload_file(
+            file,
+            incoming_path,
+            max_bytes=settings.upload_max_bytes,
+        )
+        result = service.submit_document(
             knowledge_base_slug=slug,
-            source_path=incoming_path,
-            original_filename=original_filename,
+            source_path=artifact.path,
+            original_filename=artifact.original_filename,
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
         )
+        _append_audit_event(
+            http_request,
+            authorization_context,
+            action="document.uploaded",
+            target_type="knowledge_base",
+            target_id=slug,
+            metadata={"size_bytes": artifact.size_bytes},
+        )
+        return result
+    except UploadValidationError as exc:
+        status_code = 413 if "大小" in str(exc) else 422
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
     except ValueError as exc:
         message = str(exc)
         status_code = 409 if "相同文件" in message else 422
@@ -735,6 +800,7 @@ async def upload_document(
 @app.post("/document-libraries/{slug}/documents/batch", status_code=202)
 async def upload_documents(
     slug: str,
+    http_request: Request,
     files: list[UploadFile] = File(...),
     chunk_size: int = Form(800),
     chunk_overlap: int = Form(120),
@@ -745,23 +811,35 @@ async def upload_documents(
     if service is None:
         raise HTTPException(status_code=503, detail="文档解析服务未初始化")
     _require_knowledge_base_access(slug, authorization_context, manage=True)
+    if len(files) > settings.upload_batch_max_files:
+        raise HTTPException(status_code=413, detail="批量上传文件数量超过限制")
     incoming_paths: list[Path] = []
     submissions: list[dict] = []
+    aggregate_bytes = 0
     try:
         for file in files:
-            original_filename = Path(file.filename or "upload").name
-            incoming_path = (
-                Path(settings.document_uploads_path)
-                / ".incoming"
-                / f"{uuid.uuid4()}_{original_filename}"
+            incoming_path = build_isolated_upload_path(
+                settings.document_uploads_path,
+                organization_id=authorization_context.organization_id,
+                knowledge_base_slug=slug,
+                original_filename=file.filename,
             )
-            incoming_path.parent.mkdir(parents=True, exist_ok=True)
-            incoming_path.write_bytes(await file.read())
+            artifact = await save_upload_file(
+                file,
+                incoming_path,
+                max_bytes=settings.upload_max_bytes,
+            )
             incoming_paths.append(incoming_path)
+            aggregate_bytes += artifact.size_bytes
+            if aggregate_bytes > settings.upload_batch_max_bytes:
+                raise UploadValidationError("批量上传总大小超过限制")
             submissions.append(
-                {"source_path": incoming_path, "original_filename": original_filename}
+                {
+                    "source_path": artifact.path,
+                    "original_filename": artifact.original_filename,
+                }
             )
-        return {
+        result = {
             "items": service.submit_documents(
                 knowledge_base_slug=slug,
                 submissions=submissions,
@@ -769,6 +847,18 @@ async def upload_documents(
                 chunk_overlap=chunk_overlap,
             )
         }
+        _append_audit_event(
+            http_request,
+            authorization_context,
+            action="document.batch_uploaded",
+            target_type="knowledge_base",
+            target_id=slug,
+            metadata={"file_count": len(submissions), "size_bytes": aggregate_bytes},
+        )
+        return result
+    except UploadValidationError as exc:
+        status_code = 413 if "大小" in str(exc) or "数量" in str(exc) else 422
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
     finally:
         for file in files:
             await file.close()
@@ -878,8 +968,11 @@ async def list_cases(
     domain: str | None = Query(default=None, description="法律领域"),
     case_cause: str | None = Query(default=None, description="案由"),
     source_id: int | None = Query(default=None, ge=1, description="案例源 ID"),
+    authorization_context: AuthorizationContext = Depends(get_authorization_context),
 ):
     """读取独立案例库，可按领域、案由或来源筛选。"""
+    if not authorization_context.can("cases:read"):
+        raise HTTPException(status_code=403, detail="权限不足")
     service = components.get("case_ingestion_service")
     if service is None:
         raise HTTPException(status_code=503, detail="案例库服务未初始化")
@@ -895,8 +988,11 @@ async def list_cases(
 @app.get("/case-sources")
 async def list_case_sources(
     domain: str | None = Query(default=None, description="法律领域"),
+    authorization_context: AuthorizationContext = Depends(get_authorization_context),
 ):
     """返回年度案例汇编的真实来源信息和 OCR 处理进度。"""
+    if not authorization_context.can("cases:read"):
+        raise HTTPException(status_code=403, detail="权限不足")
     service = components.get("case_ingestion_service")
     if service is None:
         raise HTTPException(status_code=503, detail="案例库服务未初始化")
@@ -904,8 +1000,13 @@ async def list_case_sources(
 
 
 @app.get("/cases/{case_id}")
-async def get_case(case_id: str):
+async def get_case(
+    case_id: str,
+    authorization_context: AuthorizationContext = Depends(get_authorization_context),
+):
     """读取单案结构化结果及其原始 PDF 页码范围。"""
+    if not authorization_context.can("cases:read"):
+        raise HTTPException(status_code=403, detail="权限不足")
     service = components.get("case_ingestion_service")
     if service is None:
         raise HTTPException(status_code=503, detail="案例库服务未初始化")
@@ -919,8 +1020,11 @@ async def get_case(case_id: str):
 async def similar_cases(
     case_id: str,
     top_k: int = Query(default=5, ge=1, le=20),
+    authorization_context: AuthorizationContext = Depends(get_authorization_context),
 ):
     """在年度案例独立向量库中检索相似案例，并对相同案由加分。"""
+    if not authorization_context.can("cases:read"):
+        raise HTTPException(status_code=403, detail="权限不足")
     retriever = components.get("annual_case_retriever")
     if retriever is None:
         raise HTTPException(status_code=503, detail="年度案例检索服务未初始化")
@@ -933,6 +1037,7 @@ async def similar_cases(
 @app.post("/documents/{document_id}/retry", status_code=202)
 async def retry_document(
     document_id: str,
+    http_request: Request,
     authorization_context: AuthorizationContext = Depends(get_authorization_context),
 ):
     """重新投递一个失败文档的原始处理任务。"""
@@ -941,7 +1046,15 @@ async def retry_document(
         raise HTTPException(status_code=503, detail="文档解析服务未初始化")
     _require_document_access(document_id, authorization_context, manage=True)
     try:
-        return service.retry_document(document_id)
+        result = service.retry_document(document_id)
+        _append_audit_event(
+            http_request,
+            authorization_context,
+            action="document.retried",
+            target_type="document",
+            target_id=document_id,
+        )
+        return result
     except ValueError as exc:
         message = str(exc)
         status_code = 409 if "仅失败" in message else 404
@@ -1011,6 +1124,7 @@ async def delete_knowledge_base(
 
 @app.post("/query", response_model=QueryResponse)
 async def query(
+    http_request: Request,
     request: QueryRequest,
     x_api_key: str | None = Header(None, alias="X-API-Key"),
     x_model: str | None = Header(None, alias="X-Model"),
@@ -1029,20 +1143,31 @@ async def query(
     - X-Model: 用户选择的模型名称
     """
     request_started = time.perf_counter()
+    event_id = getattr(http_request.state, "request_id", None) or x_request_id or uuid.uuid4().hex
     if not components.get("workflow"):
         raise HTTPException(status_code=503, detail="系统未初始化")
     if not authorization_context.can("queries:create"):
         raise HTTPException(status_code=403, detail="权限不足")
 
-    if x_base_url:
-        parsed_base_url = urlparse(x_base_url)
-        if parsed_base_url.scheme not in {"http", "https"} or not parsed_base_url.netloc:
-            raise HTTPException(status_code=422, detail="X-Base-URL 必须是有效的 HTTP(S) Base URL")
-    if x_model and not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}", x_model):
-        raise HTTPException(status_code=422, detail="X-Model 格式无效")
+    if x_base_url or x_model:
+        try:
+            runtime_llm_config = runtime_llm_policy.validate(
+                base_url=x_base_url or settings.deepseek_base_url,
+                model=x_model or settings.deepseek_model,
+                allow_custom=authorization_context.can("runtime_models:custom"),
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        x_base_url = runtime_llm_config.base_url
+        x_model = runtime_llm_config.model
 
     try:
-        logger.info(f"处理查询: {request.query}")
+        logger.info(
+            "处理查询 request_id=%s question_sha256=%s question_length=%s",
+            event_id,
+            hashlib.sha256(request.query.encode("utf-8")).hexdigest(),
+            len(request.query),
+        )
 
         selected_ids = request.knowledge_base_ids or ["civil-code"]
         if len(selected_ids) != 1:
@@ -1127,7 +1252,7 @@ async def query(
                 )
                 cached_response["query_id"] = session_id
                 record_query_observability(
-                    event_id=x_request_id or str(uuid.uuid4()),
+                    event_id=event_id,
                     organization_id=authorization_context.organization_id,
                     current_user_id=current_user.id,
                     question=request.query,
@@ -1181,7 +1306,7 @@ async def query(
                         )
                         cached_response["query_id"] = session_id
                         record_query_observability(
-                            event_id=x_request_id or str(uuid.uuid4()),
+                            event_id=event_id,
                             organization_id=authorization_context.organization_id,
                             current_user_id=current_user.id,
                             question=request.query,
@@ -1192,7 +1317,7 @@ async def query(
                         )
                         return QueryResponse(**cached_response)
                 except Exception as exc:
-                    logger.warning(f"语义查询缓存不可用，将继续正常检索: {exc}")
+                    logger.warning("语义查询缓存不可用 error_type=%s", type(exc).__name__)
             scoped_retriever = LawRetriever(
                 vectorstore=scoped_indexer.vectorstore,
                 api_key=settings.deepseek_api_key,
@@ -1239,10 +1364,8 @@ async def query(
         if cache_bypass:
             result.metadata["cache_bypassed"] = True
 
-        # 保存结果到内存
         result.metadata["memory_turns_used"] = len(memory_turns)
         query_id = session_id
-        query_results[query_id] = result
 
         # 处理引文格式
         if result.citations and hasattr(result.citations[0], "to_dict"):
@@ -1271,8 +1394,8 @@ async def query(
                 metadata=result.metadata,
                 knowledge_base_slug=selected_ids[0],
             )
-        except Exception as e:
-            logger.warning(f"聊天历史保存失败（非致命）: {e}")
+        except Exception as exc:
+            logger.warning("聊天历史保存失败 error_type=%s", type(exc).__name__)
 
         # 转换为响应格式
         response = QueryResponse(
@@ -1299,9 +1422,9 @@ async def query(
                             embedding=query_embedding,
                         )
             except Exception as exc:
-                logger.warning(f"查询缓存写入失败，将继续返回结果: {exc}")
+                logger.warning("查询缓存写入失败 error_type=%s", type(exc).__name__)
         record_query_observability(
-            event_id=x_request_id or str(uuid.uuid4()),
+            event_id=event_id,
             organization_id=authorization_context.organization_id,
             current_user_id=current_user.id,
             question=request.query,
@@ -1318,13 +1441,21 @@ async def query(
 
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"查询处理失败: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+    except Exception as exc:
+        logger.error(
+            "查询处理失败 request_id=%s error_type=%s",
+            event_id,
+            type(exc).__name__,
+        )
+        raise HTTPException(status_code=500, detail="查询处理失败，请稍后重试") from exc
 
 
 @app.post("/upload")
-async def upload_law(request: UploadRequest, background_tasks: BackgroundTasks):
+async def upload_law(
+    http_request: Request,
+    request: UploadRequest,
+    authorization_context: AuthorizationContext = Depends(get_authorization_context),
+):
     """
     上传法律文档
 
@@ -1335,42 +1466,48 @@ async def upload_law(request: UploadRequest, background_tasks: BackgroundTasks):
     Returns:
         上传结果
     """
-    if not components.get("law_indexer"):
-        raise HTTPException(status_code=503, detail="系统未初始化")
+    _require_knowledge_base_access(
+        request.knowledge_base_slug,
+        authorization_context,
+        manage=True,
+    )
+    service = components.get("knowledge_base_service")
+    if service is None:
+        raise HTTPException(status_code=503, detail="知识库服务未初始化")
 
     try:
-        # 解析法律文档
-        parser = LawParser()
-        articles = parser.parse_law_content(request.content, request.law_name)
-
-        # 切分
-        chunker = StructuredLawChunker(version=request.version)
-        chunks = chunker.chunk_articles(articles)
-
-        # 索引
-        indexer = components["law_indexer"]
-        count = indexer.build_index(chunks)
-
-        return {
-            "status": "success",
-            "message": f"成功索引 {count} 个法条",
-            "article_count": len(articles),
-            "chunk_count": count,
-        }
-
-    except Exception as e:
-        logger.error(f"上传失败: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        result = service.rebuild_knowledge_base(
+            request.knowledge_base_slug,
+            content=request.content,
+        )
+        _append_audit_event(
+            http_request,
+            authorization_context,
+            action="knowledge_base.rebuilt",
+            target_type="knowledge_base",
+            target_id=request.knowledge_base_slug,
+            metadata={"content_length": len(request.content)},
+        )
+        return result
+    except KnowledgeBaseBusyError as exc:
+        raise HTTPException(status_code=409, detail="知识库正在重建") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail="知识库不存在或无访问权限") from exc
 
 
 @app.get("/graph")
-async def get_graph(law_name: str | None = Query(None)):
+async def get_graph(
+    law_name: str | None = Query(None),
+    authorization_context: AuthorizationContext = Depends(get_authorization_context),
+):
     """
     获取知识图谱信息
 
     Returns:
         图谱信息
     """
+    if not authorization_context.can("knowledge_bases:read"):
+        raise HTTPException(status_code=403, detail="权限不足")
     if not components.get("law_graph"):
         raise HTTPException(status_code=503, detail="图谱未初始化")
 
@@ -1416,19 +1553,24 @@ async def get_graph(law_name: str | None = Query(None)):
             "visualization_data": {"nodes": nodes, "links": links},
         }
 
-    except Exception as e:
-        logger.error(f"获取图谱失败: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+    except Exception as exc:
+        logger.error("获取图谱失败 error_type=%s", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="图谱读取失败") from exc
 
 
 @app.post("/graph/query")
-async def query_graph(request: GraphQueryRequest):
+async def query_graph(
+    request: GraphQueryRequest,
+    authorization_context: AuthorizationContext = Depends(get_authorization_context),
+):
     """
     查询图谱
 
     Returns:
         查询结果
     """
+    if not authorization_context.can("knowledge_bases:read"):
+        raise HTTPException(status_code=403, detail="权限不足")
     if not components.get("law_graph"):
         raise HTTPException(status_code=503, detail="图谱未初始化")
 
@@ -1448,40 +1590,9 @@ async def query_graph(request: GraphQueryRequest):
         else:
             raise HTTPException(status_code=400, detail="请提供article_id或source+target")
 
-    except Exception as e:
-        logger.error(f"图谱查询失败: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
-
-
-@app.get("/verify/{query_id}")
-async def verify_result(query_id: str):
-    """
-    验证查询结果
-
-    Args:
-        query_id: 查询ID
-
-    Returns:
-        验证结果
-    """
-    if query_id not in query_results:
-        raise HTTPException(status_code=404, detail="查询结果不存在")
-
-    result = query_results[query_id]
-
-    return {
-        "query_id": query_id,
-        "verification_status": result.verification_status,
-        "citations": [
-            {
-                "article_id": c.article_id if hasattr(c, "article_id") else str(c),
-                "is_verified": c.is_verified if hasattr(c, "is_verified") else False,
-                "original_text": c.original_text if hasattr(c, "original_text") else "",
-            }
-            for c in result.citations
-        ],
-        "issues": result.verification_issues,
-    }
+    except Exception as exc:
+        logger.error("图谱查询失败 error_type=%s", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="图谱查询失败") from exc
 
 
 @app.get("/intent/{intent_type}")

@@ -10,6 +10,7 @@ import logging
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_openai import ChatOpenAI
 
+from app.security.runtime_llm import RuntimeLLMPolicy
 from config import settings
 
 logger = logging.getLogger(__name__)
@@ -57,8 +58,8 @@ def _init_langfuse_handler() -> BaseCallbackHandler | None:
     except ImportError:
         logger.warning("langfuse 包未安装，可观测性不可用。运行 pip install langfuse 安装。")
         return None
-    except Exception as e:
-        logger.error(f"Langfuse 初始化失败: {e}")
+    except Exception as exc:
+        logger.error("Langfuse 初始化失败 error_type=%s", type(exc).__name__)
         return None
 
 
@@ -67,8 +68,8 @@ def create_llm(
     base_url: str | None = None,
     model: str | None = None,
     temperature: float = 0.1,
-    request_timeout: int = 90,
-    max_retries: int = 1,
+    request_timeout: int | None = None,
+    max_retries: int | None = None,
     enable_langfuse: bool = True,
 ) -> ChatOpenAI:
     """
@@ -113,14 +114,25 @@ def create_llm(
     effective_key = api_key or settings.deepseek_api_key or "sk-placeholder"
     effective_base = base_url or settings.deepseek_base_url
     effective_model = model or settings.deepseek_model
+    policy = RuntimeLLMPolicy(settings)
+    http_client, http_async_client = policy.build_http_clients()
 
     llm = ChatOpenAI(
         api_key=effective_key,
         base_url=effective_base,
         model=effective_model,
         temperature=temperature,
-        request_timeout=request_timeout,
-        max_retries=max_retries,
+        request_timeout=min(
+            request_timeout or settings.runtime_llm_timeout_seconds,
+            settings.runtime_llm_timeout_seconds,
+        ),
+        max_retries=min(
+            settings.runtime_llm_max_retries if max_retries is None else max_retries,
+            settings.runtime_llm_max_retries,
+        ),
+        max_tokens=settings.runtime_llm_max_output_tokens,
+        http_client=http_client,
+        http_async_client=http_async_client,
         callbacks=callbacks if callbacks else None,
     )
 
@@ -161,5 +173,5 @@ def flush_langfuse():
             logger.info("Langfuse 数据已刷新")
     except ImportError:
         pass
-    except Exception as e:
-        logger.warning(f"Langfuse flush 失败: {e}")
+    except Exception as exc:
+        logger.warning("Langfuse flush 失败 error_type=%s", type(exc).__name__)

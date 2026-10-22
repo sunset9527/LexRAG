@@ -41,4 +41,8 @@ export const authApi = {
   getMe(): Promise<UserInfo> {
     return client.get('/auth/me').then((r) => r.data)
   },
+
+  logout(): Promise<void> {
+    return client.post('/auth/logout').then(() => undefined)
+  },
 }

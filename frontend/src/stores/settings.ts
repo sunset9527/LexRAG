@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
+import { setRuntimeApiKey } from '@/security/runtimeCredentials'
 
 export interface LLMProvider {
   key: string
@@ -18,16 +19,16 @@ export const LLM_PROVIDERS: LLMProvider[] = [
 ]
 
 export const useSettingsStore = defineStore('settings', () => {
-  // 从 localStorage 恢复
+  // 非敏感偏好可从 localStorage 恢复；API Key 始终从空的会话内存开始。
   const provider = ref(localStorage.getItem('lexrag_provider') || 'deepseek')
   const model = ref(localStorage.getItem('lexrag_model') || 'deepseek-v4-pro')
-  const apiKey = ref(localStorage.getItem('lexrag_user_api_key') || '')
+  const apiKey = ref('')
   const baseUrl = ref(localStorage.getItem('lexrag_base_url') || 'https://api.deepseek.com')
 
-  // 持久化
+  // 只持久化非敏感偏好。
   watch(provider, (v) => localStorage.setItem('lexrag_provider', v))
   watch(model, (v) => localStorage.setItem('lexrag_model', v))
-  watch(apiKey, (v) => localStorage.setItem('lexrag_user_api_key', v))
+  watch(apiKey, (v) => setRuntimeApiKey(v), { immediate: true })
   watch(baseUrl, (v) => localStorage.setItem('lexrag_base_url', v))
 
   const currentProvider = () => LLM_PROVIDERS.find((p) => p.key === provider.value)

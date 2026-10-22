@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.models.document_job import DocumentJob
 from app.models.document_page import DocumentPage
 from app.models.knowledge_base import KnowledgeBase
+from app.security.uploads import validate_parsed_document_limits
 from app.services.document_ingestion_service import DocumentIngestionService
 from app.services.document_structure_service import DocumentStructureService
 from src.ingestion.rich_document_parser import ParsedDocument, ParsedPage
@@ -31,6 +32,8 @@ class DocumentProcessingService:
         chunker: Callable[[list[dict[str, Any]], int, int], list[dict[str, Any]]],
         indexer_factory: Callable[[str], Any],
         relation_service_factory: Callable[[], Any] | None = None,
+        max_pages: int | None = None,
+        max_characters: int | None = None,
     ):
         self._session_factory = session_factory
         self._parsed_root = Path(parsed_root)
@@ -38,6 +41,8 @@ class DocumentProcessingService:
         self._chunker = chunker
         self._indexer_factory = indexer_factory
         self._relation_service_factory = relation_service_factory
+        self._max_pages = max_pages
+        self._max_characters = max_characters
 
     def process(self, job_id: str) -> dict[str, Any]:
         """执行一次完整的解析、分块和索引。"""
@@ -56,6 +61,12 @@ class DocumentProcessingService:
             collection_name = knowledge_base.collection_name
 
         parsed_result = self._parser(source_path)
+        if isinstance(parsed_result, ParsedDocument):
+            validate_parsed_document_limits(
+                parsed_result,
+                max_pages=self._max_pages or 2_000,
+                max_characters=self._max_characters or 10_000_000,
+            )
         segments, rich_pages = self._to_index_segments(parsed_result)
         parsed_text = "\n\n".join(
             str(segment.get("text", "")).strip()

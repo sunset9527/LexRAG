@@ -11,6 +11,8 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 from app.db.base import Base
+from app.models.knowledge_base import KnowledgeBase
+from app.models.organization import Organization
 from app.models.user import User
 
 try:
@@ -122,3 +124,59 @@ def test_archived_session_rejects_new_turn_and_verified_turn_updates_profile():
         profile = db.get(UserProfile, 1)
         assert profile.law_area_counts == {"civil-code": 1}
         assert profile.intent_counts == {"factual": 1}
+
+
+def test_recommendations_only_use_knowledge_bases_visible_to_the_active_organization():
+    service, factory = make_service()
+    with factory() as db:
+        first = Organization(name="First", slug="first")
+        second = Organization(name="Second", slug="second")
+        db.add_all([first, second])
+        db.flush()
+        db.add_all(
+            [
+                KnowledgeBase(
+                    name="First Law",
+                    slug="first-law",
+                    type="statute",
+                    law_area="first-law",
+                    collection_name="kb_first_law",
+                    status="READY",
+                    organization_id=first.id,
+                    is_system_shared=False,
+                ),
+                KnowledgeBase(
+                    name="Second Law",
+                    slug="second-law",
+                    type="statute",
+                    law_area="second-law",
+                    collection_name="kb_second_law",
+                    status="READY",
+                    organization_id=second.id,
+                    is_system_shared=False,
+                ),
+            ]
+        )
+        db.commit()
+        first_id = first.id
+
+    service.record_turn(
+        user_id=1,
+        session_id=service.create(
+            user_id=1,
+            organization_id=first_id,
+            initial_question="private",
+        )["id"],
+        organization_id=first_id,
+        question="private",
+        answer="private",
+        intent="factual",
+        citations=[],
+        verification_status="pass",
+        metadata={},
+        knowledge_base_slug="second-law",
+    )
+
+    recommendations = service.get_recommendations(user_id=1, organization_id=first_id)
+
+    assert recommendations["based_on_law_area"] != "second-law"

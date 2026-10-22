@@ -73,8 +73,8 @@ def decode_access_token(token: str) -> dict | None:
     try:
         payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[ALGORITHM])
         return payload
-    except JWTError as e:
-        logger.warning(f"JWT 解码失败: {e}")
+    except JWTError:
+        logger.warning("JWT 解码失败")
         return None
 
 
@@ -122,7 +122,7 @@ def create_user(
     db.add(user)
     db.commit()
     db.refresh(user)
-    logger.info(f"用户已创建: {username}")
+    logger.info("用户创建成功 user_id=%s", user.id)
     return user
 
 

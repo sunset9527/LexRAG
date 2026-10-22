@@ -89,8 +89,8 @@ class QueryRewriter:
                 rewritten_query=result.get("rewritten_query", query),
                 search_keywords=result.get("search_keywords", []),
             )
-        except Exception as e:
-            logger.error(f"查询改写失败: {e}")
+        except Exception as exc:
+            logger.error("查询改写失败 error_type=%s", type(exc).__name__)
             return RewrittenQuery(
                 original_query=query, rewritten_query=query, search_keywords=[query]
             )
@@ -123,7 +123,7 @@ class QueryRewriter:
                 search_queries=search_queries,
             )
         except Exception as exc:
-            logger.warning(f"多候选查询改写失败，使用原始查询: {exc}")
+            logger.warning("多候选查询改写失败 error_type=%s", type(exc).__name__)
             return RewrittenQuery(
                 original_query=query,
                 rewritten_query=query,
@@ -137,8 +137,8 @@ class QueryRewriter:
             prompt = self.HYDE_PROMPT.format(query=query)
             response = self.llm.invoke(prompt)
             return response.content
-        except Exception as e:
-            logger.error(f"HyDE生成失败: {e}")
+        except Exception as exc:
+            logger.error("HyDE生成失败 error_type=%s", type(exc).__name__)
             return query
 
     def rewrite_with_hyde(self, query: str) -> RewrittenQuery:

@@ -69,7 +69,7 @@ class DocumentStructureService:
                     content={},
                     parser_version="v2.3.2-rule",
                     status="FAILED",
-                    error_message=str(exc)[:4000],
+                    error_message=f"STRUCTURE_FAILED:{type(exc).__name__}",
                 )
             session.commit()
             session.refresh(structure)

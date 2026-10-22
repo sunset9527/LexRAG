@@ -120,7 +120,12 @@ class DocumentIngestionService:
                     chunk_overlap=chunk_overlap,
                 )
             except ValueError as exc:
-                results.append({"original_filename": original_filename, "error": str(exc)})
+                results.append(
+                    {
+                        "original_filename": original_filename,
+                        "error": f"SUBMISSION_FAILED:{type(exc).__name__}",
+                    }
+                )
             else:
                 results.append({"original_filename": original_filename, "job": job})
         return results

@@ -83,7 +83,7 @@ def test_structure_service_records_failure_without_changing_document_job_status(
     ).process("contract-1")
 
     assert result["status"] == "FAILED"
-    assert "解析器异常" in result["error_message"]
+    assert result["error_message"] == "STRUCTURE_FAILED:ValueError"
     with factory() as session:
         assert session.get(DocumentJob, "contract-1").status == "UPLOADED"
 

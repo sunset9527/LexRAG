@@ -6,25 +6,32 @@ Prompt 管理服务
 
 import logging
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.models.prompt import Prompt
 
 logger = logging.getLogger(__name__)
 
-# 内存缓存：name -> Prompt
-_prompt_cache: dict[str, Prompt] = {}
+# 内存缓存：(organization_id, name) -> Prompt
+_prompt_cache: dict[tuple[int, str], Prompt] = {}
 
 
-def _invalidate_cache(name: str = None):
+def _invalidate_cache(name: str | None = None, organization_id: int | None = None):
     """使缓存失效（更新/删除时调用）"""
-    if name:
-        _prompt_cache.pop(name, None)
+    if name and organization_id is not None:
+        _prompt_cache.pop((organization_id, name), None)
     else:
         _prompt_cache.clear()
 
 
-def get_prompt_by_name(db: Session, name: str, use_cache: bool = True) -> Prompt | None:
+def get_prompt_by_name(
+    db: Session,
+    name: str,
+    *,
+    organization_id: int,
+    use_cache: bool = True,
+) -> Prompt | None:
     """
     按名称获取 Prompt（优先从缓存读取）
 
@@ -36,43 +43,62 @@ def get_prompt_by_name(db: Session, name: str, use_cache: bool = True) -> Prompt
     Returns:
         Prompt 对象，不存在返回 None
     """
-    if use_cache and name in _prompt_cache:
-        return _prompt_cache[name]
+    cache_key = (organization_id, name)
+    if use_cache and cache_key in _prompt_cache:
+        return _prompt_cache[cache_key]
 
     prompt = (
         db.query(Prompt)
-        .filter(Prompt.name == name, Prompt.is_active.is_(True))
+        .filter(
+            Prompt.name == name,
+            Prompt.organization_id == organization_id,
+            Prompt.is_active.is_(True),
+        )
         .order_by(Prompt.version.desc())
         .first()
     )
+    if prompt is None:
+        prompt = (
+            db.query(Prompt)
+            .filter(
+                Prompt.name == name,
+                Prompt.organization_id.is_(None),
+                Prompt.is_active.is_(True),
+            )
+            .order_by(Prompt.version.desc())
+            .first()
+        )
 
     if prompt and use_cache:
-        _prompt_cache[name] = prompt
+        _prompt_cache[cache_key] = prompt
 
     return prompt
 
 
-def get_all_active_prompts(db: Session) -> list[Prompt]:
+def get_all_active_prompts(db: Session, *, organization_id: int) -> list[Prompt]:
     """获取所有活跃 Prompt（每个 name 返回最新版本）"""
-    # 子查询：每组 name 的最大 version
-    from sqlalchemy import and_, func
-
-    subq = (
-        db.query(Prompt.name, func.max(Prompt.version).label("max_version"))
-        .filter(Prompt.is_active.is_(True))
-        .group_by(Prompt.name)
-        .subquery()
-    )
-    prompts = (
+    candidates = (
         db.query(Prompt)
-        .join(subq, and_(Prompt.name == subq.c.name, Prompt.version == subq.c.max_version))
+        .filter(
+            Prompt.is_active.is_(True),
+            or_(Prompt.organization_id == organization_id, Prompt.organization_id.is_(None)),
+        )
+        .order_by(Prompt.version.desc())
         .all()
     )
-    return prompts
+    selected: dict[str, Prompt] = {}
+    for prompt in candidates:
+        current = selected.get(prompt.name)
+        if current is None or (
+            current.organization_id is None and prompt.organization_id == organization_id
+        ):
+            selected[prompt.name] = prompt
+    return list(selected.values())
 
 
 def create_prompt(
     db: Session,
+    organization_id: int,
     name: str,
     content: str,
     description: str | None = None,
@@ -84,11 +110,16 @@ def create_prompt(
     Raises:
         ValueError: 同名 Prompt 已存在
     """
-    existing = db.query(Prompt).filter(Prompt.name == name).first()
+    existing = (
+        db.query(Prompt)
+        .filter(Prompt.name == name, Prompt.organization_id == organization_id)
+        .first()
+    )
     if existing:
         raise ValueError(f"Prompt '{name}' 已存在，请使用更新接口")
 
     prompt = Prompt(
+        organization_id=organization_id,
         name=name,
         content=content,
         version=1,
@@ -100,13 +131,14 @@ def create_prompt(
     db.refresh(prompt)
 
     # 热加载到缓存
-    _prompt_cache[name] = prompt
-    logger.info(f"Prompt 已创建: {name} v1")
+    _prompt_cache[(organization_id, name)] = prompt
+    logger.info("Prompt 已创建 organization_id=%s version=1", organization_id)
     return prompt
 
 
 def update_prompt(
     db: Session,
+    organization_id: int,
     name: str,
     content: str,
     description: str | None = None,
@@ -118,20 +150,32 @@ def update_prompt(
         ValueError: Prompt 不存在
     """
     # 获取当前版本
-    current = (
+    current_owned = (
         db.query(Prompt)
-        .filter(Prompt.name == name, Prompt.is_active.is_(True))
+        .filter(
+            Prompt.name == name,
+            Prompt.organization_id == organization_id,
+            Prompt.is_active.is_(True),
+        )
         .order_by(Prompt.version.desc())
         .first()
+    )
+    current = current_owned or get_prompt_by_name(
+        db, name, organization_id=organization_id, use_cache=False
     )
     if not current:
         raise ValueError(f"Prompt '{name}' 不存在")
 
     # 将旧版本标记为非活跃
-    db.query(Prompt).filter(Prompt.name == name).update({"is_active": False})
+    if current_owned is not None:
+        db.query(Prompt).filter(
+            Prompt.name == name,
+            Prompt.organization_id == organization_id,
+        ).update({"is_active": False})
 
     # 创建新版本
     new_prompt = Prompt(
+        organization_id=organization_id,
         name=name,
         content=content,
         version=current.version + 1,
@@ -144,31 +188,44 @@ def update_prompt(
     db.refresh(new_prompt)
 
     # 热加载到缓存
-    _prompt_cache[name] = new_prompt
-    logger.info(f"Prompt 已更新: {name} v{new_prompt.version}")
+    _prompt_cache[(organization_id, name)] = new_prompt
+    logger.info(
+        "Prompt 已更新 organization_id=%s version=%s",
+        organization_id,
+        new_prompt.version,
+    )
     return new_prompt
 
 
-def delete_prompt(db: Session, name: str) -> bool:
+def delete_prompt(db: Session, name: str, *, organization_id: int) -> bool:
     """
     删除 Prompt（软删除：标记为 inactive）
 
     Returns:
         True 表示删除成功，False 表示不存在
     """
-    result = db.query(Prompt).filter(Prompt.name == name).update({"is_active": False})
+    result = (
+        db.query(Prompt)
+        .filter(Prompt.name == name, Prompt.organization_id == organization_id)
+        .update({"is_active": False})
+    )
     db.commit()
 
     if result:
-        _invalidate_cache(name)
-        logger.info(f"Prompt 已删除: {name}")
+        _invalidate_cache(name, organization_id)
+        logger.info("Prompt 已删除 organization_id=%s", organization_id)
         return True
     return False
 
 
-def get_prompt_history(db: Session, name: str) -> list[Prompt]:
+def get_prompt_history(db: Session, name: str, *, organization_id: int) -> list[Prompt]:
     """获取 Prompt 的完整版本历史"""
-    return db.query(Prompt).filter(Prompt.name == name).order_by(Prompt.version.desc()).all()
+    return (
+        db.query(Prompt)
+        .filter(Prompt.name == name, Prompt.organization_id == organization_id)
+        .order_by(Prompt.version.desc())
+        .all()
+    )
 
 
 def seed_default_prompts(db: Session):
@@ -276,6 +333,7 @@ def seed_default_prompts(db: Session):
 
     for p in defaults:
         prompt = Prompt(
+            organization_id=None,
             name=p["name"],
             content=p["content"],
             version=1,

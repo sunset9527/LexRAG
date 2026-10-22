@@ -71,7 +71,7 @@ def parse_document_details(
                 except Exception as exc:  # OCR 是可降级步骤，不能中止其余页面。
                     raw_text = ""
                     source = "empty"
-                    warnings.append(f"OCR 失败: {exc}")
+                    warnings.append(f"OCR 失败: {type(exc).__name__}")
             pages.append(
                 ParsedPage(
                     page_number=page_number,
@@ -115,7 +115,7 @@ def _extract_tables(page: object, warnings: list[str]) -> list[ExtractedTable]:
             for table in finder.tables
         ]
     except Exception as exc:  # 表格识别失败时仍保留页面正文。
-        warnings.append(f"表格提取失败: {exc}")
+        warnings.append(f"表格提取失败: {type(exc).__name__}")
         return []
 
 

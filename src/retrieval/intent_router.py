@@ -161,11 +161,11 @@ class IntentRouter:
                 reasoning_chain=result.get("reasoning_chain", []),
                 metadata=result.get("metadata", {}),
             )
-        except json.JSONDecodeError as e:
-            logger.error(f"意图分类JSON解析失败: {e}")
+        except json.JSONDecodeError as exc:
+            logger.error("意图分类 JSON 解析失败 error_type=%s", type(exc).__name__)
             return self._create_unknown_intent(query)
-        except Exception as e:
-            logger.error(f"意图分类失败: {e}")
+        except Exception as exc:
+            logger.error("意图分类失败 error_type=%s", type(exc).__name__)
             return self._create_unknown_intent(query)
 
     def decompose_problem(self, query: str) -> list[str]:
@@ -184,8 +184,8 @@ class IntentRouter:
             content = response.content.strip().replace("```json", "").replace("```", "").strip()
             result = json.loads(content)
             return result.get("sub_questions", [])
-        except Exception as e:
-            logger.error(f"问题拆解失败: {e}")
+        except Exception as exc:
+            logger.error("问题拆解失败 error_type=%s", type(exc).__name__)
             return [query]  # 返回原问题作为单一子问题
 
     def route_query(self, query: str, enable_decomposition: bool = True) -> QueryIntent:

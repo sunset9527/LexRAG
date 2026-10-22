@@ -13,6 +13,11 @@ services:
       - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
       - ZHIPUAI_API_KEY=${ZHIPUAI_API_KEY:-}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - APP_MODE=${APP_MODE:-development}
+      - OPEN_REGISTRATION=${OPEN_REGISTRATION:-true}
+      - AUTH_COOKIE_SECURE=${AUTH_COOKIE_SECURE:-false}
+      - AUTH_COOKIE_SAMESITE=${AUTH_COOKIE_SAMESITE:-lax}
+      - RUNTIME_LLM_TRUSTED_BASE_URLS=${RUNTIME_LLM_TRUSTED_BASE_URLS:-https://api.deepseek.com}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       # Database (MySQL)
       - DATABASE_URL=mysql+pymysql://root:${MYSQL_ROOT_PASSWORD:-123456}@host.docker.internal:3306/lexrag?charset=utf8mb4
@@ -49,6 +54,7 @@ services:
       - DATABASE_URL=mysql+pymysql://root:${MYSQL_ROOT_PASSWORD:-123456}@host.docker.internal:3306/lexrag?charset=utf8mb4
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - APP_MODE=${APP_MODE:-development}
     volumes:
       - chroma_data:/app/data/chroma_db
       - law_data:/app/data

@@ -13,7 +13,11 @@ from src.ingestion.indexer import LawIndexer
 from src.ingestion.rich_document_parser import parse_document_details
 
 
-@celery_app.task(name="lexrag.process_document")
+@celery_app.task(
+    name="lexrag.process_document",
+    soft_time_limit=settings.document_task_soft_time_limit_seconds,
+    time_limit=settings.document_task_time_limit_seconds,
+)
 def process_document_task(job_id: str) -> dict:
     """在独立 Worker 进程中处理一个已上传的文档。"""
     if db_session.SessionLocal is None:
@@ -34,9 +38,11 @@ def process_document_task(job_id: str) -> dict:
                 )
             ),
         ),
+        max_pages=settings.upload_max_pdf_pages,
+        max_characters=settings.upload_max_extracted_characters,
     )
     try:
         return processor.process(job_id)
-    except Exception as exc:
-        processor.mark_failed(job_id, str(exc))
-        raise
+    except Exception:
+        processor.mark_failed(job_id, "DOCUMENT_PROCESSING_FAILED")
+        raise RuntimeError("DOCUMENT_PROCESSING_FAILED") from None

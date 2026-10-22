@@ -152,7 +152,7 @@ class KnowledgeBaseService:
             with self._session_factory() as session:
                 knowledge_base = self._get_by_slug(session, slug)
                 knowledge_base.status = "FAILED"
-                knowledge_base.error_message = str(exc)
+                knowledge_base.error_message = f"REBUILD_FAILED:{type(exc).__name__}"
                 session.commit()
             raise
 

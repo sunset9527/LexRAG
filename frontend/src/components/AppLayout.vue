@@ -93,8 +93,8 @@ const authStore = useAuthStore()
 
 const currentRoute = computed(() => route.path)
 
-function handleLogout() {
-  authStore.logout()
+async function handleLogout() {
+  await authStore.logout()
   router.push('/login')
 }
 </script>

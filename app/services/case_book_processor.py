@@ -77,7 +77,7 @@ class AnnualCaseBookProcessor:
                 source_id,
                 status="FAILED",
                 processed_pages=len(self._read_pages(pages_file)),
-                error_message=str(exc),
+                error_message=f"PROCESSING_FAILED:{type(exc).__name__}",
             )
             raise
 

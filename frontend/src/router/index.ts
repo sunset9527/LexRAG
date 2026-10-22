@@ -100,8 +100,9 @@ const router = createRouter({
 })
 
 // 路由守卫：未登录跳转登录页
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
+  await authStore.initialize()
 
   if (to.meta.guest) {
     // 已登录用户访问登录/注册页 → 跳转首页

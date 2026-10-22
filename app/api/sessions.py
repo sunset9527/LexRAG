@@ -106,5 +106,11 @@ def archive_session(
 
 
 @router.get("/recommendations")
-def get_recommendations(current_user: User = Depends(get_current_user)) -> dict[str, Any]:
-    return _service().get_recommendations(user_id=current_user.id)
+def get_recommendations(
+    current_user: User = Depends(get_current_user),
+    context: AuthorizationContext = Depends(get_authorization_context),
+) -> dict[str, Any]:
+    return _service().get_recommendations(
+        user_id=current_user.id,
+        organization_id=context.organization_id,
+    )

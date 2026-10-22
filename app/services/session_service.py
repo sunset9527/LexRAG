@@ -8,6 +8,8 @@ from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
+from sqlalchemy import or_
+
 from app.models.chat_history import ChatHistory
 from app.models.knowledge_base import KnowledgeBase
 from app.models.session import ConversationSession
@@ -233,7 +235,7 @@ class SessionService:
                     profile.intent_counts = intents
             db.commit()
 
-    def get_recommendations(self, *, user_id: int) -> dict[str, Any]:
+    def get_recommendations(self, *, user_id: int, organization_id: int) -> dict[str, Any]:
         """基于已校验问答计数返回可解释的静态入口，不做法律判断。"""
         common_questions = {
             "civil-code": ["合同成立需要满足哪些条件？", "格式条款什么情况下无效？"],
@@ -245,7 +247,15 @@ class SessionService:
             counts = dict(profile.law_area_counts or {}) if profile else {}
             ready_slugs = {
                 item.slug
-                for item in db.query(KnowledgeBase).filter(KnowledgeBase.status == "READY").all()
+                for item in db.query(KnowledgeBase)
+                .filter(
+                    KnowledgeBase.status == "READY",
+                    or_(
+                        KnowledgeBase.organization_id == organization_id,
+                        KnowledgeBase.is_system_shared.is_(True),
+                    ),
+                )
+                .all()
             }
             ranked = sorted(
                 (slug for slug in counts if slug in ready_slugs),

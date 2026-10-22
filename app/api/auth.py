@@ -9,7 +9,7 @@
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -18,13 +18,40 @@ from app.db import session as db_session
 from app.db.session import get_db
 from app.services import auth_service
 from app.services.authorization_service import AuthorizationService
+from config import Settings, settings
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["认证"])
 
 # OAuth2 Password Bearer 令牌提取
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
+
+
+def resolve_access_token(authorization: str | None, cookie_token: str | None) -> str | None:
+    """Prefer an explicit Bearer token and otherwise use the HttpOnly browser cookie."""
+
+    if authorization:
+        scheme, _, value = authorization.partition(" ")
+        if scheme.lower() == "bearer" and value:
+            return value
+    return cookie_token or None
+
+
+def registration_is_allowed(candidate: Settings = settings) -> bool:
+    return candidate.app_mode == "development" and candidate.open_registration
+
+
+def set_auth_cookie(response: Response, token: str) -> None:
+    response.set_cookie(
+        key=settings.auth_cookie_name,
+        value=token,
+        max_age=settings.jwt_access_token_expire_minutes * 60,
+        httponly=True,
+        secure=settings.auth_cookie_secure,
+        samesite=settings.auth_cookie_samesite,
+        path="/",
+    )
 
 
 # ========== 请求/响应模型 ==========
@@ -74,7 +101,8 @@ class MessageResponse(BaseModel):
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    bearer_token: str | None = Depends(oauth2_scheme),
+    cookie_token: str | None = Cookie(default=None, alias=settings.auth_cookie_name),
     db: Session = Depends(get_db),
 ) -> auth_service.User:
     """
@@ -91,6 +119,9 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+    token = bearer_token or cookie_token
+    if token is None:
+        raise credentials_exception
     payload = auth_service.decode_access_token(token)
     if payload is None:
         raise credentials_exception
@@ -112,7 +143,7 @@ def get_current_user(
 
 
 @router.post("/register", response_model=TokenResponse, summary="用户注册")
-def register(request: RegisterRequest, db: Session = Depends(get_db)):
+def register(request: RegisterRequest, response: Response, db: Session = Depends(get_db)):
     """
     注册新用户
 
@@ -122,6 +153,8 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
 
     注册成功直接返回 JWT 令牌
     """
+    if not registration_is_allowed():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="当前环境未开放注册")
     try:
         user = auth_service.create_user(
             db,
@@ -135,6 +168,7 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
         AuthorizationService(db_session.SessionLocal).enroll_new_local_user(user_id=user.id)
         # 注册即登录，生成令牌
         token = auth_service.create_access_token(data={"sub": user.username, "user_id": user.id})
+        set_auth_cookie(response, token)
         return TokenResponse(
             access_token=token,
             username=user.username,
@@ -145,16 +179,16 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
             status_code=status.HTTP_409_CONFLICT,
             detail=str(e),
         ) from e
-    except Exception as e:
-        logger.error(f"注册失败: {e}")
+    except Exception as exc:
+        logger.error("注册失败 error_type=%s", type(exc).__name__)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="注册失败，请稍后重试",
-        ) from e
+        ) from exc
 
 
 @router.post("/login", response_model=TokenResponse, summary="用户登录")
-def login(request: LoginRequest, db: Session = Depends(get_db)):
+def login(request: LoginRequest, response: Response, db: Session = Depends(get_db)):
     """
     用户名 + 密码登录，返回 JWT 访问令牌
 
@@ -172,11 +206,24 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         )
 
     token = auth_service.create_access_token(data={"sub": user.username, "user_id": user.id})
+    set_auth_cookie(response, token)
     return TokenResponse(
         access_token=token,
         username=user.username,
         user_id=user.id,
     )
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT, summary="退出登录")
+def logout(response: Response) -> Response:
+    response.delete_cookie(
+        key=settings.auth_cookie_name,
+        httponly=True,
+        secure=settings.auth_cookie_secure,
+        samesite=settings.auth_cookie_samesite,
+        path="/",
+    )
+    return response
 
 
 @router.get("/me", response_model=UserResponse, summary="获取当前用户信息")

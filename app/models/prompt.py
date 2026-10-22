@@ -4,7 +4,7 @@ Prompt 模板模型
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -14,9 +14,20 @@ class Prompt(Base):
     """Prompt 模板表"""
 
     __tablename__ = "prompts"
+    __table_args__ = (
+        UniqueConstraint(
+            "organization_id",
+            "name",
+            "version",
+            name="uq_prompts_organization_name_version",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(128), unique=True, nullable=False, index=True)
+    organization_id: Mapped[int | None] = mapped_column(
+        ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    name: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(String(512), nullable=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")

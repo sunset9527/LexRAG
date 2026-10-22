@@ -1,57 +1,60 @@
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
 import { authApi, type UserInfo } from '@/api/auth'
+import { clearRuntimeCredentials } from '@/security/runtimeCredentials'
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('lexrag_token') || '')
   const user = ref<UserInfo | null>(null)
+  const initialized = ref(false)
+  const isAuthenticated = computed(() => user.value !== null)
 
-  const isAuthenticated = computed(() => !!token.value)
-
-  function setToken(newToken: string) {
-    token.value = newToken
-    localStorage.setItem('lexrag_token', newToken)
+  function clearSession() {
+    user.value = null
+    clearRuntimeCredentials()
   }
 
-  function clearToken() {
-    token.value = ''
-    user.value = null
-    localStorage.removeItem('lexrag_token')
+  async function fetchUser() {
+    try {
+      user.value = await authApi.getMe()
+    } catch {
+      clearSession()
+    } finally {
+      initialized.value = true
+    }
+  }
+
+  async function initialize() {
+    if (!initialized.value) {
+      await fetchUser()
+    }
   }
 
   async function login(username: string, password: string) {
     const res = await authApi.login({ username, password })
-    setToken(res.access_token)
     await fetchUser()
     return res
   }
 
   async function register(username: string, password: string, email?: string) {
     const res = await authApi.register({ username, password, email })
-    setToken(res.access_token)
     await fetchUser()
     return res
   }
 
-  async function fetchUser() {
-    if (!token.value) return
+  async function logout() {
     try {
-      user.value = await authApi.getMe()
-    } catch {
-      clearToken()
+      await authApi.logout()
+    } finally {
+      clearSession()
+      initialized.value = true
     }
   }
 
-  function logout() {
-    clearToken()
-  }
-
   return {
-    token,
     user,
+    initialized,
     isAuthenticated,
-    setToken,
-    clearToken,
+    initialize,
     login,
     register,
     fetchUser,

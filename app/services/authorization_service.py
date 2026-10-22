@@ -18,6 +18,7 @@ DEFAULT_PERMISSIONS = (
     "audit:read",
     "analytics:read",
     "law_updates:manage",
+    "runtime_models:custom",
     "queries:create",
     "cases:read",
 )

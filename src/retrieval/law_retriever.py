@@ -137,8 +137,8 @@ class LawRetriever:
                 f"{len(self._chapter_map)} 章节, {len(self._article_lookup)} 条文, "
                 f"{len(self._references_map)} 条带引用边"
             )
-        except Exception as e:
-            logger.warning(f"优化数据构建失败，回退纯向量检索: {e}")
+        except Exception as exc:
+            logger.warning("优化数据构建失败 error_type=%s", type(exc).__name__)
             self.enable_optimization = False
 
     def retrieve(
@@ -179,8 +179,8 @@ class LawRetriever:
                 )
             else:
                 results = self.vectorstore.similarity_search_with_score(query, k=top_k * 2)
-        except Exception as e:
-            logger.error(f"向量检索失败: {e}")
+        except Exception as exc:
+            logger.error("向量检索失败 error_type=%s", type(exc).__name__)
             return []
 
         # 解析结果
@@ -419,8 +419,8 @@ class LawRetriever:
                     score=1.0,
                     metadata=metadata,
                 )
-        except Exception as e:
-            logger.error(f"精确检索失败: {e}")
+        except Exception as exc:
+            logger.error("精确检索失败 error_type=%s", type(exc).__name__)
 
         return None
 

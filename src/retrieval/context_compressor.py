@@ -87,8 +87,8 @@ class ContextCompressor:
                 compressed_doc[content_key] = response.content
                 compressed_doc["is_compressed"] = True
                 compressed.append(compressed_doc)
-            except Exception as e:
-                logger.error(f"压缩文档失败: {e}")
+            except Exception as exc:
+                logger.error("压缩文档失败 error_type=%s", type(exc).__name__)
                 compressed.append(doc)
         return compressed
 
