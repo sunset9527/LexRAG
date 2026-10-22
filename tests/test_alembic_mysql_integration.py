@@ -223,6 +223,28 @@ def _expected_unique_constraints(table: sa.Table) -> set[tuple[str, tuple[str, .
     }
 
 
+def _normalized_check_sqltext(value: object) -> str:
+    rendered = " ".join(str(value).replace("`", "").split()).lower()
+    while rendered.startswith("(") and rendered.endswith(")"):
+        rendered = rendered[1:-1].strip()
+    return rendered
+
+
+def _actual_check_constraints(inspector: sa.Inspector, table_name: str) -> set[tuple[str, str]]:
+    return {
+        (str(constraint["name"]), _normalized_check_sqltext(constraint["sqltext"]))
+        for constraint in inspector.get_check_constraints(table_name)
+    }
+
+
+def _expected_check_constraints(table: sa.Table) -> set[tuple[str, str]]:
+    return {
+        (str(constraint.name), _normalized_check_sqltext(constraint.sqltext))
+        for constraint in table.constraints
+        if isinstance(constraint, sa.CheckConstraint)
+    }
+
+
 def _foreign_keys(table: sa.Table) -> set[tuple[str, str, str | None]]:
     return {
         (foreign_key.parent.name, foreign_key.target_fullname, foreign_key.ondelete)
@@ -270,6 +292,9 @@ def _assert_schema_matches_metadata(database_url: URL) -> None:
             assert _actual_unique_constraints(
                 inspector, table_name, expected_unique_names
             ) == expected_unique_constraints, table_name
+            assert _actual_check_constraints(
+                inspector, table_name
+            ) == _expected_check_constraints(expected_table), table_name
 
             actual_foreign_keys = {
                 (
