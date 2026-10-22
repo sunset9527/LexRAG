@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
 ![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white)
-![Tests](https://img.shields.io/badge/Backend%20tests-238%20passed-2ea44f)
+![Stage 2](https://img.shields.io/badge/Stage%202-focused%2069%20passed-2ea44f)
 
 > **法律信息免责声明**：项目用于法律信息检索与学习展示，不构成法律意见。具体案件需要结合完整事实、法律时效并咨询专业人士。
 
@@ -31,7 +31,7 @@ LexRAG 建立一条可检查的证据链，而不是把所有材料混进一个�
 | 当前主链 | `/query` 调用共享编译的 LangGraph `StateGraph`：规划、路由、检索、证据账本、回答、引用校验和最多一次受控修复；依赖通过请求级 context 传入 |
 | 评测状态 | 15 条民法典数据仅保留为历史回归基线；八部法律 100 条快照中有 85 条缺少逐条人工审核记录，相关报告只作临时工程记录，不作为正式效果指标 |
 | 案例与文档 | 10 本本地案例汇编、3,661 页 OCR、623 条结构化案例；PDF/DOCX 支持异步解析与页级来源 |
-| 工程质量 | 代码基线 `697a2d8`：2026-10-18 本机运行 **238 passed**、总覆盖率 **67%**，Ruff 通过；Stage 0 的 3 项前端 Node 契约测试和生产构建仍为最近记录。告警与复现边界见 `docs/status/v3.0-closure-baseline.md` |
+| 工程质量 | Stage 2 实现提交 `fdf06e0` + 日志补强 `05b38b5`：安全聚焦 **69 passed**、文档链 **22 passed**、前端 **4 passed**，Ruff、Vue 类型检查和生产构建通过；受当前沙箱 Windows asyncio self-pipe 限制，完整 ASGI 回归仍需在普通本机终端复跑 |
 
 历史 15 条本机记录曾得到 Recall@5 1.0000、MRR@5 0.9667、NDCG@5 0.9754；证据工作流记录曾得到引用校验通过率 1.0000、标注法条覆盖率 1.0000、平均端到端延迟 18,978ms。它们来自 2026-10-01 的未冻结工作树，缺少可对应的代码提交和保留报告，因此不作为当前 Release 指标。法律结论的人审支持率尚未形成正式指标。
 
@@ -57,6 +57,14 @@ LexRAG 建立一条可检查的证据链，而不是把所有材料混进一个�
 - PDF/DOCX 经 Redis + Celery 异步处理：`UPLOADED → PARSING → CHUNKING → INDEXING → READY`。
 - 原始文件 SHA-256 去重，页码、段落、表格/OCR 来源与结构化抽取结果均可回溯。
 - 案例库保存来源、OCR 检查点、案由、裁判理由、结果与页码；相似案例不会混入法规库。
+
+### 安全、权限与隐私边界
+
+- 浏览器会话使用 HttpOnly Cookie；Bearer Token 继续保留给 CLI。BYOK API Key 只保存在当前页面内存，不进入 localStorage、数据库、日志或审计元数据。
+- 运行时模型地址默认受 allowlist 约束；自定义地址需要权限，并拒绝本机、私网、链路本地、云元数据、危险端口和重定向。
+- 图谱、案例、上传、文档、会话、Prompt 与推荐链路均执行认证、权限和组织归属检查；遗留 `/verify/{query_id}` 与进程级结果表已删除。
+- 上传执行分块大小限制、扩展名/MIME/魔数一致性检查、DOCX 解压限制、组织/知识库目录隔离、PDF 页数与抽取字符上限，以及 Celery 软/硬超时。
+- 原始咨询和异常文本不写常规日志；对外 500 使用稳定错误包络，敏感管理动作只追加操作者、组织、资源 ID、结果和 request ID 等脱敏审计元数据。
 
 ## 技术架构
 
@@ -104,6 +112,18 @@ cd frontend; npm run dev
 
 法律问答需在前端“设置”页填写可用的 LLM API Key、Base URL 和模型名；法规浏览、案例库、文档处理和离线评测不依赖该 Key。
 
+生产环境先关闭开放注册并显式初始化管理员。密码仅通过进程环境传入，不接受命令行参数：
+
+```powershell
+$env:APP_MODE = 'production'
+$env:OPEN_REGISTRATION = 'false'
+$env:AUTH_COOKIE_SECURE = 'true'
+$env:JWT_SECRET_KEY = '<至少 32 字符的随机值>'
+$env:LEXRAG_BOOTSTRAP_USERNAME = 'admin'
+$env:LEXRAG_BOOTSTRAP_PASSWORD = '<强密码>'
+python scripts\bootstrap_admin.py
+```
+
 ## 可复现验证
 
 ```powershell
@@ -112,6 +132,8 @@ cd frontend; npm run dev
 ```
 
 质量报告写入本地 `reports/quality/`（已 Git 忽略），包含真实命令、退出码、耗时和覆盖率，不记录 API Key 或用户咨询原文。
+
+Stage 2 的已执行命令、结果和未覆盖边界见 [`docs/status/stage-2-security-verification.md`](docs/status/stage-2-security-verification.md)。
 
 ```powershell
 # 在真实 Chroma collection 上复现 15 条民法典检索基线
@@ -147,7 +169,7 @@ LexRAG/
 - 100 条八部法律快照存在批量 `approved` 与“待人工核验”冲突，已明确降级为临时工程记录；修正前不对外引用其指标。
 - OCR/文档解析已完成真实处理链路验收，但没有人工逐页字符和表格标注，因此不宣称 OCR 准确率。
 - Compose 已通过静态解析；Docker 冷启动与浏览器人工端到端验收仍待在可用本机环境完成。
-- BYOK 自定义 Base URL、原始问题日志、遗留 `/verify/{query_id}` 和上传权限仍处于安全收口清单中，当前版本不表述为生产可用。
+- Stage 2 的安全代码与聚焦自动化已经收口，但完整 ASGI 回归、真实多组织攻击性验收和 Docker 冷启动证据尚未完成，因此当前版本仍不表述为生产可用。
 
 ## License
 
