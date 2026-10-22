@@ -3,13 +3,30 @@
 import asyncio
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
+import pytest
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 import api
+
+
+@pytest.fixture(autouse=True)
+def authorized_case_reader():
+    """案例业务契约测试在已通过认证和 cases:read 授权后执行。"""
+
+    api.app.dependency_overrides[api.get_authorization_context] = lambda: SimpleNamespace(
+        organization_id=1,
+        user_id=1,
+        can=lambda permission: permission == "cases:read",
+    )
+    try:
+        yield
+    finally:
+        api.app.dependency_overrides.pop(api.get_authorization_context, None)
 
 
 class FakeCaseService:

@@ -1,7 +1,9 @@
 """文档深度解析结果 API 契约测试。"""
 
 import asyncio
+import io
 import sys
+import zipfile
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -11,6 +13,18 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 import api
+
+
+def _minimal_pdf() -> bytes:
+    return b"%PDF-1.7\n1 0 obj\n<<>>\nendobj\n%%EOF"
+
+
+def _minimal_docx() -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("[Content_Types].xml", "<Types />")
+        archive.writestr("word/document.xml", "<w:document />")
+    return buffer.getvalue()
 
 
 class FakeDocumentResultService:
@@ -63,12 +77,12 @@ def test_batch_document_route_delegates_all_files_once_and_returns_independent_i
                 "/document-libraries/contracts/documents/batch",
                 data={"chunk_size": "900", "chunk_overlap": "100"},
                 files=[
-                    ("files", ("one.pdf", b"one", "application/pdf")),
+                    ("files", ("one.pdf", _minimal_pdf(), "application/pdf")),
                     (
                         "files",
                         (
                             "two.docx",
-                            b"two",
+                            _minimal_docx(),
                             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                         ),
                     ),
