@@ -102,8 +102,13 @@ class DocumentRelationService:
                 evidence_text = match.group(0)
                 try:
                     targets = self._law_lookup(law_name, article_number)
-                except Exception:
-                    logger.exception("法条精确关联查询失败: %s 第%s条", law_name, article_number)
+                except Exception as exc:
+                    logger.error(
+                        "法条精确关联查询失败 law=%s article=%s error_type=%s",
+                        law_name,
+                        article_number,
+                        type(exc).__name__,
+                    )
                     continue
                 for target in targets:
                     target_id = target.get("target_id")
@@ -132,8 +137,12 @@ class DocumentRelationService:
             return []
         try:
             candidates = self._semantic_candidate_provider(source, pages)
-        except Exception:
-            logger.exception("语义关联候选生成失败: %s", source.id)
+        except Exception as exc:
+            logger.error(
+                "语义关联候选生成失败 document_id=%s error_type=%s",
+                source.id,
+                type(exc).__name__,
+            )
             return []
         page_text_by_number = dict(pages)
         relations: list[dict[str, Any]] = []

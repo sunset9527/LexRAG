@@ -96,8 +96,12 @@ class DocumentProcessingService:
         if rich_pages is not None:
             try:
                 DocumentStructureService(self._session_factory).process(job_id)
-            except Exception:
-                logger.exception("文档结构化失败，不阻断索引主链路: %s", job_id)
+            except Exception as exc:
+                logger.error(
+                    "文档结构化失败，不阻断索引主链路 job_id=%s error_type=%s",
+                    job_id,
+                    type(exc).__name__,
+                )
 
         raw_chunks = self._chunker(segments, chunk_size, chunk_overlap)
         chunks = [
@@ -145,8 +149,12 @@ class DocumentProcessingService:
         if self._relation_service_factory is not None:
             try:
                 self._relation_service_factory().rebuild(job_id)
-            except Exception:
-                logger.exception("文档关联失败，不阻断已完成的索引任务: %s", job_id)
+            except Exception as exc:
+                logger.error(
+                    "文档关联失败，不阻断已完成的索引任务 job_id=%s error_type=%s",
+                    job_id,
+                    type(exc).__name__,
+                )
         return result
 
     def mark_failed(self, job_id: str, error_message: str) -> dict[str, Any]:

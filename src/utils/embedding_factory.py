@@ -62,7 +62,10 @@ def create_embeddings(
                 return embeddings
 
             except Exception as e:
-                logger.warning(f"本地 Embedding 模型加载失败: {e}，回退到智谱AI API")
+                logger.warning(
+                    "本地 Embedding 模型加载失败，回退到智谱AI API error_type=%s",
+                    type(e).__name__,
+                )
 
     # ===== 方案 2: 智谱AI API 回退 =====
     if zhipuai_api_key:
@@ -79,7 +82,7 @@ def create_embeddings(
             return embeddings
 
         except Exception as e:
-            logger.error(f"智谱AI Embedding 初始化也失败: {e}")
+            logger.error("智谱AI Embedding 初始化失败 error_type=%s", type(e).__name__)
             raise RuntimeError(
                 "无法初始化任何 Embedding 模型。"
                 f"本地模型路径 {model_path} 加载失败，智谱AI API 也不可用。"

@@ -252,7 +252,7 @@ class SelfVerifier:
             return is_consistent, original_text
 
         except Exception as e:
-            logger.error(f"法条校验失败: {e}")
+            logger.error("法条校验失败 error_type=%s", type(e).__name__)
             citation.is_verified = False
             citation.original_text = f"[校验出错: {str(e)}]"
             return True, citation.original_text  # 软失败，不阻断流程
@@ -361,7 +361,7 @@ class SelfVerifier:
             return response.content
 
         except Exception as e:
-            logger.error(f"修正回答失败: {e}")
+            logger.error("修正回答失败 error_type=%s", type(e).__name__)
             return answer
 
     def _convert_number(self, num_str: str) -> str:

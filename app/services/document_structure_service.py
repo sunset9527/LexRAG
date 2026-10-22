@@ -50,8 +50,12 @@ class DocumentStructureService:
                 if self._supplementer is not None:
                     try:
                         parsed = apply_verified_supplement(parsed, self._supplementer(parsed))
-                    except Exception:
-                        logger.exception("文档结构化补充失败，保留规则结果: %s", document_id)
+                    except Exception as exc:
+                        logger.error(
+                            "文档结构化补充失败，保留规则结果 document_id=%s error_type=%s",
+                            document_id,
+                            type(exc).__name__,
+                        )
                 structure = self._upsert(
                     session,
                     document_id=document_id,

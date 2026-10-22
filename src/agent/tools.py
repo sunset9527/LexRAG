@@ -135,7 +135,7 @@ def search_statute(query: str) -> str:
             return "\n\n".join(results_text)
 
     except Exception as e:
-        logger.error(f"法条检索失败: {e}")
+        logger.error("法条检索失败 error_type=%s", type(e).__name__)
         return f"法条检索失败: {str(e)}"
 
 
@@ -163,7 +163,7 @@ def search_case(query: str) -> str:
             )
         return "\n\n".join(case_texts)
     except Exception as e:
-        logger.error(f"判例检索失败: {e}")
+        logger.error("判例检索失败 error_type=%s", type(e).__name__)
         return f"判例检索失败: {str(e)}"
 
 
@@ -191,7 +191,7 @@ def lookup_article(article_id: str) -> str:
         else:
             return f"未找到法条：第{article_num}条"
     except Exception as e:
-        logger.error(f"法条查阅失败: {e}")
+        logger.error("法条查阅失败 error_type=%s", type(e).__name__)
         return f"法条查阅失败: {str(e)}"
 
 
@@ -220,7 +220,7 @@ def analyze_legal_relation(case_description: str) -> str:
         response = llm.invoke(prompt)
         return response.content
     except Exception as e:
-        logger.error(f"法律关系分析失败: {e}")
+        logger.error("法律关系分析失败 error_type=%s", type(e).__name__)
         return f"法律关系分析失败: {str(e)}"
 
 

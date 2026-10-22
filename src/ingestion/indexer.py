@@ -158,7 +158,12 @@ class LawIndexer:
                 except Exception as e:
                     if attempt < 4:
                         wait = (attempt + 1) * 8  # 8s, 16s, 24s, 32s
-                        logger.warning(f"批次 {i // batch_size + 1} 失败({e})，{wait}s 后重试...")
+                        logger.warning(
+                            "批次 %s 失败，%s 秒后重试 error_type=%s",
+                            i // batch_size + 1,
+                            wait,
+                            type(e).__name__,
+                        )
                         time.sleep(wait)
                     else:
                         raise
@@ -345,7 +350,7 @@ class LawIndexer:
                 "persist_directory": self.persist_directory,
             }
         except Exception as e:
-            logger.error(f"获取集合信息失败: {e}")
+            logger.error("获取集合信息失败 error_type=%s", type(e).__name__)
             return {"error": str(e)}
 
     def rebuild_index(self, chunks: list[LawChunk]) -> int:

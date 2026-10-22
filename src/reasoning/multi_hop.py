@@ -178,7 +178,7 @@ class MultiHopReasoner:
             return sub_questions
 
         except Exception as e:
-            logger.error(f"问题分解失败: {e}")
+            logger.error("问题分解失败 error_type=%s", type(e).__name__)
             return [SubQuestion("q1", query, [])]
 
     def answer_sub_question(self, sub_question: SubQuestion, retrieved_content: str) -> str:
@@ -201,7 +201,7 @@ class MultiHopReasoner:
             sub_question.answer = response.content
             return response.content
         except Exception as e:
-            logger.error(f"子问题回答失败: {e}")
+            logger.error("子问题回答失败 error_type=%s", type(e).__name__)
             return "无法回答该子问题"
 
     def synthesize(self, original_query: str, sub_questions: list[SubQuestion]) -> str:
@@ -244,7 +244,7 @@ class MultiHopReasoner:
             return response.content
 
         except Exception as e:
-            logger.error(f"综合回答失败: {e}")
+            logger.error("综合回答失败 error_type=%s", type(e).__name__)
             return "综合回答失败"
 
     def reason(self, query: str, retrieval_func, max_hops: int = 3) -> dict[str, Any]:

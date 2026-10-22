@@ -43,7 +43,7 @@ class CrossEncoderReranker:
                 self._model = CrossEncoder(self.model_name)
                 logger.info(f"Reranker模型加载完成: {self.model_name}")
             except Exception as e:
-                logger.error(f"Reranker模型加载失败: {e}")
+                logger.error("Reranker模型加载失败 error_type=%s", type(e).__name__)
                 self._model = None
 
     def rerank(
@@ -101,7 +101,7 @@ class CrossEncoderReranker:
                 for i, (doc, score) in enumerate(scored_docs[:top_k])
             ]
         except Exception as e:
-            logger.error(f"重排序失败: {e}")
+            logger.error("重排序失败 error_type=%s", type(e).__name__)
             return [
                 RerankedResult(
                     doc_id=doc.get("doc_id", str(i)),

@@ -71,3 +71,16 @@ def test_legacy_agent_logs_do_not_include_raw_queries():
             if "logger." in line and any(fragment in line for fragment in unsafe_fragments):
                 findings.append(f"{path.relative_to(ROOT)}:{line_number}")
     assert findings == []
+
+
+def test_project_logs_do_not_interpolate_exception_messages_or_emit_tracebacks():
+    unsafe_interpolation = re.compile(
+        r"logger\.(?:debug|info|warning|error|exception)\(f[^\n]*\{(?:e|exc)\}"
+    )
+    findings = []
+    for root_name in ("app", "src"):
+        for path in (ROOT / root_name).rglob("*.py"):
+            for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                if unsafe_interpolation.search(line) or "logger.exception(" in line:
+                    findings.append(f"{path.relative_to(ROOT)}:{line_number}")
+    assert findings == []

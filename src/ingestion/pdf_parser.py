@@ -91,7 +91,7 @@ def parse_pdf(
                 try:
                     ocr_text = _ocr_page(page)
                 except Exception as e:  # OCR 失败不致命，标注 empty
-                    logger.warning(f"第{idx}页 OCR 失败: {e}")
+                    logger.warning("第%s页 OCR 失败 error_type=%s", idx, type(e).__name__)
                     ocr_text = ""
                 if ocr_text.strip():
                     text = ocr_text

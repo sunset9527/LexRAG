@@ -204,7 +204,7 @@ class GraphRetriever:
             logger.warning(f"从 {source} 到 {target} 不存在路径")
             return None
         except nx.NodeNotFound as e:
-            logger.error(f"节点不存在: {e}")
+            logger.error("图谱节点不存在 error_type=%s", type(e).__name__)
             return None
 
     def get_citation_chain(self, article_id: str) -> dict[str, Any]:
@@ -239,7 +239,7 @@ class GraphRetriever:
             cycles = list(nx.simple_cycles(self.graph))
             return [list(cycle) for cycle in cycles[:10]]  # 限制数量
         except Exception as e:
-            logger.error(f"查找循环引用失败: {e}")
+            logger.error("查找循环引用失败 error_type=%s", type(e).__name__)
             return []
 
     def get_most_cited_articles(self, top_n: int = 10) -> list[dict[str, Any]]:
