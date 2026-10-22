@@ -1,7 +1,10 @@
 # Stage 2 Security and Privacy Verification
 
-Date: 2026-10-22  
-Implementation commits: `fdf06e0`, `05b38b5`
+Date: 2026-10-22
+
+Code baseline: `9c9313b`
+
+Implementation commits: `fdf06e0`, `05b38b5`, `9c9313b`
 
 ## Verified scope
 
@@ -32,18 +35,16 @@ npx vue-tsc -b --pretty false
 # exit 0
 npx vite build
 # built successfully; existing Rollup annotation and large-chunk warnings remain
+
+cd ..
+python -m pytest -q --basetemp=reports\quality\pytest-stage2-full
+# 300 passed, 4 dependency warnings in 18.34s
 ```
 
 No legal evaluation data, labels or metrics were changed.
 
-## Verification boundary
+## Closure decision and boundary
 
-The complete backend ASGI suite was not run in this Codex sandbox. FastAPI/httpx integration tests block while Windows Python 3.13 initializes the asyncio self-pipe (`_fallback_socketpair().accept()`). This is an execution-environment limitation, not a passing result.
+The first full run exposed four stale integration fixtures: three case tests still assumed public access, and one upload test used fake PDF/DOCX bytes. Commit `9c9313b` aligned those fixtures with the intended authorization and file-validation contracts without weakening production checks. The user then reran the complete suite in a normal Windows PowerShell terminal: **300 passed, 4 warnings in 18.34 seconds**.
 
-Run the following in a normal project PowerShell terminal before marking Stage 2 closed:
-
-```powershell
-python -m pytest -q --basetemp=reports\quality\pytest-stage2-full
-```
-
-Stage 8 still owns real multi-organization adversarial testing, SSRF/DNS-rebinding exercises against controlled infrastructure, sensitive-artifact scanning and Docker end-to-end acceptance.
+Stage 2 is therefore closed at 100%. The four warnings are dependency deprecations and are not test failures. Stage 3 still owns distributed/reverse-proxy enforcement and reproducible deployment. Stage 8 still owns real multi-organization adversarial testing, SSRF/DNS-rebinding exercises against controlled infrastructure, sensitive-artifact scanning and Docker end-to-end acceptance.

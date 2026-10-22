@@ -1,6 +1,6 @@
 # LexRAG Feature Ledger
 
-**Baseline:** Stage 2 implementation `fdf06e0` + privacy hardening `05b38b5`, focused verification 2026-10-22
+**Baseline:** Stage 2 code through `9c9313b`, full backend verification 2026-10-22 (`300 passed`, 4 dependency warnings)
 
 ## State definitions
 
@@ -30,7 +30,7 @@
 
 ## Deliberately incomplete items
 
-- full ASGI regression and real multi-organization adversarial acceptance of the Stage 2 security closure;
+- real multi-organization adversarial acceptance, controlled SSRF/DNS-rebinding exercises and sensitive-artifact scanning in the final Stage 8 gate;
 - reproducible Docker cold start and data bootstrap;
 - authoritative legal-source manifests and effective-version selection;
 - automatic multi-knowledge-base routing and cross-library evidence orchestration;

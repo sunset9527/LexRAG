@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
 ![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white)
-![Stage 2](https://img.shields.io/badge/Stage%202-focused%2069%20passed-2ea44f)
+![Tests](https://img.shields.io/badge/Backend%20tests-300%20passed-2ea44f)
 
 > **法律信息免责声明**：项目用于法律信息检索与学习展示，不构成法律意见。具体案件需要结合完整事实、法律时效并咨询专业人士。
 
@@ -31,7 +31,7 @@ LexRAG 建立一条可检查的证据链，而不是把所有材料混进一个�
 | 当前主链 | `/query` 调用共享编译的 LangGraph `StateGraph`：规划、路由、检索、证据账本、回答、引用校验和最多一次受控修复；依赖通过请求级 context 传入 |
 | 评测状态 | 15 条民法典数据仅保留为历史回归基线；八部法律 100 条快照中有 85 条缺少逐条人工审核记录，相关报告只作临时工程记录，不作为正式效果指标 |
 | 案例与文档 | 10 本本地案例汇编、3,661 页 OCR、623 条结构化案例；PDF/DOCX 支持异步解析与页级来源 |
-| 工程质量 | Stage 2 实现提交 `fdf06e0` + 日志补强 `05b38b5`：安全聚焦 **69 passed**、文档链 **22 passed**、前端 **4 passed**，Ruff、Vue 类型检查和生产构建通过；受当前沙箱 Windows asyncio self-pipe 限制，完整 ASGI 回归仍需在普通本机终端复跑 |
+| 工程质量 | Stage 2 代码基线 `9c9313b`：2026-10-22 在普通 Windows PowerShell 完整运行后端 **300 passed**、4 条依赖弃用警告；前端 **4 passed**，Ruff、Vue 类型检查和生产构建通过 |
 
 历史 15 条本机记录曾得到 Recall@5 1.0000、MRR@5 0.9667、NDCG@5 0.9754；证据工作流记录曾得到引用校验通过率 1.0000、标注法条覆盖率 1.0000、平均端到端延迟 18,978ms。它们来自 2026-10-01 的未冻结工作树，缺少可对应的代码提交和保留报告，因此不作为当前 Release 指标。法律结论的人审支持率尚未形成正式指标。
 
@@ -158,7 +158,7 @@ LexRAG/
 │  └─ evaluation/         # 可复现检索评测
 ├─ frontend/              # Vue 3 + TypeScript
 ├─ scripts/               # 质量门禁、处理与评测脚本
-├─ tests/                 # 当前质量基线收集 238 项后端自动化测试
+├─ tests/                 # 当前 Stage 2 质量基线收集 300 项后端自动化测试
 ├─ infra/                 # Prometheus / Grafana 配置
 └─ docker-compose.v3.yml  # 本机企业化演示编排
 ```
@@ -169,7 +169,7 @@ LexRAG/
 - 100 条八部法律快照存在批量 `approved` 与“待人工核验”冲突，已明确降级为临时工程记录；修正前不对外引用其指标。
 - OCR/文档解析已完成真实处理链路验收，但没有人工逐页字符和表格标注，因此不宣称 OCR 准确率。
 - Compose 已通过静态解析；Docker 冷启动与浏览器人工端到端验收仍待在可用本机环境完成。
-- Stage 2 的安全代码与聚焦自动化已经收口，但完整 ASGI 回归、真实多组织攻击性验收和 Docker 冷启动证据尚未完成，因此当前版本仍不表述为生产可用。
+- Stage 2 的安全代码和完整后端自动化已经收口；真实多组织攻击性验收、受控 SSRF/DNS 重绑定实验及 Docker 冷启动证据仍分别留在阶段 8 和阶段 3，因此当前版本仍不表述为生产可用。
 
 ## License
 

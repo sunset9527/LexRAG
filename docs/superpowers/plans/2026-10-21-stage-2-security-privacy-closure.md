@@ -108,3 +108,12 @@ Update `.env.example`, README, `docs/status/feature-ledger.md`, and the external
 - Upload limits are enforced while reading, not only after a complete destination file is written.
 - No retrieval, prompt, embedding, ranking, dataset, label, or published legal metric is changed.
 - No remote push or history rewrite occurs.
+
+## Completion record — 2026-10-22
+
+- Stage 2 code baseline: `9c9313b`.
+- Full backend regression in normal Windows PowerShell: `300 passed`, 4 dependency warnings, 18.34 seconds.
+- Frontend contracts: `4 passed`; Vue type checking and production build passed.
+- Ruff passed on the changed Python surface and the privacy-hardened `app/` and `src/` paths.
+- Existing SHA deduplication, retry-state guards, knowledge-base busy locks and law-update event identity provide repeat-submission protection; the request limiter remains deliberately process-local until Stage 3 deployment work.
+- No evaluation data, retrieval/ranking behavior, labels or published legal metrics changed. No remote push or history rewrite was performed.
