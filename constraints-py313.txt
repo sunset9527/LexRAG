@@ -1,0 +1,42 @@
+# Exact direct-package constraints observed in the local Python 3.13 environment.
+# This is intentionally not a complete transitive lock or a Linux-image
+# verification record. Regenerate it from a clean resolved Python 3.13
+# environment before claiming a fully reproducible runtime lock.
+alembic==1.18.5
+bcrypt==5.0.0
+celery==5.6.3
+chromadb==1.5.9
+fastapi==0.139.0
+httpx==0.28.1
+jieba==0.42.1
+langchain==1.3.11
+langchain-community==0.4.2
+langchain-core==1.4.8
+langchain-huggingface==1.2.2
+langchain-openai==1.3.3
+langfuse==4.14.1
+langgraph==1.2.7
+mcp==2.2.0
+networkx==3.6.1
+numpy==2.5.0
+openai==2.44.0
+passlib==1.7.4
+pydantic==2.13.4
+pydantic-settings==2.14.2
+prometheus-client==0.26.0
+pymupdf==1.28.2
+PyMySQL==1.2.0
+pytest==9.1.1
+pytest-asyncio==1.4.0
+pytest-cov==7.1.0
+python-docx==1.2.0
+python-dotenv==1.2.2
+python-jose==3.5.0
+rank-bm25==0.2.2
+rapidocr-onnxruntime==1.2.3
+redis==6.4.0
+sentence-transformers==5.6.0
+SQLAlchemy==2.0.51
+sse-starlette==3.4.5
+uvicorn==0.49.0
+zhipuai==2.1.5.20250825

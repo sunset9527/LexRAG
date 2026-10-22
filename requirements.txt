@@ -24,8 +24,7 @@ python-dotenv>=1.0.0
 # Database (v1.7+)
 sqlalchemy>=2.0.0
 alembic>=1.13.0
-psycopg2-binary>=2.9.0
-pgvector>=0.2.0
+PyMySQL>=1.1.0
 
 # Auth (v1.7+)
 python-jose[cryptography]>=3.3.0
@@ -71,9 +70,3 @@ redis>=5.0.0
 # v3.0: MCP tools and local service monitoring
 mcp>=2.2.0,<3.0.0
 prometheus-client>=0.26.0,<1.0.0
-
-# Document parsing center (v1.9)
-PyMuPDF>=1.24.0
-rapidocr-onnxruntime>=1.2.0
-python-docx>=1.1.0
-celery[redis]>=5.4.0

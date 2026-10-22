@@ -84,7 +84,7 @@ FastAPI ── LangGraph StateGraph：路由 → 混合检索 → Evidence Ledge
 
 ## 快速开始（Windows）
 
-环境：Python 3.11+、Node.js 18+、MySQL、Redis，以及本地 BGE-M3 模型（默认路径见 `config.py`）。
+环境：Python 3.13、Node.js 22、MySQL、Redis，以及本地 BGE-M3 模型（默认路径见 `config.py`）。
 
 ```powershell
 git clone https://github.com/sunset9527/LexRAG.git

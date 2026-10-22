@@ -1,7 +1,7 @@
 # Docker 部署 — LexRAG 法律知识增强检索系统
 # 多阶段构建：API 服务 + Streamlit 前端
 
-FROM python:3.11-slim AS base
+FROM python:3.13-slim AS base
 
 LABEL maintainer="zygao2018@163.com"
 LABEL project="LexRAG"
@@ -25,8 +25,8 @@ FROM base AS dependencies
 ENV PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
     PIP_TRUSTED_HOST=mirrors.aliyun.com
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt constraints-py313.txt ./
+RUN pip install --no-cache-dir -c constraints-py313.txt -r requirements.txt
 
 # ==================== API 服务 ====================
 FROM dependencies AS api
