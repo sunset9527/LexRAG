@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     """应用配置类"""
 
     # ==================== 运行模式与安全边界 ====================
-    app_mode: Literal["development", "production"] = "development"
+    app_mode: Literal["development", "demo", "production"] = "development"
     open_registration: bool = True
     auth_cookie_name: str = "lexrag_session"
     auth_cookie_secure: bool = False
@@ -34,12 +34,18 @@ class Settings(BaseSettings):
     deepseek_model: str = "deepseek-v4-pro"
 
     # ==================== Embedding 配置 ====================
-    # 本地模型路径（优先使用，如 E:/huggingface/model 下的 BGE-M3）
-    local_embedding_model_path: str = "E:/huggingface/model"
-    # 智谱AI（本地模型不可用时回退）
+    # provider 必须显式选择；任一 provider 失败都不允许切换到另一个 provider。
+    embedding_provider: Literal["local", "zhipu"] = "local"
+    # 容器内固定的只读本地 BGE-M3 挂载路径。
+    local_embedding_model_path: str = "/models/bge-m3"
+    # 本地路径不进入 fingerprint，稳定模型标识才进入。
+    local_embedding_model_id: str = "BAAI/bge-m3"
+    # 智谱 Embedding 只在 embedding_provider=zhipu 时使用。
     zhipuai_api_key: str | None = None
     embedding_model: str = "embedding-3"
     embedding_dimensions: int = 1024
+    embedding_normalize: bool = True
+    index_schema_version: int = 1
     # HuggingFace 镜像（国内加速）
     hf_endpoint: str = "https://hf-mirror.com"
 

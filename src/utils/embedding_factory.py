@@ -1,105 +1,163 @@
-"""
-Embedding 工厂 — 统一创建 Embedding 实例
+"""Explicit, validated embedding providers with identity-scoped caching."""
 
-优先级：本地模型 -> 智谱AI API 回退
-"""
+from __future__ import annotations
 
+import json
 import logging
-import os
+from pathlib import Path
+from typing import Any
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 logger = logging.getLogger(__name__)
 
-# 全局缓存，避免重复加载模型
-_embedding_instance: object | None = None
-_embedding_source: str = "unknown"
+_embedding_instances: dict[str, object] = {}
+_embedding_sources: dict[str, str] = {}
+
+
+class EmbeddingConfigurationError(RuntimeError):
+    """The explicitly selected provider lacks mandatory, non-secret configuration."""
+
+
+class EmbeddingInitializationError(RuntimeError):
+    """The selected provider failed; callers must not silently switch providers."""
+
+
+class EmbeddingDimensionError(EmbeddingInitializationError):
+    """The provider returned a vector incompatible with the configured collection."""
+
+
+class ZhipuEmbeddings:
+    """Small LangChain-compatible adapter that avoids the optional zhipuai SDK."""
+
+    endpoint = "https://open.bigmodel.cn/api/paas/v4/embeddings"
+
+    def __init__(self, *, api_key: str, model: str, dimensions: int | None = None) -> None:
+        self._api_key = api_key
+        self._model = model
+        self._dimensions = dimensions
+
+    def embed_query(self, text: str) -> list[float]:
+        return self.embed_documents([text])[0]
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        payload: dict[str, Any] = {"model": self._model, "input": texts}
+        if self._dimensions is not None:
+            payload["dimensions"] = self._dimensions
+        request = Request(
+            self.endpoint,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=30) as response:  # noqa: S310 - fixed HTTPS endpoint
+                body = json.loads(response.read().decode("utf-8"))
+        except (OSError, URLError, ValueError) as error:
+            logger.warning("Zhipu embedding request failed error_type=%s", type(error).__name__)
+            raise EmbeddingInitializationError("EMBEDDING_ZHIPU_REQUEST_FAILED") from error
+        try:
+            items = sorted(body["data"], key=lambda item: item["index"])
+            return [item["embedding"] for item in items]
+        except (KeyError, TypeError, ValueError) as error:
+            logger.warning("Zhipu embedding response invalid error_type=%s", type(error).__name__)
+            raise EmbeddingInitializationError("EMBEDDING_ZHIPU_RESPONSE_INVALID") from error
 
 
 def create_embeddings(
-    model_path: str = "E:/huggingface/model",
+    *,
+    provider: str = "local",
+    model_path: str = "/models/bge-m3",
+    local_model_id: str = "BAAI/bge-m3",
     zhipuai_api_key: str | None = None,
     zhipuai_model: str = "embedding-3",
+    dimensions: int = 1024,
+    normalize: bool = True,
+    index_schema_version: int = 1,
 ) -> object:
+    """Build only the requested provider and verify its first vector's dimension.
+
+    The returned instance is cached by the same identity that protects Chroma
+    collections. Errors name stable codes/configuration keys and never expose a
+    path or credential value.
     """
-    创建 Embedding 实例
+    # Import lazily: ``src.ingestion`` historically re-exports ``LawIndexer``,
+    # which imports this factory.  Resolving the identity only when an embedding
+    # is actually requested avoids a package-import cycle while keeping one
+    # canonical fingerprint implementation.
+    from src.ingestion.index_identity import EmbeddingIndexIdentity
 
-    优先加载本地 HuggingFace 模型，失败则回退到智谱AI API。
-
-    Args:
-        model_path: 本地模型目录路径
-        zhipuai_api_key: 智谱AI API Key
-        zhipuai_model: 智谱AI Embedding 模型名
-
-    Returns:
-        LangChain 兼容的 Embeddings 实例
-    """
-    global _embedding_instance, _embedding_source
-
-    if _embedding_instance is not None:
-        return _embedding_instance
-
-    # ===== 方案 1: 本地 HuggingFace 模型 =====
-    if os.path.isdir(model_path):
-        # 检查是否有 sentence-transformers 模型文件
-        config_path = os.path.join(model_path, "config_sentence_transformers.json")
-        if os.path.isfile(config_path):
-            try:
-                from langchain_community.embeddings import HuggingFaceEmbeddings
-
-                # 设置 HF 镜像（国内加速）
-                if not os.environ.get("HF_ENDPOINT"):
-                    os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
-
-                embeddings = HuggingFaceEmbeddings(
-                    model_name=model_path,
-                    model_kwargs={"device": "cpu"},
-                    encode_kwargs={"normalize_embeddings": True},
-                )
-                # 测试加载是否正常
-                _ = embeddings.embed_query("测试")
-                _embedding_instance = embeddings
-                _embedding_source = f"local:{model_path}"
-                logger.info(f"Embedding 已加载（本地模型）: {model_path}")
-                return embeddings
-
-            except Exception as e:
-                logger.warning(
-                    "本地 Embedding 模型加载失败，回退到智谱AI API error_type=%s",
-                    type(e).__name__,
-                )
-
-    # ===== 方案 2: 智谱AI API 回退 =====
-    if zhipuai_api_key:
-        try:
-            from langchain_community.embeddings import ZhipuAIEmbeddings
-
-            embeddings = ZhipuAIEmbeddings(
-                model=zhipuai_model,
-                api_key=zhipuai_api_key,
-            )
-            _embedding_instance = embeddings
-            _embedding_source = f"api:zhipuai/{zhipuai_model}"
-            logger.info(f"Embedding 已加载（智谱AI API）: {zhipuai_model}")
-            return embeddings
-
-        except Exception as e:
-            logger.error("智谱AI Embedding 初始化失败 error_type=%s", type(e).__name__)
-            raise RuntimeError(
-                "无法初始化任何 Embedding 模型。"
-                f"本地模型路径 {model_path} 加载失败，智谱AI API 也不可用。"
-            ) from e
-
-    raise RuntimeError(
-        f"无法初始化 Embedding：本地模型路径 {model_path} 不可用，且未提供 ZHIPUAI_API_KEY"
+    identity = EmbeddingIndexIdentity(
+        provider=provider,
+        model=local_model_id if provider == "local" else zhipuai_model,
+        dimensions=dimensions,
+        normalize=normalize,
+        schema_version=index_schema_version,
     )
+    cached = _embedding_instances.get(identity.fingerprint)
+    if cached is not None:
+        return cached
+
+    if provider == "local":
+        embeddings = _create_local_embeddings(model_path, normalize)
+    elif provider == "zhipu":
+        if not zhipuai_api_key:
+            raise EmbeddingConfigurationError("EMBEDDING_ZHIPU_API_KEY_MISSING: zhipuai_api_key")
+        embeddings = ZhipuEmbeddings(
+            api_key=zhipuai_api_key,
+            model=zhipuai_model,
+            dimensions=dimensions,
+        )
+    else:
+        raise EmbeddingConfigurationError("EMBEDDING_PROVIDER_INVALID: embedding_provider")
+
+    _validate_dimension(embeddings, dimensions)
+    _embedding_instances[identity.fingerprint] = embeddings
+    _embedding_sources[identity.fingerprint] = f"{identity.provider}:{identity.model}"
+    logger.info("Embedding loaded provider=%s model=%s", identity.provider, identity.model)
+    return embeddings
+
+
+def _create_local_embeddings(model_path: str, normalize: bool) -> object:
+    path = Path(model_path)
+    if not path.is_dir() or not (path / "config_sentence_transformers.json").is_file():
+        raise EmbeddingConfigurationError("EMBEDDING_LOCAL_MODEL_UNAVAILABLE: local_embedding_model_path")
+    try:
+        from langchain_community.embeddings import HuggingFaceEmbeddings
+
+        return HuggingFaceEmbeddings(
+            model_name=str(path),
+            model_kwargs={"device": "cpu"},
+            encode_kwargs={"normalize_embeddings": normalize},
+        )
+    except Exception as error:
+        logger.warning("Local embedding initialization failed error_type=%s", type(error).__name__)
+        raise EmbeddingInitializationError("EMBEDDING_LOCAL_INITIALIZATION_FAILED") from error
+
+
+def _validate_dimension(embeddings: Any, dimensions: int) -> None:
+    try:
+        vector = embeddings.embed_query("embedding health check")
+    except EmbeddingInitializationError:
+        raise
+    except Exception as error:
+        logger.warning("Embedding health check failed error_type=%s", type(error).__name__)
+        raise EmbeddingInitializationError("EMBEDDING_PROVIDER_HEALTH_CHECK_FAILED") from error
+    if not isinstance(vector, (list, tuple)) or len(vector) != dimensions:
+        raise EmbeddingDimensionError("EMBEDDING_DIMENSION_MISMATCH: embedding_dimensions")
 
 
 def get_embedding_source() -> str:
-    """获取当前 Embedding 来源（用于调试和监控）"""
-    return _embedding_source
+    """Return a safe source description without a local path or credentials."""
+    if len(_embedding_sources) == 1:
+        return next(iter(_embedding_sources.values()))
+    return "unknown" if not _embedding_sources else "multiple"
 
 
-def clear_embedding_cache():
-    """清除 Embedding 实例缓存（用于重新加载）"""
-    global _embedding_instance, _embedding_source
-    _embedding_instance = None
-    _embedding_source = "unknown"
+def clear_embedding_cache() -> None:
+    """Clear cached provider instances (used by tests and controlled reloads)."""
+    _embedding_instances.clear()
+    _embedding_sources.clear()

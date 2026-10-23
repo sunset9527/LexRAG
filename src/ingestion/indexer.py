@@ -14,6 +14,7 @@ from config import settings
 
 from ..utils.embedding_factory import create_embeddings
 from .chunker import LawChunk
+from .index_identity import collection_identity_from_settings, get_or_create_identity_collection
 
 logger = logging.getLogger(__name__)
 
@@ -47,11 +48,18 @@ class LawIndexer:
         self.persist_directory = persist_directory
         self.collection_name = collection_name
 
-        # 使用 Embedding 工厂：优先本地 BGE-M3 → 智谱API 回退
+        self.index_identity = collection_identity_from_settings(
+            settings, zhipu_model=embedding_model
+        )
         self.embeddings = create_embeddings(
+            provider=settings.embedding_provider,
             model_path=settings.local_embedding_model_path,
+            local_model_id=settings.local_embedding_model_id,
             zhipuai_api_key=settings.zhipuai_api_key,
             zhipuai_model=embedding_model,
+            dimensions=settings.embedding_dimensions,
+            normalize=settings.embedding_normalize,
+            index_schema_version=settings.index_schema_version,
         )
 
         # 初始化向量存储
@@ -65,10 +73,16 @@ class LawIndexer:
         # 确保持久化目录存在且有正确权限
         os.makedirs(self.persist_directory, exist_ok=True)
 
+        from chromadb import PersistentClient
+
+        client = PersistentClient(path=self.persist_directory)
+        get_or_create_identity_collection(client, self.collection_name, self.index_identity)
         self.vectorstore = Chroma(
             persist_directory=self.persist_directory,
             embedding_function=self.embeddings,
             collection_name=self.collection_name,
+            client=client,
+            collection_metadata=self.index_identity.collection_metadata(),
         )
         logger.info(f"向量存储已初始化: {self.persist_directory}")
 

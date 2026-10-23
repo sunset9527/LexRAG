@@ -80,6 +80,10 @@ from config import get_project_root, settings, validate_security_settings
 from src.graph.law_graph import LawGraph
 from src.ingestion.annual_case_indexer import AnnualCaseIndexer
 from src.ingestion.case_ocr import count_pdf_pages
+from src.ingestion.index_identity import (
+    collection_identity_from_settings,
+    get_or_create_identity_collection,
+)
 from src.ingestion.indexer import LawIndexer
 from src.retrieval.annual_case_retriever import AnnualCaseRetriever
 from src.retrieval.bm25_retriever import BM25Retriever
@@ -443,14 +447,28 @@ def initialize_components():
             case_db_path = Path(settings.chroma_persist_directory) / "cases"
             if case_db_path.exists():
                 case_embeddings = create_embeddings(
+                    provider=settings.embedding_provider,
                     model_path=settings.local_embedding_model_path,
+                    local_model_id=settings.local_embedding_model_id,
                     zhipuai_api_key=settings.zhipuai_api_key,
                     zhipuai_model=settings.embedding_model,
+                    dimensions=settings.embedding_dimensions,
+                    normalize=settings.embedding_normalize,
+                    index_schema_version=settings.index_schema_version,
+                )
+                from chromadb import PersistentClient
+
+                case_client = PersistentClient(path=str(case_db_path))
+                case_identity = collection_identity_from_settings(settings)
+                get_or_create_identity_collection(
+                    case_client, settings.case_collection_name, case_identity
                 )
                 case_vectorstore = Chroma(
                     collection_name=settings.case_collection_name,
                     embedding_function=case_embeddings,
                     persist_directory=str(case_db_path),
+                    client=case_client,
+                    collection_metadata=case_identity.collection_metadata(),
                 )
                 case_retriever = CaseRetriever(
                     case_vectorstore=case_vectorstore,
