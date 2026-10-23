@@ -76,7 +76,7 @@ STATUTE_CATALOG: tuple[CatalogStatute, ...] = (
         ),
         _LAWS_DIRECTORY / "中华人民共和国民法典.txt",
         "c9b39cfaed0d8303472105cd7b698764e0ce8262322b025372ecdf00adf978df",
-        1262,
+        1260,
         1,
         1260,
     ),

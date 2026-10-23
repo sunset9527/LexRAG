@@ -30,14 +30,15 @@ def test_catalog_reports_missing_source_as_unavailable_without_claiming_ready(tm
     assert all(report.clean_text_sha256 is None for report in reports)
 
 
-def test_catalog_reports_existing_invalid_snapshot_without_claiming_ready():
-    """A present-but-invalid snapshot is unavailable, while validated peers remain usable."""
+def test_catalog_reports_existing_snapshots_as_available_after_validation():
+    """The eight checked-in snapshots must agree with their recorded source facts."""
     from src.ingestion.statute_catalog import STATUTE_CATALOG, inspect_statute_catalog
 
     project_root = Path(__file__).parent.parent
     reports = inspect_statute_catalog(STATUTE_CATALOG, project_root=project_root)
 
     assert [report.slug for report in reports if report.status == "AVAILABLE"] == [
+        "civil-code",
         "criminal-law",
         "labor-law",
         "labor-contract-law",
@@ -46,11 +47,8 @@ def test_catalog_reports_existing_invalid_snapshot_without_claiming_ready():
         "trademark-law",
         "copyright-law",
     ]
-    assert [
-        (report.slug, report.status, report.error_code)
-        for report in reports
-        if report.status != "AVAILABLE"
-    ] == [("civil-code", "UNAVAILABLE", "STATUTE_SOURCE_INVALID")]
+    assert all(report.error_code is None for report in reports)
+    assert reports[0].article_count == 1260
     assert {report.slug for report in reports} == {
         "civil-code",
         "criminal-law",

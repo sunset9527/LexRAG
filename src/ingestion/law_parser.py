@@ -224,8 +224,14 @@ class LawParser:
         return line.strip()
 
     def _is_article_start(self, line: str) -> bool:
-        """判断是否法条开始（行首匹配，避免条文引用被误判为新条文）"""
-        return bool(re.match(r"^第[一二三四五六七八九十百千零\d]+条", line))
+        """判断是否法条开始，要求条号后为留白或行尾以排除正文引用。"""
+        return bool(
+            re.match(
+                r"^第[一二三四五六七八九十百千零\d]+条"
+                r"(?:之[一二三四五六七八九十百千零\d]+)?(?=\s|$)",
+                line,
+            )
+        )
 
     def _parse_article(self, line: str) -> LawArticle:
         """解析法条"""
