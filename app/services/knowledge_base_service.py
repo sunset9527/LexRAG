@@ -10,6 +10,10 @@ from sqlalchemy.orm import Session
 from app.models.knowledge_base import KnowledgeBase
 from config import settings
 from src.ingestion.chunker import StructuredLawChunker
+from src.ingestion.index_identity import (
+    assert_collection_identity,
+    collection_identity_from_settings,
+)
 from src.ingestion.indexer import LawIndexer
 from src.ingestion.law_parser import LawParser
 
@@ -317,6 +321,7 @@ class KnowledgeBaseService:
 
         client = chromadb.PersistentClient(path=settings.chroma_persist_directory)
         collection = client.get_collection(collection_name)
+        assert_collection_identity(collection, collection_identity_from_settings(settings))
         data = collection.get(include=["documents", "metadatas"])
         articles: dict[str, dict[str, str]] = {}
         for content, metadata in zip(

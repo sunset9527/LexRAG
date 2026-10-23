@@ -3,7 +3,7 @@
 import subprocess
 import sys
 from pathlib import Path
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
@@ -22,6 +22,35 @@ from src.utils.embedding_factory import (
     clear_embedding_cache,
     create_embeddings,
 )
+
+
+@pytest.mark.parametrize(
+    "metadata,error_type,error_code",
+    [
+        ({}, LegacyCollectionIdentityError, "INDEX_IDENTITY_LEGACY_REBUILD_REQUIRED"),
+        (
+            EmbeddingIndexIdentity("local", "BAAI/bge-m3", 768, True, 1).collection_metadata(),
+            IndexIdentityMismatchError,
+            "INDEX_IDENTITY_MISMATCH",
+        ),
+    ],
+)
+def test_collection_browse_rejects_legacy_or_mismatched_embedding_identity(
+    monkeypatch, metadata, error_type, error_code
+):
+    """浏览路径也必须在读取 Chroma 文档之前验证 collection 身份。"""
+    from app.services.knowledge_base_service import KnowledgeBaseService
+
+    collection = SimpleNamespace(metadata=metadata)
+    client = SimpleNamespace(get_collection=lambda _name: collection)
+    fake_chromadb = ModuleType("chromadb")
+    fake_chromadb.PersistentClient = lambda **_kwargs: client
+    monkeypatch.setitem(sys.modules, "chromadb", fake_chromadb)
+
+    with pytest.raises(error_type, match=error_code):
+        KnowledgeBaseService._read_articles("kb_civil_code")
+
+    assert not hasattr(collection, "get")
 
 
 def test_embedding_factory_imports_without_ingestion_package_cycle():
