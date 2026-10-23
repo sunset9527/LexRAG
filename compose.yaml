@@ -1,0 +1,167 @@
+# Stage 3 authoritative runtime topology.  It is intentionally separate from
+# the legacy docker-compose*.yml files while they remain available for
+# historical development workflows.  Start it with an isolated project name,
+# for example: docker compose --env-file .env.docker --project-name lexrag-stage3 up --build
+
+x-runtime-environment: &runtime-environment
+  APP_MODE: production
+  OPEN_REGISTRATION: "false"
+  AUTH_COOKIE_SECURE: "true"
+  AUTH_COOKIE_SAMESITE: strict
+  DATABASE_URL: mysql+pymysql://${MYSQL_APP_USER:?set MYSQL_APP_USER}:${MYSQL_APP_PASSWORD:?set MYSQL_APP_PASSWORD}@mysql:3306/${MYSQL_DATABASE:?set MYSQL_DATABASE}?charset=utf8mb4
+  REDIS_URL: redis://redis:6379/0
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY}
+  EMBEDDING_PROVIDER: local
+  LOCAL_EMBEDDING_MODEL_PATH: /models/bge-m3
+  CHROMA_PERSIST_DIRECTORY: /app/data/chroma_db
+  DOCUMENT_UPLOADS_PATH: /app/data/uploads
+  LAW_GRAPH_PATH: /app/data/runtime_graphs/law_graph.json
+  LAW_UPDATE_SNAPSHOT_DIR: /app/data/law_snapshots
+  RUNTIME_LLM_TRUSTED_BASE_URLS: ${RUNTIME_LLM_TRUSTED_BASE_URLS:-https://api.deepseek.com}
+
+x-runtime-volumes: &runtime-volumes
+  - lexrag_chroma:/app/data/chroma_db
+  - lexrag_uploads:/app/data/uploads
+  - lexrag_graphs:/app/data/runtime_graphs
+  - lexrag_law_snapshots:/app/data/law_snapshots
+  - ${LEXRAG_LOCAL_EMBEDDING_MODEL_PATH:?set LEXRAG_LOCAL_EMBEDDING_MODEL_PATH}:/models/bge-m3:ro
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?set MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_APP_USER:?set MYSQL_APP_USER}
+      MYSQL_PASSWORD: ${MYSQL_APP_PASSWORD:?set MYSQL_APP_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD}
+    volumes:
+      - lexrag_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+    networks: [lexrag_private]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - lexrag_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [lexrag_private]
+
+  migrate:
+    build:
+      context: .
+      target: api
+    command: alembic upgrade head
+    environment: *runtime-environment
+    volumes: *runtime-volumes
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: "no"
+    networks: [lexrag_private]
+
+  bootstrap:
+    build:
+      context: .
+      target: api
+    command: python scripts/bootstrap_runtime.py all --json
+    environment: *runtime-environment
+    volumes: *runtime-volumes
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    restart: "no"
+    networks: [lexrag_private]
+
+  api:
+    build:
+      context: .
+      target: api
+    command: uvicorn api:app --host 0.0.0.0 --port 8000 --workers 2
+    environment: *runtime-environment
+    volumes: *runtime-volumes
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      bootstrap:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health/ready"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    restart: unless-stopped
+    networks: [lexrag_private]
+
+  worker:
+    build:
+      context: .
+      target: api
+    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=INFO --concurrency=1
+    environment: *runtime-environment
+    volumes: *runtime-volumes
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      bootstrap:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [lexrag_private]
+
+  beat:
+    build:
+      context: .
+      target: api
+    command: celery -A app.tasks.celery_app.celery_app beat --loglevel=INFO
+    environment: *runtime-environment
+    volumes: *runtime-volumes
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      bootstrap:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [lexrag_private]
+
+  web:
+    build:
+      context: ./frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${LEXRAG_WEB_PORT:?set LEXRAG_WEB_PORT}:3000"
+    restart: unless-stopped
+    networks: [lexrag_private]
+
+volumes:
+  lexrag_mysql: {}
+  lexrag_redis: {}
+  lexrag_chroma: {}
+  lexrag_uploads: {}
+  lexrag_graphs: {}
+  lexrag_law_snapshots: {}
+
+networks:
+  lexrag_private:
+    driver: bridge

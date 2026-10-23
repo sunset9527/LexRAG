@@ -15,18 +15,22 @@ venv/
 .idea/
 .vscode/
 
-# 向量数据库（运行时生成，不打包进镜像）
+# 运行时生成数据不打包进镜像。已跟踪的 data/laws/ 是 bootstrap 的
+# 只读 seed 输入，必须留在构建上下文和镜像内。
 data/chroma_db/
+data/uploads/
+data/runtime_graphs/
+data/law_snapshots/
 *.db
 *.sqlite3
 
 # Docker
-Dockerfile
 docker-compose.yml
-.dockerignore
+docker-compose.v3.yml
 
 # 测试
 .pytest_cache/
+.pytest-*/
 
 # 环境变量
 .env
