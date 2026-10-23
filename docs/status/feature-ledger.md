@@ -1,6 +1,6 @@
 # LexRAG Feature Ledger
 
-**Baseline:** Stage 2 code through `9c9313b`, full backend verification 2026-10-22 (`300 passed`, 4 dependency warnings)
+**Baseline:** Stage 2 code through `9c9313b`, full backend verification 2026-10-22 (`300 passed`, 4 dependency warnings). Stage 3 entries below are a code-and-contract addendum, not a completed Docker acceptance claim; see [Stage 3 deployment verification](stage-3-deployment-verification.md).
 
 ## State definitions
 
@@ -27,11 +27,18 @@
 | Audit, usage, dashboard, metrics | `/admin/audit-logs`, `/admin/usage`, `/dashboard/stats`, Prometheus mount | audit/usage services, request security middleware and metrics | MySQL, Prometheus | Admin permissions for audit/analytics | Audit stores hashes/lengths and scalar metadata; raw questions/answers/credentials are excluded from regular logs and public errors | Privacy, audit idempotency and route tests passed | Grafana/Prometheus deployment not accepted end to end |
 | MCP read interface | `python -m app.mcp_server` | `app/mcp_server.py` | MySQL, local indexes, optional HTTP bearer | Service-account organization context; HTTP bearer required outside stdio | Missing permission or bearer rejects access; external concept search is non-authoritative | Covered indirectly by service tests; no dedicated end-to-end MCP suite | Not real-chain verified for release |
 | Offline evaluation | evaluation scripts and `scripts/quality_gate.py` | `src/evaluation/*`, runners, report writers | Frozen datasets, local collections, optional live API | Local operator task | Missing candidates/unreviewed labels fail loaders; current 100-row historical builder remains a known governance defect | Evaluation and quality-gate tests passed | 100-row reports are provisional; formal Stage 8 evaluation pending |
+| Schema migration and recovery | `alembic upgrade head`, `docs/migration-recovery.md` | Alembic root-to-head chain; API startup only initializes DB engine/session | MySQL | Operator chooses exact database URL; runtime account is non-root | Migration mismatch makes readiness fail; recovery is backup + forward repair, with no automatic downgrade/drop | Alembic and MySQL integration contracts | No current real MySQL container acceptance |
+| Embedding and collection identity | embedding factory, knowledge-base rebuild/bootstrap | explicit provider, dimension validation, source/model/schema identity and isolated collection names | BGE-M3 or configured Zhipu endpoint, Chroma | Provider/key selection is explicit; collection identity is checked before use | Missing model, invalid provider, dimension/identity mismatch fail closed without a remote fallback | Embedding and knowledge-base contracts | No current real BGE-M3/Zhipu/Chroma acceptance |
+| Stage 3 statute bootstrap | `scripts/bootstrap_runtime.py all --json` | eight local snapshot catalog, per-law validation and recoverable/idempotent bootstrap | local law text, MySQL, Chroma, embedding model | System-shared knowledge bases only; source identity is verified | Missing/changed snapshot is `UNAVAILABLE`; one law failure is isolated | Catalog/bootstrap contracts | No Compose bootstrap acceptance |
+| Runtime health and topology | `/health/live`, `/health/ready`, `compose.yaml` | dependency probes, migrate/bootstrap gates, private network, persistent volumes, model read-only mount | MySQL, Redis, graph artifact, statute indexes, embedding | only Nginx Web is published by default; MCP is opt-in | Readiness returns a redacted 503 component map; liveness remains dependency-free | Readiness and Compose contracts | No cold-start/restart acceptance evidence |
+| Worker, proxy and deployment verifier | `scripts/check_worker_health.py`, `frontend/nginx.conf`, `scripts/verify_deployment.py` | broker control ping, Beat paths, `/api/` proxy, redacted verifier | Redis/Celery, Nginx, Docker | verifier requires a new explicit project name; it never cleans up automatically | Failed/blocked checks stop verifier; no implicit volume deletion, restart or fault injection | Worker/Nginx and verifier contracts | No real container acceptance |
 
 ## Deliberately incomplete items
 
 - real multi-organization adversarial acceptance, controlled SSRF/DNS-rebinding exercises and sensitive-artifact scanning in the final Stage 8 gate;
-- reproducible Docker cold start and data bootstrap;
+- real isolated Docker cold start, data bootstrap, restart recovery and fault-injection evidence (the topology/bootstrap code is present, but execution evidence is not retained);
+- a real MySQL migration and real BGE-M3/Chroma Compose acceptance on the current revision;
+- a complete hash-pinned transitive dependency lock and clean Linux install verification (explicitly abandoned after registry/network failures; do not treat `constraints-py313.txt` as that lock);
 - authoritative legal-source manifests and effective-version selection;
 - automatic multi-knowledge-base routing and cross-library evidence orchestration;
 - consumer-facing streaming event delivery and final frontend end-to-end acceptance;

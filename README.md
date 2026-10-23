@@ -135,6 +135,19 @@ python scripts\bootstrap_admin.py
 
 Stage 2 的已执行命令、结果和未覆盖边界见 [`docs/status/stage-2-security-verification.md`](docs/status/stage-2-security-verification.md)。
 
+## Stage 3 部署状态
+
+仓库已提供单一 [`compose.yaml`](compose.yaml) 运行拓扑：迁移 → 八部法规 bootstrap → API / Worker / Beat → Nginx Web；MySQL、Redis 和 API 默认只在私有网络内，外部仅发布 Web 的端口。`/api/health/live` 只表示 API 进程存活，`/api/health/ready` 会检查数据库、迁移版本、Redis、Embedding、图谱与法规索引，依赖异常时返回脱敏 `503`。
+
+部署前复制 [`.env.docker.example`](.env.docker.example) 为本地 `.env.docker`，填入密码、JWT 密钥和已有的本地 BGE-M3 模型目录；不要提交该文件。使用独立项目名先渲染 Compose：
+
+```powershell
+Copy-Item .env.docker.example .env.docker
+docker compose --env-file .env.docker --project-name lexrag-stage3-acceptance config
+```
+
+完整启动、健康检查、验证脚本的安全边界及未完成项见 [`docs/deployment.md`](docs/deployment.md) 和 [`docs/status/stage-3-deployment-verification.md`](docs/status/stage-3-deployment-verification.md)。其中完整带哈希的传递依赖锁与干净 Linux 安装验证已按决定放弃；Docker 冷启动、真实 MySQL/BGE-M3/Chroma 和恢复演练尚无成功证据，不能据此宣称生产可用。
+
 ```powershell
 # 在真实 Chroma collection 上复现 15 条民法典检索基线
 .\.venv\Scripts\python.exe scripts\evaluate_retrieval.py `
@@ -169,6 +182,7 @@ LexRAG/
 - 100 条八部法律快照存在批量 `approved` 与“待人工核验”冲突，已明确降级为临时工程记录；修正前不对外引用其指标。
 - OCR/文档解析已完成真实处理链路验收，但没有人工逐页字符和表格标注，因此不宣称 OCR 准确率。
 - Compose 已通过静态解析；Docker 冷启动与浏览器人工端到端验收仍待在可用本机环境完成。
+- `constraints-py313.txt` 不是完整哈希依赖锁；该验收工作已经放弃，不把它当作可复现 Linux 安装的证据。
 - Stage 2 的安全代码和完整后端自动化已经收口；真实多组织攻击性验收、受控 SSRF/DNS 重绑定实验及 Docker 冷启动证据仍分别留在阶段 8 和阶段 3，因此当前版本仍不表述为生产可用。
 
 ## License
