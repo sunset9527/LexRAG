@@ -1,8 +1,10 @@
 """知识库注册表的业务服务。"""
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
+from uuid import uuid4
 
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
@@ -34,6 +36,18 @@ class KnowledgeBaseBusyError(ValueError):
     """知识库正在执行索引任务。"""
 
 
+class BootstrapCollectionVerificationError(ValueError):
+    """A candidate collection is not safe to make the active bootstrap pointer."""
+
+
+@dataclass(frozen=True)
+class BootstrapCollectionCounts:
+    """Counts read back from one verified Chroma collection."""
+
+    article_count: int
+    chunk_count: int
+
+
 class KnowledgeBaseService:
     """封装知识库注册记录的创建和查询。"""
 
@@ -46,6 +60,10 @@ class KnowledgeBaseService:
         indexer_factory: Callable[[str], LawIndexer] | None = None,
         article_reader: Callable[[str], list[dict[str, str]]] | None = None,
         collection_deleter: Callable[[str], None] | None = None,
+        bootstrap_collection_verifier: Callable[
+            [str, "StatuteIndexIdentity"], BootstrapCollectionCounts | None
+        ]
+        | None = None,
     ):
         self._session_factory = session_factory
         self._parser = parser or LawParser()
@@ -53,6 +71,9 @@ class KnowledgeBaseService:
         self._indexer_factory = indexer_factory or self._create_indexer
         self._article_reader = article_reader or self._read_articles
         self._collection_deleter = collection_deleter or self._delete_collection
+        self._bootstrap_collection_verifier = (
+            bootstrap_collection_verifier or self._verify_bootstrap_collection
+        )
 
     def list_knowledge_bases(self) -> list[dict[str, Any]]:
         """按创建顺序返回所有知识库。"""
@@ -239,12 +260,22 @@ class KnowledgeBaseService:
         with self._session_factory() as session:
             knowledge_base = self._get_by_slug(session, slug)
             expected_collection = identity.collection_name
-            if (
+            database_identity_matches = (
                 knowledge_base.status == "READY"
                 and knowledge_base.collection_name == expected_collection
                 and knowledge_base.source_hash == identity.source_hash
                 and knowledge_base.embedding_fingerprint == identity.embedding_fingerprint
                 and knowledge_base.index_schema_version == identity.index_schema_version
+            )
+            verified_counts = (
+                self._bootstrap_collection_verifier(expected_collection, identity)
+                if database_identity_matches
+                else None
+            )
+            if (
+                verified_counts is not None
+                and verified_counts.article_count == knowledge_base.document_count
+                and verified_counts.chunk_count == knowledge_base.chunk_count
             ):
                 result = self._serialize(knowledge_base)
                 result["bootstrap_action"] = "skipped"
@@ -256,13 +287,28 @@ class KnowledgeBaseService:
 
         articles = self._parser.parse_law_content(content, name)
         chunks = self._chunker.chunk_articles(articles)
-        indexed_count = self._indexer_factory(expected_collection).rebuild_index(chunks)
+        candidate_collection = (
+            self._candidate_collection_name(expected_collection)
+            if old_collection == expected_collection
+            else expected_collection
+        )
+        indexed_count = self._indexer_factory(candidate_collection).rebuild_index(chunks)
+        candidate_counts = self._bootstrap_collection_verifier(candidate_collection, identity)
+        if (
+            candidate_counts is None
+            or candidate_counts.article_count != len(articles)
+            or candidate_counts.chunk_count != len(chunks)
+            or candidate_counts.chunk_count != indexed_count
+        ):
+            # Do not delete the failed candidate automatically.  It is evidence for
+            # recovery, and the old active pointer remains untouched.
+            raise BootstrapCollectionVerificationError("BOOTSTRAP_COLLECTION_VERIFICATION_FAILED")
 
         with self._session_factory() as session:
             knowledge_base = self._get_by_slug(session, slug)
             if knowledge_base.collection_name != old_collection:
                 raise KnowledgeBaseBusyError("知识库版本已被其他 bootstrap 操作切换，请重新检查")
-            knowledge_base.collection_name = expected_collection
+            knowledge_base.collection_name = candidate_collection
             knowledge_base.status = "READY"
             knowledge_base.document_count = len(articles)
             knowledge_base.chunk_count = indexed_count
@@ -276,6 +322,14 @@ class KnowledgeBaseService:
             result = self._serialize(knowledge_base)
             result["bootstrap_action"] = "rebuilt"
             return result
+
+    @staticmethod
+    def _candidate_collection_name(expected_collection: str) -> str:
+        """Name a fresh, isolated target when the active deterministic name is suspect."""
+        suffix = f"_candidate_{uuid4().hex[:16]}"
+        # ``knowledge_bases.collection_name`` is VARCHAR(128); retain as much of
+        # the expected name as possible while guaranteeing a unique suffix.
+        return f"{expected_collection[: 128 - len(suffix)]}{suffix}"
 
     def list_law_articles(
         self,
@@ -401,6 +455,43 @@ class KnowledgeBaseService:
                     "content": content,
                 }
         return list(articles.values())
+
+    @staticmethod
+    def _verify_bootstrap_collection(
+        collection_name: str, identity: "StatuteIndexIdentity"
+    ) -> BootstrapCollectionCounts | None:
+        """Read back all skip-critical facts without mutating the collection.
+
+        The bootstrap identity is constructed from the currently configured
+        embedding setup.  Refusing a mismatch here prevents a registry row from
+        claiming that a Chroma collection is compatible merely because its name
+        or persisted database fields happen to match.
+        """
+        import chromadb
+
+        expected_identity = collection_identity_from_settings(settings)
+        if (
+            expected_identity.fingerprint != identity.embedding_fingerprint
+            or expected_identity.schema_version != identity.index_schema_version
+        ):
+            return None
+        try:
+            client = chromadb.PersistentClient(path=settings.chroma_persist_directory)
+            collection = client.get_collection(collection_name)
+            assert_collection_identity(collection, expected_identity)
+            chunk_count = collection.count()
+            metadata = collection.get(include=["metadatas"]).get("metadatas", [])
+        except Exception:
+            return None
+
+        # Chroma's count is authoritative for chunks; the metadata read proves
+        # that every stored chunk remains attributable to an article.
+        if len(metadata) != chunk_count:
+            return None
+        article_ids = {item.get("article_id") for item in metadata if item.get("article_id")}
+        if chunk_count and not article_ids:
+            return None
+        return BootstrapCollectionCounts(article_count=len(article_ids), chunk_count=chunk_count)
 
     @staticmethod
     def _delete_collection(collection_name: str) -> None:
