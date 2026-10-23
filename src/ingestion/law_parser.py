@@ -224,11 +224,11 @@ class LawParser:
         return line.strip()
 
     def _is_article_start(self, line: str) -> bool:
-        """判断是否法条开始，要求条号后为留白或行尾以排除正文引用。"""
+        """判断是否法条开始，排除紧随“第一项”等正文续行的引用。"""
         return bool(
             re.match(
                 r"^第[一二三四五六七八九十百千零\d]+条"
-                r"(?:之[一二三四五六七八九十百千零\d]+)?(?=\s|$)",
+                r"(?:之[一二三四五六七八九十百千零\d]+)?(?=\s|$|[【（])",
                 line,
             )
         )

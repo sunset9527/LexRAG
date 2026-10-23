@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from src.ingestion.law_parser import LawParser
 from src.ingestion.statute_catalog import STATUTE_CATALOG
-
 
 PROJECT_ROOT = Path(__file__).parent.parent
 
@@ -40,6 +41,22 @@ def test_inserted_article_heading_with_suffix_remains_a_real_article():
     )
 
     assert [article.article_number for article in articles] == ["17", "17-1", "18"]
+
+
+@pytest.mark.parametrize(
+    ("heading", "article_number"),
+    [
+        ("第一条【立法宗旨】为了保护民事主体的合法权益。", "1"),
+        ("第一条（立法宗旨）为了保护民事主体的合法权益。", "1"),
+        ("第十七条之一【刑事责任年龄】已满七十五周岁的人。", "17-1"),
+    ],
+)
+def test_annotated_article_heading_starts_a_real_article(heading, article_number):
+    """Editorial annotations after a heading do not make it a continuation citation."""
+    articles = LawParser().parse_law_content(heading, "中华人民共和国测试法")
+
+    assert [article.article_number for article in articles] == [article_number]
+    assert articles[0].content == heading
 
 
 def test_other_seven_catalog_snapshots_keep_their_recorded_article_counts():
