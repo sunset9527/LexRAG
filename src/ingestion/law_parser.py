@@ -64,6 +64,14 @@ class LawParser:
         r"第([一二三四五六七八九十百千零\d]+)条(?:之([一二三四五六七八九十百千零\d]+))?"
     )
 
+    # ``第五百一十一条（第一项）`` is a reference continuation, not a heading
+    # with an editorial annotation such as ``第一条（立法宗旨）``.
+    PARENTHETICAL_REFERENCE_UNIT_PATTERN = re.compile(
+        r"^第[一二三四五六七八九十百千零\d]+条"
+        r"(?:之[一二三四五六七八九十百千零\d]+)?"
+        r"（第[一二三四五六七八九十百千零\d]+[项款目]"
+    )
+
     # 款/项的正则表达式
     PARAGRAPH_PATTERN = re.compile(r"^（[一二三四五六七八九十]+）|^(\d+)、|^[①②③④⑤⑥⑦⑧⑨⑩]")
 
@@ -225,13 +233,14 @@ class LawParser:
 
     def _is_article_start(self, line: str) -> bool:
         """判断是否法条开始，排除紧随“第一项”等正文续行的引用。"""
-        return bool(
+        is_heading = bool(
             re.match(
                 r"^第[一二三四五六七八九十百千零\d]+条"
                 r"(?:之[一二三四五六七八九十百千零\d]+)?(?=\s|$|[【（])",
                 line,
             )
         )
+        return is_heading and not self.PARENTHETICAL_REFERENCE_UNIT_PATTERN.match(line)
 
     def _parse_article(self, line: str) -> LawArticle:
         """解析法条"""

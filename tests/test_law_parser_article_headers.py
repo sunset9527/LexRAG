@@ -25,6 +25,19 @@ def test_article_reference_on_a_continuation_line_does_not_start_a_new_article()
     assert "第五百一十一条第一项的规定。" in articles[0].content
 
 
+def test_parenthetical_article_reference_on_a_continuation_line_does_not_start_a_new_article():
+    """A cited item in parentheses is not an editorial article-heading annotation."""
+    content = """第六百一十六条 当事人对标的物的质量要求没有约定或者约定不明确。
+第五百一十一条（第一项）的规定。
+第六百一十七条 出卖人交付的标的物不符合质量要求的。
+"""
+
+    articles = LawParser().parse_law_content(content, "中华人民共和国民法典")
+
+    assert [article.article_number for article in articles] == ["616", "617"]
+    assert "第五百一十一条（第一项）的规定。" in articles[0].content
+
+
 def test_civil_code_snapshot_has_exactly_articles_one_through_1260():
     """The canonical civil snapshot must not gain a phantom split from a citation line."""
     articles = LawParser().parse_law_file(PROJECT_ROOT / "data/laws/中华人民共和国民法典.txt")
