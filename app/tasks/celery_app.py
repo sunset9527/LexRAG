@@ -15,6 +15,8 @@ celery_app.conf.update(
     task_serializer="json",
     result_serializer="json",
     accept_content=["json"],
+    task_soft_time_limit=settings.document_task_soft_time_limit_seconds,
+    task_time_limit=settings.document_task_time_limit_seconds,
     beat_schedule={
         "check-law-update-snapshots": {
             "task": "lexrag.check_law_update_snapshots",

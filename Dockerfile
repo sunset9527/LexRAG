@@ -40,6 +40,7 @@ COPY alembic.ini .
 COPY alembic/ ./alembic/
 COPY data/ ./data/
 COPY scripts/bootstrap_runtime.py ./scripts/bootstrap_runtime.py
+COPY scripts/check_worker_health.py ./scripts/check_worker_health.py
 
 RUN useradd --create-home --shell /bin/bash appuser && \
     chown -R appuser:appuser /app
@@ -48,6 +49,6 @@ USER appuser
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:8000/health/live || exit 1
 
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

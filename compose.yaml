@@ -112,7 +112,8 @@ services:
     build:
       context: .
       target: api
-    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=INFO --concurrency=1
+    hostname: worker
+    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=INFO --concurrency=1 --hostname=lexrag-worker@%h
     environment: *runtime-environment
     volumes: *runtime-volumes
     depends_on:
@@ -122,6 +123,12 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "scripts/check_worker_health.py", "--hostname", "lexrag-worker@worker", "--timeout", "5"]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     restart: unless-stopped
     networks: [lexrag_private]
 
@@ -129,7 +136,8 @@ services:
     build:
       context: .
       target: api
-    command: celery -A app.tasks.celery_app.celery_app beat --loglevel=INFO
+    hostname: beat
+    command: celery -A app.tasks.celery_app.celery_app beat --loglevel=INFO --pidfile=/tmp/lexrag-beat.pid --schedule=/tmp/lexrag-beat-schedule
     environment: *runtime-environment
     volumes: *runtime-volumes
     depends_on:
