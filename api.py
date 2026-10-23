@@ -75,6 +75,7 @@ from app.services.readiness_probes import (
     RuntimeReadinessDependencies,
     alembic_head_revision,
     build_runtime_checks,
+    check_persisted_law_graph,
 )
 from app.services.readiness_service import ReadinessService
 from app.services.session_service import ConversationTurn, SessionNotFoundError, SessionService
@@ -572,8 +573,11 @@ def initialize_components():
         }
 
         def check_graph() -> None:
+            check_persisted_law_graph(law_graph_path)
             if components.get("graph_retriever") is None:
                 raise RuntimeError("GRAPH_RETRIEVER_UNAVAILABLE")
+            if law_graph.graph.number_of_nodes() == 0:
+                raise RuntimeError("RUNTIME_GRAPH_EMPTY")
             law_graph.get_statistics()
 
         def check_statutes() -> None:

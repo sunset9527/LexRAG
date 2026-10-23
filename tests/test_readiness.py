@@ -141,6 +141,49 @@ def test_runtime_migration_probe_rejects_a_database_not_at_alembic_head() -> Non
     assert report.components["migration"] == "not_ready"
 
 
+def test_graph_readiness_reports_safe_not_ready_when_persisted_artifact_is_missing(
+    tmp_path: Path,
+) -> None:
+    """The API fallback graph must never make a missing persisted graph ready."""
+
+    from app.services.readiness_probes import check_persisted_law_graph
+
+    missing_graph = tmp_path / "law_graph.json"
+    report = ReadinessService(
+        {"graph": lambda: check_persisted_law_graph(missing_graph)}
+    ).check()
+
+    assert report.ready is False
+    assert report.components == {"graph": "not_ready"}
+    assert str(missing_graph) not in str(report)
+
+
+def test_graph_readiness_reports_safe_not_ready_when_persisted_artifact_is_empty(
+    tmp_path: Path,
+) -> None:
+    """Syntactically valid JSON without graph data is not a usable graph artifact."""
+
+    from app.services.readiness_probes import check_persisted_law_graph
+
+    graph_path = tmp_path / "law_graph.json"
+    graph_path.write_text('{"metadata": {}, "nodes": [], "edges": []}', encoding="utf-8")
+    report = ReadinessService(
+        {"graph": lambda: check_persisted_law_graph(graph_path)}
+    ).check()
+
+    assert report.ready is False
+    assert report.components == {"graph": "not_ready"}
+    assert str(graph_path) not in str(report)
+
+
+def test_api_graph_readiness_checker_reads_the_persisted_artifact() -> None:
+    """Readiness must not inspect the in-memory empty fallback graph."""
+
+    source = (Path(__file__).parent.parent / "api.py").read_text(encoding="utf-8")
+
+    assert "check_persisted_law_graph(law_graph_path)" in source
+
+
 def test_api_declares_separate_live_and_readiness_routes() -> None:
     """Avoid importing the heavyweight API graph in this unit-level contract."""
 
