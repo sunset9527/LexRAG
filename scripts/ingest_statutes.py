@@ -11,6 +11,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.ingestion.statute_catalog import statute_definitions  # noqa: E402
 from src.ingestion.statute_ingestion import (  # noqa: E402
     StatuteDefinition,
     StatuteIngestionRunner,
@@ -22,64 +23,7 @@ SOURCE_DIRECTORY = Path(r"E:\个人发展\002职业\项目1：RAG法律")
 RAW_DIRECTORY = PROJECT_ROOT / "data" / "laws" / "raw"
 CLEAN_TEXT_DIRECTORY = PROJECT_ROOT / "data" / "laws"
 
-STATUTE_DEFINITIONS = (
-    StatuteDefinition(
-        "criminal-law",
-        "中华人民共和国刑法",
-        "criminal",
-        "criminal-code",
-        terminal_article_number=452,
-        first_article_marker="为了惩罚犯罪",
-    ),
-    StatuteDefinition(
-        "labor-law",
-        "中华人民共和国劳动法",
-        "labor",
-        "labor-code",
-        terminal_article_number=107,
-        first_article_marker="为了保护劳动者的合法权益",
-    ),
-    StatuteDefinition(
-        "labor-contract-law",
-        "中华人民共和国劳动合同法",
-        "labor",
-        "labor-code",
-        terminal_article_number=98,
-        first_article_marker="为了完善劳动合同制度",
-    ),
-    StatuteDefinition(
-        "company-law",
-        "中华人民共和国公司法",
-        "company",
-        "company-code",
-        terminal_article_number=218,
-        first_article_marker="为了规范公司的组织和行为",
-    ),
-    StatuteDefinition(
-        "patent-law",
-        "中华人民共和国专利法",
-        "intellectual-property",
-        "intellectual-property-code",
-        terminal_article_number=69,
-        first_article_marker="为了保护专利权人的合法权益",
-    ),
-    StatuteDefinition(
-        "trademark-law",
-        "中华人民共和国商标法",
-        "intellectual-property",
-        "intellectual-property-code",
-        terminal_article_number=73,
-        first_article_marker="为了加强商标管理",
-    ),
-    StatuteDefinition(
-        "copyright-law",
-        "中华人民共和国著作权法",
-        "intellectual-property",
-        "intellectual-property-code",
-        terminal_article_number=61,
-        first_article_marker="为保护文学、艺术和科学作品作者的著作权",
-    ),
-)
+STATUTE_DEFINITIONS = statute_definitions()
 
 
 def source_files() -> dict[str, Path]:

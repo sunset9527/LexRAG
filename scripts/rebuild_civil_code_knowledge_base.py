@@ -15,8 +15,10 @@ from app.services.knowledge_base_service import (
     KnowledgeBaseAlreadyExistsError,
     KnowledgeBaseService,
 )
+from src.ingestion.statute_catalog import statute_by_slug
 
-SOURCE_FILE = PROJECT_ROOT / "data" / "laws" / "中华人民共和国民法典.txt"
+CIVIL_CODE_STATUTE = statute_by_slug("civil-code")
+SOURCE_FILE = PROJECT_ROOT / CIVIL_CODE_STATUTE.clean_text_path
 
 
 def main() -> None:
@@ -27,15 +29,16 @@ def main() -> None:
     service = KnowledgeBaseService(db_session.SessionLocal)
     try:
         service.create_knowledge_base(
-            name="中华人民共和国民法典",
-            slug="civil-code",
-            law_area="civil",
+            name=CIVIL_CODE_STATUTE.definition.name,
+            slug=CIVIL_CODE_STATUTE.definition.slug,
+            law_area=CIVIL_CODE_STATUTE.definition.law_area,
         )
     except KnowledgeBaseAlreadyExistsError:
         pass
 
     result = service.rebuild_knowledge_base(
-        "civil-code", content=SOURCE_FILE.read_text(encoding="utf-8")
+        CIVIL_CODE_STATUTE.definition.slug,
+        content=SOURCE_FILE.read_text(encoding="utf-8"),
     )
     print(
         f"完成：{result['name']}，法条 {result['document_count']} 条，"

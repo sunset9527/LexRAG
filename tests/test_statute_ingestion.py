@@ -255,10 +255,11 @@ def test_prepare_statute_sources_writes_raw_clean_text_and_manifest(tmp_path):
 
 
 def test_cli_catalog_declares_each_planned_statute_as_an_independent_library():
-    """命令行目录是模块 1 的单一配置源，不能遗漏规划中的任一法律。"""
+    """兼容命令行复用八部法规的唯一目录，不遗漏民法典。"""
     definitions = {definition.slug: definition for definition in STATUTE_DEFINITIONS}
 
     assert set(definitions) == {
+        "civil-code",
         "criminal-law",
         "labor-law",
         "labor-contract-law",

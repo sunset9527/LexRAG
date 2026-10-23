@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
@@ -17,6 +17,9 @@ from src.ingestion.index_identity import (
 )
 from src.ingestion.indexer import LawIndexer
 from src.ingestion.law_parser import LawParser
+
+if TYPE_CHECKING:
+    from src.ingestion.statute_catalog import StatuteIndexIdentity
 
 
 class KnowledgeBaseAlreadyExistsError(ValueError):
@@ -224,6 +227,56 @@ class KnowledgeBaseService:
             session.refresh(knowledge_base)
             return self._serialize(knowledge_base)
 
+    def rebuild_bootstrap_statute(
+        self, slug: str, *, content: str, identity: "StatuteIndexIdentity"
+    ) -> dict[str, Any]:
+        """Build an isolated statute collection and atomically point the registry at it.
+
+        The previous pointer is deliberately never opened, cleared or deleted.
+        This makes a legacy ``law_articles`` collection harmless to bootstrap: it
+        cannot be mistaken for a verified source/index identity.
+        """
+        with self._session_factory() as session:
+            knowledge_base = self._get_by_slug(session, slug)
+            expected_collection = identity.collection_name
+            if (
+                knowledge_base.status == "READY"
+                and knowledge_base.collection_name == expected_collection
+                and knowledge_base.source_hash == identity.source_hash
+                and knowledge_base.embedding_fingerprint == identity.embedding_fingerprint
+                and knowledge_base.index_schema_version == identity.index_schema_version
+            ):
+                result = self._serialize(knowledge_base)
+                result["bootstrap_action"] = "skipped"
+                return result
+            if knowledge_base.status == "INDEXING":
+                raise KnowledgeBaseBusyError(f"知识库正在重建: {slug}")
+            old_collection = knowledge_base.collection_name
+            name = knowledge_base.name
+
+        articles = self._parser.parse_law_content(content, name)
+        chunks = self._chunker.chunk_articles(articles)
+        indexed_count = self._indexer_factory(expected_collection).rebuild_index(chunks)
+
+        with self._session_factory() as session:
+            knowledge_base = self._get_by_slug(session, slug)
+            if knowledge_base.collection_name != old_collection:
+                raise KnowledgeBaseBusyError("知识库版本已被其他 bootstrap 操作切换，请重新检查")
+            knowledge_base.collection_name = expected_collection
+            knowledge_base.status = "READY"
+            knowledge_base.document_count = len(articles)
+            knowledge_base.chunk_count = indexed_count
+            knowledge_base.source_hash = identity.source_hash
+            knowledge_base.embedding_fingerprint = identity.embedding_fingerprint
+            knowledge_base.index_schema_version = identity.index_schema_version
+            knowledge_base.last_indexed_at = datetime.now()
+            knowledge_base.error_message = None
+            session.commit()
+            session.refresh(knowledge_base)
+            result = self._serialize(knowledge_base)
+            result["bootstrap_action"] = "rebuilt"
+            return result
+
     def list_law_articles(
         self,
         slug: str,
@@ -381,6 +434,9 @@ class KnowledgeBaseService:
             "status": knowledge_base.status,
             "document_count": knowledge_base.document_count,
             "chunk_count": knowledge_base.chunk_count,
+            "source_hash": knowledge_base.source_hash,
+            "embedding_fingerprint": knowledge_base.embedding_fingerprint,
+            "index_schema_version": knowledge_base.index_schema_version,
             "last_indexed_at": (
                 knowledge_base.last_indexed_at.isoformat()
                 if knowledge_base.last_indexed_at is not None
