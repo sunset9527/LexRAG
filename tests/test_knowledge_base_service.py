@@ -42,6 +42,56 @@ def test_create_statute_knowledge_base_uses_slug_scoped_collection_name():
     assert service.list_knowledge_bases() == [knowledge_base]
 
 
+def test_system_shared_statute_readiness_requires_ready_pointer_identity_and_collection_facts():
+    """Readiness must reject a registry row that only claims bootstrap success."""
+    from app.services.knowledge_base_service import BootstrapCollectionCounts
+    from src.ingestion.statute_catalog import StatuteIndexIdentity
+
+    base_service = build_service()
+    identity = StatuteIndexIdentity("civil-code", "a" * 64, "b" * 64, 1)
+    verified: list[tuple[str, StatuteIndexIdentity]] = []
+    service = KnowledgeBaseService(
+        base_service._session_factory,
+        bootstrap_collection_verifier=lambda name, expected: (
+            verified.append((name, expected))
+            or BootstrapCollectionCounts(article_count=2, chunk_count=3)
+        ),
+    )
+    service.create_knowledge_base(
+        name="中华人民共和国民法典",
+        slug="civil-code",
+        law_area="civil",
+        is_system_shared=True,
+    )
+    with service._session_factory() as session:
+        item = session.query(KnowledgeBase).filter_by(slug="civil-code").one()
+        item.status = "READY"
+        item.collection_name = identity.collection_name
+        item.source_hash = identity.source_hash
+        item.embedding_fingerprint = identity.embedding_fingerprint
+        item.index_schema_version = identity.index_schema_version
+        item.document_count = 2
+        item.chunk_count = 3
+        session.commit()
+
+    service.assert_system_shared_statutes_ready({"civil-code": identity})
+
+    assert verified == [(identity.collection_name, identity)]
+
+
+def test_system_shared_statute_readiness_rejects_a_non_shared_or_mismatched_pointer():
+    """Public readiness verification must fail closed before a bad collection is queried."""
+    from app.services.knowledge_base_service import BootstrapCollectionVerificationError
+    from src.ingestion.statute_catalog import StatuteIndexIdentity
+
+    service = build_service()
+    identity = StatuteIndexIdentity("civil-code", "a" * 64, "b" * 64, 1)
+    service.create_knowledge_base(name="中华人民共和国民法典", slug="civil-code", law_area="civil")
+
+    with pytest.raises(BootstrapCollectionVerificationError, match="STATUTE_READINESS"):
+        service.assert_system_shared_statutes_ready({"civil-code": identity})
+
+
 class FakeParser:
     def parse_law_content(self, content, law_name):
         assert content == "法律原文"

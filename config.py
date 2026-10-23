@@ -117,6 +117,14 @@ class Settings(BaseSettings):
     # ==================== 异步文档任务配置 ====================
     redis_url: str = "redis://localhost:6379/0"
 
+    # ==================== Stage 3 readiness 探针 ====================
+    readiness_database_timeout_seconds: float = 3.0
+    readiness_migration_timeout_seconds: float = 3.0
+    readiness_redis_timeout_seconds: float = 3.0
+    readiness_embedding_timeout_seconds: float = 60.0
+    readiness_graph_timeout_seconds: float = 3.0
+    readiness_statutes_timeout_seconds: float = 10.0
+
     # ==================== Stage 2 资源保护 ====================
     upload_max_bytes: int = 20 * 1024 * 1024
     upload_batch_max_bytes: int = 50 * 1024 * 1024
@@ -209,6 +217,16 @@ def validate_security_settings(candidate: Settings) -> None:
         invalid.append("runtime_llm_max_concurrency")
     if not 1 <= candidate.rate_limit_window_seconds <= 3600:
         invalid.append("rate_limit_window_seconds")
+    for name in (
+        "readiness_database_timeout_seconds",
+        "readiness_migration_timeout_seconds",
+        "readiness_redis_timeout_seconds",
+        "readiness_embedding_timeout_seconds",
+        "readiness_graph_timeout_seconds",
+        "readiness_statutes_timeout_seconds",
+    ):
+        if not 0 < getattr(candidate, name) <= 120:
+            invalid.append(name)
     for name in (
         "rate_limit_auth",
         "rate_limit_query",

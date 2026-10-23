@@ -37,8 +37,6 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import make_asgi_app
 from pydantic import BaseModel, Field
-from sqlalchemy import text
-
 from app.api.admin import (
     get_authorization_context,
 )
@@ -73,6 +71,11 @@ from app.services.knowledge_base_service import KnowledgeBaseBusyError, Knowledg
 from app.services.langfuse_helper import create_llm, flush_langfuse
 from app.services.metrics import record_query_metrics
 from app.services.query_cache_service import QueryCacheService
+from app.services.readiness_probes import (
+    RuntimeReadinessDependencies,
+    alembic_head_revision,
+    build_runtime_checks,
+)
 from app.services.readiness_service import ReadinessService
 from app.services.session_service import ConversationTurn, SessionNotFoundError, SessionService
 from app.services.usage_service import UsageService
@@ -89,6 +92,7 @@ from src.ingestion.index_identity import (
     get_or_create_identity_collection,
 )
 from src.ingestion.indexer import LawIndexer
+from src.ingestion.statute_catalog import STATUTE_CATALOG, StatuteIndexIdentity
 from src.retrieval.annual_case_retriever import AnnualCaseRetriever
 from src.retrieval.bm25_retriever import BM25Retriever
 from src.retrieval.case_retriever import CaseRetriever
@@ -567,20 +571,64 @@ def initialize_components():
             "query_cache_service": query_cache_service,
         }
 
-        def check_database() -> None:
-            if db_session.SessionLocal is None:
-                raise RuntimeError("database session factory is unavailable")
-            with db_session.SessionLocal() as database:
-                database.execute(text("SELECT 1"))
-
-        def check_runtime_services() -> None:
-            if components.get("knowledge_base_service") is None:
-                raise RuntimeError("knowledge-base service is unavailable")
+        def check_graph() -> None:
             if components.get("graph_retriever") is None:
-                raise RuntimeError("graph retriever is unavailable")
+                raise RuntimeError("GRAPH_RETRIEVER_UNAVAILABLE")
+            law_graph.get_statistics()
 
+        def check_statutes() -> None:
+            if knowledge_base_service is None:
+                raise RuntimeError("STATUTE_REGISTRY_UNAVAILABLE")
+            embedding_identity = collection_identity_from_settings(settings)
+            identities = {
+                item.definition.slug: StatuteIndexIdentity(
+                    slug=item.definition.slug,
+                    source_hash=item.clean_text_sha256,
+                    embedding_fingerprint=embedding_identity.fingerprint,
+                    index_schema_version=embedding_identity.schema_version,
+                )
+                for item in STATUTE_CATALOG
+            }
+            knowledge_base_service.assert_system_shared_statutes_ready(identities)
+
+        def load_embedding() -> object:
+            return create_embeddings(
+                provider=settings.embedding_provider,
+                model_path=settings.local_embedding_model_path,
+                local_model_id=settings.local_embedding_model_id,
+                zhipuai_api_key=settings.zhipuai_api_key,
+                zhipuai_model=settings.embedding_model,
+                dimensions=settings.embedding_dimensions,
+                normalize=settings.embedding_normalize,
+                index_schema_version=settings.index_schema_version,
+            )
+
+        def create_redis_client(redis_url: str) -> object:
+            import redis
+
+            return redis.Redis.from_url(redis_url, decode_responses=True)
+
+        readiness_timeouts = {
+            "database": settings.readiness_database_timeout_seconds,
+            "migration": settings.readiness_migration_timeout_seconds,
+            "redis": settings.readiness_redis_timeout_seconds,
+            "embedding": settings.readiness_embedding_timeout_seconds,
+            "graph": settings.readiness_graph_timeout_seconds,
+            "statutes": settings.readiness_statutes_timeout_seconds,
+        }
         components["readiness_service"] = ReadinessService(
-            {"database": check_database, "runtime": check_runtime_services}
+            build_runtime_checks(
+                RuntimeReadinessDependencies(
+                    session_factory=db_session.SessionLocal,
+                    alembic_head=lambda: alembic_head_revision(get_project_root()),
+                    redis_client_factory=create_redis_client,
+                    redis_url=settings.redis_url,
+                    embedding_loader=load_embedding,
+                    graph_checker=check_graph,
+                    statute_checker=check_statutes,
+                    timeouts=readiness_timeouts,
+                )
+            )
         )
 
         logger.info("组件初始化完成")

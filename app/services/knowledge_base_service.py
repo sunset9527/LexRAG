@@ -426,6 +426,74 @@ class KnowledgeBaseService:
                 raise ValueError(f"知识库不可用于检索，当前状态: {knowledge_base.status}")
             return knowledge_base.collection_name
 
+    def assert_system_shared_statutes_ready(
+        self, identities: Mapping[str, "StatuteIndexIdentity"]
+    ) -> None:
+        """Fail closed unless every configured statute has a verified active pointer.
+
+        This is deliberately a read-only readiness check.  It proves the registry
+        record, system-shared visibility, persisted identity and current Chroma
+        collection facts agree before API traffic can claim the statute catalog is
+        ready.
+        """
+        if not identities:
+            raise BootstrapCollectionVerificationError("STATUTE_READINESS_IDENTITIES_EMPTY")
+
+        requested = tuple(identities)
+        with self._session_factory() as session:
+            rows = session.scalars(
+                select(KnowledgeBase).where(KnowledgeBase.slug.in_(requested))
+            ).all()
+            records = {
+                item.slug: (
+                    item.status,
+                    item.is_system_shared,
+                    item.collection_name,
+                    item.source_hash,
+                    item.embedding_fingerprint,
+                    item.index_schema_version,
+                    item.document_count,
+                    item.chunk_count,
+                )
+                for item in rows
+            }
+
+        if set(records) != set(identities):
+            raise BootstrapCollectionVerificationError("STATUTE_READINESS_REGISTRY_MISSING")
+
+        for slug, identity in identities.items():
+            (
+                status,
+                is_system_shared,
+                collection_name,
+                source_hash,
+                embedding_fingerprint,
+                schema_version,
+                document_count,
+                chunk_count,
+            ) = records[slug]
+            if (
+                status != "READY"
+                or not is_system_shared
+                or collection_name != identity.collection_name
+                or source_hash != identity.source_hash
+                or embedding_fingerprint != identity.embedding_fingerprint
+                or schema_version != identity.index_schema_version
+            ):
+                raise BootstrapCollectionVerificationError("STATUTE_READINESS_POINTER_INVALID")
+            try:
+                counts = self._bootstrap_collection_verifier(collection_name, identity)
+            except Exception as error:
+                raise BootstrapCollectionVerificationError(
+                    "STATUTE_READINESS_COLLECTION_INVALID"
+                ) from error
+            if (
+                counts is None
+                or counts.article_count != document_count
+                or counts.chunk_count != chunk_count
+            ):
+                raise BootstrapCollectionVerificationError("STATUTE_READINESS_COLLECTION_INVALID")
+
     def get_visible_knowledge_base(
         self, slug: str, *, organization_id: int, require_owner: bool = False
     ) -> dict[str, Any]:
