@@ -1,9 +1,9 @@
 """Stage 3 contracts for explicit embedding and Chroma index identity."""
 
-import sys
 import subprocess
-from types import SimpleNamespace
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -18,6 +18,7 @@ from src.ingestion.index_identity import (
 from src.utils.embedding_factory import (
     EmbeddingConfigurationError,
     EmbeddingDimensionError,
+    EmbeddingInitializationError,
     clear_embedding_cache,
     create_embeddings,
 )
@@ -165,6 +166,45 @@ def test_local_provider_missing_directory_fails_without_zhipu_fallback(tmp_path)
 
     assert "must-not-be-used" not in str(error.value)
     assert str(tmp_path) not in str(error.value)
+
+
+def test_local_initialization_failure_does_not_fallback_to_zhipu(monkeypatch, tmp_path):
+    """A selected local provider must never silently use a supplied remote key."""
+    clear_embedding_cache()
+    model_path = tmp_path / "model"
+    model_path.mkdir()
+    (model_path / "config_sentence_transformers.json").write_text("{}", encoding="utf-8")
+    remote_key = "zhipu-key-must-not-appear"
+
+    class FailingLocalEmbeddings:
+        def __init__(self, **_kwargs):
+            raise RuntimeError(f"local setup failed at {model_path}")
+
+    class UnexpectedZhipuEmbeddings:
+        def __init__(self, **_kwargs):
+            raise AssertionError("ZhipuEmbeddings must not be invoked for local provider")
+
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_community.embeddings",
+        SimpleNamespace(HuggingFaceEmbeddings=FailingLocalEmbeddings),
+    )
+    monkeypatch.setattr(
+        "src.utils.embedding_factory.ZhipuEmbeddings", UnexpectedZhipuEmbeddings
+    )
+
+    with pytest.raises(
+        EmbeddingInitializationError,
+        match="^EMBEDDING_LOCAL_INITIALIZATION_FAILED$",
+    ) as error:
+        create_embeddings(
+            provider="local",
+            model_path=str(model_path),
+            zhipuai_api_key=remote_key,
+        )
+
+    assert remote_key not in str(error.value)
+    assert str(model_path) not in str(error.value)
 
 
 def test_zhipu_provider_requires_key_without_disclosing_it():
