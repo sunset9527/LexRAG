@@ -1,7 +1,8 @@
 # Stage 3 deployment status and verification boundary
 
-**Status date:** 2026-10-23  
-**Scope:** versioned Stage 3 code through \`74fbe11\` and its preceding Stage 3 commits.  
+**Status date:** 2026-10-23
+
+**Scope:** versioned Stage 3 code through \`74fbe11\` and its preceding Stage 3 commits.
 **Closure state:** implementation and static contracts are present; real isolated
 deployment acceptance is not recorded, so Stage 3 is not marked complete.
 
@@ -65,4 +66,3 @@ build, migration exit 0, bootstrap exit 0, readiness 200, worker/proxy behaviour
 and separately approved restart/recovery checks. A real MySQL integration and
 real BGE-M3/Chroma runtime must also be recorded. These are acceptance actions,
 not completed facts.
-
