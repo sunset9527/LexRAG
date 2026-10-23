@@ -37,6 +37,7 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import make_asgi_app
 from pydantic import BaseModel, Field
+from sqlalchemy import text
 
 from app.api.admin import (
     get_authorization_context,
@@ -71,8 +72,8 @@ from app.services.document_result_service import DocumentResultService
 from app.services.knowledge_base_service import KnowledgeBaseBusyError, KnowledgeBaseService
 from app.services.langfuse_helper import create_llm, flush_langfuse
 from app.services.metrics import record_query_metrics
-from app.services.prompt_service import seed_default_prompts
 from app.services.query_cache_service import QueryCacheService
+from app.services.readiness_service import ReadinessService
 from app.services.session_service import ConversationTurn, SessionNotFoundError, SessionService
 from app.services.usage_service import UsageService
 from app.tasks.document_tasks import process_document_task
@@ -427,20 +428,10 @@ def initialize_components():
             model=settings.deepseek_model,
         )
 
-        # 初始化向量存储
-        law_indexer = LawIndexer(
-            persist_directory=settings.chroma_persist_directory,
-            embedding_model=settings.embedding_model,
-            collection_name=settings.law_collection_name,
-        )
-
-        # 初始化法条检索器
-        law_retriever = LawRetriever(
-            vectorstore=law_indexer.vectorstore,
-            api_key=settings.deepseek_api_key,
-            base_url=settings.deepseek_base_url,
-            model=settings.deepseek_model,
-        )
+        # 法条检索器必须按请求所选知识库的活动 collection 构造。
+        # 启动期绝不创建或打开历史默认 ``law_articles`` collection。
+        law_indexer = None
+        law_retriever = None
 
         # 判例检索器
         case_retriever = None
@@ -448,7 +439,7 @@ def initialize_components():
             from langchain_community.vectorstores import Chroma
 
             case_db_path = Path(settings.chroma_persist_directory) / "cases"
-            if case_db_path.exists():
+            if law_retriever is not None and case_db_path.exists():
                 case_embeddings = create_embeddings(
                     provider=settings.embedding_provider,
                     model_path=settings.local_embedding_model_path,
@@ -488,7 +479,7 @@ def initialize_components():
 
         # BM25检索器
         bm25_retriever = None
-        if settings.bm25_enabled:
+        if settings.bm25_enabled and law_indexer is not None:
             try:
                 bm25_retriever = BM25Retriever()
                 # 从ChromaDB加载文档构建索引
@@ -576,6 +567,22 @@ def initialize_components():
             "query_cache_service": query_cache_service,
         }
 
+        def check_database() -> None:
+            if db_session.SessionLocal is None:
+                raise RuntimeError("database session factory is unavailable")
+            with db_session.SessionLocal() as database:
+                database.execute(text("SELECT 1"))
+
+        def check_runtime_services() -> None:
+            if components.get("knowledge_base_service") is None:
+                raise RuntimeError("knowledge-base service is unavailable")
+            if components.get("graph_retriever") is None:
+                raise RuntimeError("graph retriever is unavailable")
+
+        components["readiness_service"] = ReadinessService(
+            {"database": check_database, "runtime": check_runtime_services}
+        )
+
         logger.info("组件初始化完成")
         return True
 
@@ -612,19 +619,6 @@ async def lifespan(app: FastAPI):
 
     # 初始化检索组件
     initialize_components()
-
-    # v1.7: 初始化默认 Prompt 模板
-    try:
-        from app.db.session import SessionLocal
-
-        if SessionLocal:
-            db = SessionLocal()
-            try:
-                seed_default_prompts(db)
-            finally:
-                db.close()
-    except Exception as exc:
-        logger.warning("默认 Prompt 初始化失败 error_type=%s", type(exc).__name__)
 
     # 打印 Embedding 来源
     from src.utils.embedding_factory import get_embedding_source
@@ -696,6 +690,30 @@ async def health_check():
             "law_graph": "ready" if components.get("law_graph") else "not_ready",
         },
     )
+
+
+@app.get("/health/live")
+async def health_live() -> dict[str, str]:
+    """Process liveness only; dependencies are intentionally not probed here."""
+
+    return {"status": "alive"}
+
+
+@app.get("/health/ready")
+async def health_ready() -> dict[str, Any]:
+    """Return a safe dependency-aware readiness result."""
+
+    service = components.get("readiness_service")
+    if not isinstance(service, ReadinessService):
+        raise HTTPException(
+            status_code=503,
+            detail={"status": "not_ready", "components": {"runtime": "not_ready"}},
+        )
+    report = service.check()
+    payload = {"status": "ready" if report.ready else "not_ready", "components": report.components}
+    if not report.ready:
+        raise HTTPException(status_code=503, detail=payload)
+    return payload
 
 
 @app.get("/dashboard/stats")
