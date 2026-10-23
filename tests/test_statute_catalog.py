@@ -91,3 +91,13 @@ def test_legacy_civil_rebuild_entrypoint_reuses_the_catalog_source_path():
 
     assert CIVIL_CODE_STATUTE == statute_by_slug("civil-code")
     assert SOURCE_FILE == Path(__file__).parent.parent / CIVIL_CODE_STATUTE.clean_text_path
+
+
+def test_legacy_civil_rebuild_entrypoint_delegates_to_safe_runtime_bootstrap():
+    """The compatibility entrypoint must never mutate a legacy collection in place."""
+    script = (Path(__file__).parent.parent / "scripts" / "rebuild_civil_code_knowledge_base.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "DeploymentBootstrapService" in script
+    assert ".rebuild_knowledge_base(" not in script

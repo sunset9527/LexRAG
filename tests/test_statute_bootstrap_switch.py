@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from datetime import datetime, timedelta
 from types import ModuleType, SimpleNamespace
 
 import pytest
@@ -346,6 +347,82 @@ def test_bootstrap_claim_rejects_a_contender_before_a_second_candidate_write():
     assert result["bootstrap_action"] == "rebuilt"
     assert len(built_collections) == 1
     assert len(contender_errors) == 1
+
+
+def test_expired_bootstrap_claim_is_marked_failed_without_switching_pointer():
+    """A killed writer cannot leave a statute permanently INDEXING."""
+    factory, service_class = _service_with_legacy_default_collection()
+    service = service_class(factory, parser=_Parser(), chunker=_Chunker())
+    expired_at = datetime.now() - timedelta(minutes=31)
+    with factory() as session:
+        item = session.query(KnowledgeBase).filter_by(slug="civil-code").one()
+        item.status = "INDEXING"
+        item.updated_at = expired_at
+        session.commit()
+
+    recovered = service.recover_expired_bootstrap_claim(
+        "civil-code", now=datetime.now(), max_age=timedelta(minutes=30)
+    )
+
+    assert recovered is True
+    with factory() as session:
+        item = session.query(KnowledgeBase).filter_by(slug="civil-code").one()
+        assert item.collection_name == "law_articles"
+        assert item.status == "FAILED"
+        assert item.error_message == "BOOTSTRAP_CLAIM_EXPIRED"
+
+
+def test_active_bootstrap_claim_is_never_recovered_or_stolen():
+    """Recovery is bounded by the committed INDEXING timestamp, not just status."""
+    factory, service_class = _service_with_legacy_default_collection()
+    service = service_class(factory, parser=_Parser(), chunker=_Chunker())
+    now = datetime.now()
+    with factory() as session:
+        item = session.query(KnowledgeBase).filter_by(slug="civil-code").one()
+        item.status = "INDEXING"
+        item.updated_at = now
+        session.commit()
+
+    recovered = service.recover_expired_bootstrap_claim(
+        "civil-code", now=now + timedelta(minutes=1), max_age=timedelta(minutes=30)
+    )
+
+    assert recovered is False
+    with factory() as session:
+        item = session.query(KnowledgeBase).filter_by(slug="civil-code").one()
+        assert item.status == "INDEXING"
+
+
+def test_bootstrap_collection_verification_requires_full_source_hash_and_embedding_identity(
+    monkeypatch,
+):
+    """A deterministic name is insufficient: Chroma keeps both identities in metadata."""
+    from app.services.knowledge_base_service import BootstrapCollectionCounts, KnowledgeBaseService
+    from config import settings
+    from src.ingestion.index_identity import collection_identity_from_settings
+    from src.ingestion.statute_catalog import StatuteIndexIdentity
+
+    embedding_identity = collection_identity_from_settings(settings)
+    source_hash = "a" * 64
+    collection = SimpleNamespace(
+        metadata={
+            **embedding_identity.collection_metadata(),
+            "lexrag_statute_source_sha256": source_hash,
+        },
+        count=lambda: 1,
+        get=lambda **_kwargs: {"metadatas": [{"article_id": "民法典第1条"}]},
+    )
+    client = SimpleNamespace(get_collection=lambda _name: collection)
+    fake_chromadb = ModuleType("chromadb")
+    fake_chromadb.PersistentClient = lambda **_kwargs: client
+    monkeypatch.setitem(sys.modules, "chromadb", fake_chromadb)
+    identity = StatuteIndexIdentity(
+        "civil-code", source_hash, embedding_identity.fingerprint, embedding_identity.schema_version
+    )
+
+    assert KnowledgeBaseService._verify_bootstrap_collection(
+        identity.collection_name, identity
+    ) == BootstrapCollectionCounts(article_count=1, chunk_count=1)
 
 
 @pytest.mark.parametrize("corrupt_metadata", [object(), {"article_number": "2"}])

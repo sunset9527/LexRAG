@@ -11,10 +11,8 @@ os.chdir(PROJECT_ROOT)
 
 from app.db import session as db_session
 from app.db.session import init_db
-from app.services.knowledge_base_service import (
-    KnowledgeBaseAlreadyExistsError,
-    KnowledgeBaseService,
-)
+from app.services.deployment_bootstrap_service import DeploymentBootstrapService
+from app.services.knowledge_base_service import KnowledgeBaseService
 from src.ingestion.statute_catalog import statute_by_slug
 
 CIVIL_CODE_STATUTE = statute_by_slug("civil-code")
@@ -22,28 +20,14 @@ SOURCE_FILE = PROJECT_ROOT / CIVIL_CODE_STATUTE.clean_text_path
 
 
 def main() -> None:
-    if not SOURCE_FILE.exists():
-        raise FileNotFoundError(f"未找到民法典源文件: {SOURCE_FILE}")
-
     init_db()
-    service = KnowledgeBaseService(db_session.SessionLocal)
-    try:
-        service.create_knowledge_base(
-            name=CIVIL_CODE_STATUTE.definition.name,
-            slug=CIVIL_CODE_STATUTE.definition.slug,
-            law_area=CIVIL_CODE_STATUTE.definition.law_area,
-        )
-    except KnowledgeBaseAlreadyExistsError:
-        pass
-
-    result = service.rebuild_knowledge_base(
-        CIVIL_CODE_STATUTE.definition.slug,
-        content=SOURCE_FILE.read_text(encoding="utf-8"),
-    )
-    print(
-        f"完成：{result['name']}，法条 {result['document_count']} 条，"
-        f"chunk {result['chunk_count']} 个，状态 {result['status']}"
-    )
+    summary = DeploymentBootstrapService(
+        KnowledgeBaseService(db_session.SessionLocal)
+    ).bootstrap_statute(CIVIL_CODE_STATUTE.definition.slug)
+    result = summary["laws"][0]
+    if result["status"] != "READY":
+        raise RuntimeError(f"民法典 bootstrap 未就绪: {result.get('error_code', result['status'])}")
+    print(f"完成：{CIVIL_CODE_STATUTE.definition.name}，collection {result['collection_name']}")
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
@@ -58,6 +58,7 @@ class KnowledgeBaseService:
         parser: LawParser | None = None,
         chunker: StructuredLawChunker | None = None,
         indexer_factory: Callable[[str], LawIndexer] | None = None,
+        bootstrap_indexer_factory: Callable[[str, "StatuteIndexIdentity"], LawIndexer] | None = None,
         article_reader: Callable[[str], list[dict[str, str]]] | None = None,
         collection_deleter: Callable[[str], None] | None = None,
         bootstrap_collection_verifier: Callable[
@@ -69,6 +70,14 @@ class KnowledgeBaseService:
         self._parser = parser or LawParser()
         self._chunker = chunker or StructuredLawChunker(version="v1.9")
         self._indexer_factory = indexer_factory or self._create_indexer
+        if bootstrap_indexer_factory is not None:
+            self._bootstrap_indexer_factory = bootstrap_indexer_factory
+        elif indexer_factory is None:
+            self._bootstrap_indexer_factory = self._create_bootstrap_indexer
+        else:
+            # Test and integration callers that supply an indexer factory keep the
+            # same seam while production gets the source-hash-aware factory below.
+            self._bootstrap_indexer_factory = lambda name, _identity: self._indexer_factory(name)
         self._article_reader = article_reader or self._read_articles
         self._collection_deleter = collection_deleter or self._delete_collection
         self._bootstrap_collection_verifier = (
@@ -293,7 +302,7 @@ class KnowledgeBaseService:
                     KnowledgeBase.collection_name == old_collection,
                     KnowledgeBase.status != "INDEXING",
                 )
-                .values(status="INDEXING", error_message=None)
+                .values(status="INDEXING", error_message=None, updated_at=datetime.now())
             )
             session.commit()
             if claim.rowcount != 1:
@@ -307,7 +316,9 @@ class KnowledgeBaseService:
                 if old_collection == expected_collection
                 else expected_collection
             )
-            indexed_count = self._indexer_factory(candidate_collection).rebuild_index(chunks)
+            indexed_count = self._bootstrap_indexer_factory(
+                candidate_collection, identity
+            ).rebuild_index(chunks)
             candidate_counts = self._bootstrap_collection_verifier(candidate_collection, identity)
             if (
                 candidate_counts is None
@@ -461,6 +472,18 @@ class KnowledgeBaseService:
         )
 
     @staticmethod
+    def _create_bootstrap_indexer(
+        collection_name: str, identity: "StatuteIndexIdentity"
+    ) -> LawIndexer:
+        """Build an immutable bootstrap collection with its full source hash."""
+        return LawIndexer(
+            persist_directory=settings.chroma_persist_directory,
+            embedding_model=settings.embedding_model,
+            collection_name=collection_name,
+            source_hash=identity.source_hash,
+        )
+
+    @staticmethod
     def _read_articles(collection_name: str) -> list[dict[str, str]]:
         """直接读取 Chroma collection，浏览场景无需加载 embedding 模型。"""
         import chromadb
@@ -505,6 +528,8 @@ class KnowledgeBaseService:
             client = chromadb.PersistentClient(path=settings.chroma_persist_directory)
             collection = client.get_collection(collection_name)
             assert_collection_identity(collection, expected_identity)
+            if (collection.metadata or {}).get("lexrag_statute_source_sha256") != identity.source_hash:
+                return None
             chunk_count = collection.count()
             metadata = collection.get(include=["metadatas"]).get("metadatas", [])
         except Exception:
@@ -523,6 +548,40 @@ class KnowledgeBaseService:
                 return None
             article_ids.add(article_id)
         return BootstrapCollectionCounts(article_count=len(article_ids), chunk_count=chunk_count)
+
+    def recover_expired_bootstrap_claim(
+        self,
+        slug: str,
+        *,
+        now: datetime | None = None,
+        max_age: timedelta,
+    ) -> bool:
+        """Mark only a bounded-expired INDEXING claim failed.
+
+        ``updated_at`` is written at the exact point this service commits an
+        ``INDEXING`` claim and is treated as its lease timestamp.  Recovery never
+        changes a row whose committed lease is newer than ``max_age``; it also
+        never changes the collection pointer.  A later bootstrap therefore builds
+        a fresh isolated candidate rather than taking over an active writer.
+        """
+        current_time = now or datetime.now()
+        cutoff = current_time - max_age
+        with self._session_factory() as session:
+            recovered = session.execute(
+                update(KnowledgeBase)
+                .where(
+                    KnowledgeBase.slug == slug,
+                    KnowledgeBase.status == "INDEXING",
+                    KnowledgeBase.updated_at <= cutoff,
+                )
+                .values(
+                    status="FAILED",
+                    error_message="BOOTSTRAP_CLAIM_EXPIRED",
+                    updated_at=current_time,
+                )
+            )
+            session.commit()
+            return recovered.rowcount == 1
 
     def _restore_bootstrap_claim(
         self,

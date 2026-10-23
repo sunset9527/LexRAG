@@ -89,7 +89,11 @@ def assert_collection_identity(collection: Any, expected: EmbeddingIndexIdentity
 
 
 def get_or_create_identity_collection(
-    client: Any, collection_name: str, identity: EmbeddingIndexIdentity
+    client: Any,
+    collection_name: str,
+    identity: EmbeddingIndexIdentity,
+    *,
+    additional_metadata: Mapping[str, str | int | bool] | None = None,
 ) -> Any:
     """Create collection metadata once, then validate it before every use.
 
@@ -97,11 +101,14 @@ def get_or_create_identity_collection(
     collections.  Therefore an old collection without the marker is detected as
     legacy instead of being silently adopted.
     """
-    collection = client.get_or_create_collection(
-        name=collection_name,
-        metadata=identity.collection_metadata(),
-    )
+    expected_metadata = identity.collection_metadata()
+    if additional_metadata:
+        expected_metadata.update(additional_metadata)
+    collection = client.get_or_create_collection(name=collection_name, metadata=expected_metadata)
     assert_collection_identity(collection, identity)
+    metadata: Mapping[str, Any] = getattr(collection, "metadata", None) or {}
+    if any(metadata.get(key) != value for key, value in (additional_metadata or {}).items()):
+        raise IndexIdentityMismatchError()
     return collection
 
 
