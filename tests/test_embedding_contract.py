@@ -1,5 +1,6 @@
 """Stage 3 contracts for explicit embedding and Chroma index identity."""
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -19,6 +20,7 @@ from src.utils.embedding_factory import (
     EmbeddingConfigurationError,
     EmbeddingDimensionError,
     EmbeddingInitializationError,
+    ZhipuEmbeddings,
     clear_embedding_cache,
     create_embeddings,
 )
@@ -241,6 +243,63 @@ def test_zhipu_provider_requires_key_without_disclosing_it():
 
     with pytest.raises(EmbeddingConfigurationError, match="EMBEDDING_ZHIPU_API_KEY_MISSING"):
         create_embeddings(provider="zhipu", zhipuai_api_key=None)
+
+
+def test_zhipu_embeddings_normalize_query_and_document_vectors(monkeypatch):
+    """远端 provider 的 identity 声明 normalize=True 时，两个入口都必须真归一化。"""
+
+    class FakeResponse:
+        def __init__(self, body):
+            self._body = body
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            return self._body
+
+    responses = iter(
+        [
+            {"data": [{"index": 0, "embedding": [3.0, 4.0]}]},
+            {
+                "data": [
+                    {"index": 1, "embedding": [0.0, 5.0]},
+                    {"index": 0, "embedding": [3.0, 4.0]},
+                ]
+            },
+        ]
+    )
+
+    def fake_urlopen(*_args, **_kwargs):
+        return FakeResponse(json.dumps(next(responses)).encode("utf-8"))
+
+    monkeypatch.setattr("src.utils.embedding_factory.urlopen", fake_urlopen)
+    embeddings = ZhipuEmbeddings(api_key="test-key", model="embedding-3", normalize=True)
+
+    assert embeddings.embed_query("查询") == [0.6, 0.8]
+    assert embeddings.embed_documents(["文档一", "文档二"]) == [[0.6, 0.8], [0.0, 1.0]]
+
+
+def test_zhipu_embeddings_preserve_vectors_when_normalization_is_disabled(monkeypatch):
+    """identity 的 normalize=False 必须对应不改写远端向量。"""
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            return b'{"data": [{"index": 0, "embedding": [3.0, 4.0]}]}'
+
+    monkeypatch.setattr("src.utils.embedding_factory.urlopen", lambda *_args, **_kwargs: FakeResponse())
+    embeddings = ZhipuEmbeddings(api_key="test-key", model="embedding-3", normalize=False)
+
+    assert embeddings.embed_query("查询") == [3.0, 4.0]
 
 
 def test_factory_validates_actual_dimension_and_caches_by_fingerprint(monkeypatch, tmp_path):

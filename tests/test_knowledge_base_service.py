@@ -13,7 +13,11 @@ import pytest
 
 from app.db.base import Base
 from app.models.knowledge_base import KnowledgeBase
+from app.models.organization import (
+    Organization,  # noqa: F401 - registers FK target for SQLite metadata
+)
 from app.services.knowledge_base_service import KnowledgeBaseService
+from src.ingestion.index_identity import LegacyCollectionIdentityError
 
 
 def build_service():
@@ -100,6 +104,34 @@ def test_rebuild_rejects_a_knowledge_base_that_is_already_indexing():
 
     with pytest.raises(ValueError, match="正在重建"):
         service.rebuild_knowledge_base("civil-code", content="法律原文")
+
+
+def test_rebuild_preserves_ready_status_when_current_collection_requires_identity_rebuild():
+    """旧 collection 身份不兼容时，不能把仍可用的知识库标记为 FAILED。"""
+    base_service = build_service()
+
+    class IdentityFailingIndexer:
+        def rebuild_index(self, _chunks):
+            raise LegacyCollectionIdentityError()
+
+    service = KnowledgeBaseService(
+        base_service._session_factory,
+        parser=FakeParser(),
+        chunker=FakeChunker(),
+        indexer_factory=lambda _collection_name: IdentityFailingIndexer(),
+    )
+    service.create_knowledge_base(name="中华人民共和国民法典", slug="civil-code", law_area="civil")
+    with service._session_factory() as session:
+        knowledge_base = session.query(KnowledgeBase).filter_by(slug="civil-code").one()
+        knowledge_base.status = "READY"
+        knowledge_base.error_message = None
+        session.commit()
+
+    with pytest.raises(LegacyCollectionIdentityError):
+        service.rebuild_knowledge_base("civil-code", content="法律原文")
+
+    assert service.list_knowledge_bases()[0]["status"] == "READY"
+    assert service.list_knowledge_bases()[0]["error_message"] is None
 
 
 def test_list_law_articles_reads_only_the_selected_collection():

@@ -11,6 +11,7 @@ from app.models.knowledge_base import KnowledgeBase
 from config import settings
 from src.ingestion.chunker import StructuredLawChunker
 from src.ingestion.index_identity import (
+    IndexIdentityError,
     assert_collection_identity,
     collection_identity_from_settings,
 )
@@ -142,6 +143,8 @@ class KnowledgeBaseService:
             knowledge_base = self._get_by_slug(session, slug)
             if knowledge_base.status == "INDEXING":
                 raise KnowledgeBaseBusyError(f"知识库正在重建: {slug}")
+            previous_status = knowledge_base.status
+            previous_error_message = knowledge_base.error_message
             knowledge_base.status = "INDEXING"
             knowledge_base.error_message = None
             session.commit()
@@ -152,6 +155,16 @@ class KnowledgeBaseService:
             articles = self._parser.parse_law_content(content, name)
             chunks = self._chunker.chunk_articles(articles)
             indexed_count = self._indexer_factory(collection_name).rebuild_index(chunks)
+        except IndexIdentityError:
+            # A legacy or incompatible collection cannot be mutated safely by this
+            # in-place route.  Preserve the last usable registry state so callers
+            # can take an explicit, isolated migration path instead.
+            with self._session_factory() as session:
+                knowledge_base = self._get_by_slug(session, slug)
+                knowledge_base.status = previous_status
+                knowledge_base.error_message = previous_error_message
+                session.commit()
+            raise
         except Exception as exc:
             with self._session_factory() as session:
                 knowledge_base = self._get_by_slug(session, slug)

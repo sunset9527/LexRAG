@@ -220,6 +220,30 @@ def test_rebuild_returns_conflict_when_the_library_is_already_indexing():
     assert response.status_code == 409
 
 
+def test_rebuild_returns_a_structured_conflict_when_existing_index_identity_is_legacy():
+    """重建不能把旧 collection 身份问题伪装成成功或通用 500。"""
+
+    class IdentityFailureService(FakeKnowledgeBaseService):
+        def rebuild_knowledge_base(self, slug, *, content):
+            raise LegacyCollectionIdentityError()
+
+    api.components["knowledge_base_service"] = IdentityFailureService()
+
+    with pytest.raises(HTTPException) as error:
+        handler = api.rebuild_knowledge_base(
+            slug="civil-code",
+            request=api.KnowledgeBaseRebuildRequest(content="民法典原文"),
+            authorization_context=SimpleNamespace(organization_id=1, can=lambda _permission: True),
+        )
+        handler.send(None)
+
+    assert error.value.status_code == 409
+    assert error.value.detail == {
+        "code": "INDEX_IDENTITY_REBUILD_REQUIRED",
+        "message": "知识库索引与当前嵌入配置不兼容，需要以新索引身份重新构建",
+    }
+
+
 def test_list_laws_returns_real_articles_for_the_selected_knowledge_base():
     api.components["knowledge_base_service"] = FakeKnowledgeBaseService()
 

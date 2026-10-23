@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from pathlib import Path
 from typing import Any
 from urllib.error import URLError
@@ -32,10 +33,18 @@ class ZhipuEmbeddings:
 
     endpoint = "https://open.bigmodel.cn/api/paas/v4/embeddings"
 
-    def __init__(self, *, api_key: str, model: str, dimensions: int | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        model: str,
+        dimensions: int | None = None,
+        normalize: bool = True,
+    ) -> None:
         self._api_key = api_key
         self._model = model
         self._dimensions = dimensions
+        self._normalize = normalize
 
     def embed_query(self, text: str) -> list[float]:
         return self.embed_documents([text])[0]
@@ -61,10 +70,26 @@ class ZhipuEmbeddings:
             raise EmbeddingInitializationError("EMBEDDING_ZHIPU_REQUEST_FAILED") from error
         try:
             items = sorted(body["data"], key=lambda item: item["index"])
-            return [item["embedding"] for item in items]
+            vectors = [item["embedding"] for item in items]
         except (KeyError, TypeError, ValueError) as error:
             logger.warning("Zhipu embedding response invalid error_type=%s", type(error).__name__)
             raise EmbeddingInitializationError("EMBEDDING_ZHIPU_RESPONSE_INVALID") from error
+        if not self._normalize:
+            return vectors
+        return [self._normalize_vector(vector) for vector in vectors]
+
+    @staticmethod
+    def _normalize_vector(vector: Any) -> list[float]:
+        try:
+            numeric_vector = [float(value) for value in vector]
+            magnitude = math.sqrt(sum(value * value for value in numeric_vector))
+        except (TypeError, ValueError) as error:
+            logger.warning("Zhipu embedding vector invalid error_type=%s", type(error).__name__)
+            raise EmbeddingInitializationError("EMBEDDING_ZHIPU_RESPONSE_INVALID") from error
+        if magnitude == 0:
+            logger.warning("Zhipu embedding returned a zero vector")
+            raise EmbeddingInitializationError("EMBEDDING_ZHIPU_ZERO_VECTOR")
+        return [value / magnitude for value in numeric_vector]
 
 
 def create_embeddings(
@@ -110,6 +135,7 @@ def create_embeddings(
             api_key=zhipuai_api_key,
             model=zhipuai_model,
             dimensions=dimensions,
+            normalize=normalize,
         )
     else:
         raise EmbeddingConfigurationError("EMBEDDING_PROVIDER_INVALID: embedding_provider")
