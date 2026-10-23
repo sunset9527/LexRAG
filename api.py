@@ -77,6 +77,11 @@ from app.services.session_service import ConversationTurn, SessionNotFoundError,
 from app.services.usage_service import UsageService
 from app.tasks.document_tasks import process_document_task
 from config import get_project_root, settings, validate_security_settings
+from src.ingestion.index_identity import (
+    IndexIdentityError,
+    IndexIdentityMismatchError,
+    LegacyCollectionIdentityError,
+)
 from src.graph.law_graph import LawGraph
 from src.ingestion.annual_case_indexer import AnnualCaseIndexer
 from src.ingestion.case_ocr import count_pdf_pages
@@ -1118,6 +1123,23 @@ async def list_knowledge_base_laws(
                 end_article=end_article,
             )
         }
+    except IndexIdentityError as exc:
+        # The collection exists but cannot safely be read until it is rebuilt.
+        # Deliberately expose only a stable remediation code, never Chroma metadata.
+        error_code = (
+            LegacyCollectionIdentityError.code
+            if isinstance(exc, LegacyCollectionIdentityError)
+            else IndexIdentityMismatchError.code
+            if isinstance(exc, IndexIdentityMismatchError)
+            else "INDEX_IDENTITY_REBUILD_REQUIRED"
+        )
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": error_code,
+                "message": "知识库索引与当前嵌入配置不兼容，请重建后重试",
+            },
+        ) from exc
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

@@ -7,12 +7,18 @@ from types import SimpleNamespace
 
 import httpx
 import pytest
+from fastapi import HTTPException
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 import api
 from app.services.knowledge_base_service import KnowledgeBaseBusyError
+from src.ingestion.index_identity import (
+    IndexIdentityError,
+    IndexIdentityMismatchError,
+    LegacyCollectionIdentityError,
+)
 
 
 class FakeKnowledgeBaseService:
@@ -249,6 +255,41 @@ def test_list_laws_passes_catalog_range_to_the_service():
 
     assert response.status_code == 200
     assert response.json()["items"][0]["article_number"] == 463
+
+
+@pytest.mark.parametrize(
+    "identity_error,expected_code",
+    [
+        (LegacyCollectionIdentityError(), "INDEX_IDENTITY_LEGACY_REBUILD_REQUIRED"),
+        (IndexIdentityMismatchError(), "INDEX_IDENTITY_MISMATCH"),
+        (IndexIdentityError("E:\\private\\chroma-metadata"), "INDEX_IDENTITY_REBUILD_REQUIRED"),
+    ],
+)
+def test_list_laws_returns_a_safe_conflict_for_an_incompatible_collection(
+    identity_error, expected_code
+):
+    """浏览接口用 409 表示 collection 需重建，且不能泄漏底层存储细节。"""
+
+    class IdentityFailureService(FakeKnowledgeBaseService):
+        def list_law_articles(self, _slug, start_article=None, end_article=None):
+            raise identity_error
+
+    api.components["knowledge_base_service"] = IdentityFailureService()
+
+    with pytest.raises(HTTPException) as error:
+        handler = api.list_knowledge_base_laws(
+            slug="civil-code",
+            authorization_context=SimpleNamespace(
+                organization_id=1, can=lambda _permission: True
+            )
+        )
+        handler.send(None)
+
+    assert error.value.status_code == 409
+    assert error.value.detail == {
+        "code": expected_code,
+        "message": "知识库索引与当前嵌入配置不兼容，请重建后重试",
+    }
 
 
 def test_delete_knowledge_base_returns_no_content():

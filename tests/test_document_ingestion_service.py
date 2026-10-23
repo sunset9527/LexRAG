@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT))
 
 import app.models.document_job  # noqa: F401
 import app.models.knowledge_base  # noqa: F401
+import app.models.organization  # noqa: F401
 from app.db.base import Base
 from app.models.document_job import DocumentJob
 from app.models.document_page import DocumentPage
