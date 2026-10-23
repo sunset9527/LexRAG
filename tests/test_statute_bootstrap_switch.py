@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import sys
+from types import ModuleType, SimpleNamespace
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -286,3 +289,87 @@ def test_bootstrap_does_not_switch_when_verified_collection_lost_a_chunk():
     with factory() as session:
         item = session.query(KnowledgeBase).filter_by(slug="civil-code").one()
         assert item.collection_name == "law_articles"
+        assert item.status == "READY"
+
+
+def test_bootstrap_claim_rejects_a_contender_before_a_second_candidate_write():
+    """The committed INDEXING claim lets only one rebuild write a Chroma candidate."""
+    from app.services.knowledge_base_service import KnowledgeBaseBusyError
+    from src.ingestion.statute_catalog import StatuteIndexIdentity
+
+    factory, service_class = _service_with_legacy_default_collection()
+    identity = StatuteIndexIdentity("civil-code", "a" * 64, "b" * 64, 1)
+    store = _CollectionStore()
+    built_collections: list[str] = []
+    contender_errors: list[Exception] = []
+    contender_attempted = False
+    service = None
+
+    def indexer_factory(collection_name):
+        class Indexer:
+            def rebuild_index(self, chunks):
+                nonlocal contender_attempted
+                built_collections.append(collection_name)
+                if not contender_attempted:
+                    contender_attempted = True
+                    try:
+                        service.rebuild_bootstrap_statute(
+                            "civil-code", content="new text", identity=identity
+                        )
+                    except KnowledgeBaseBusyError as error:
+                        contender_errors.append(error)
+                        with factory() as session:
+                            current = (
+                                session.query(KnowledgeBase).filter_by(slug="civil-code").one()
+                            )
+                            assert current.collection_name == "law_articles"
+                            assert current.status == "INDEXING"
+                store.collections[collection_name] = BootstrapCollectionCounts(
+                    article_count=1, chunk_count=len(chunks)
+                )
+                return len(chunks)
+
+        return Indexer()
+
+    from app.services.knowledge_base_service import BootstrapCollectionCounts
+
+    service = service_class(
+        factory,
+        parser=_Parser(),
+        chunker=_Chunker(),
+        indexer_factory=indexer_factory,
+        bootstrap_collection_verifier=store.verify,
+    )
+
+    result = service.rebuild_bootstrap_statute("civil-code", content="new text", identity=identity)
+
+    assert result["bootstrap_action"] == "rebuilt"
+    assert len(built_collections) == 1
+    assert len(contender_errors) == 1
+
+
+@pytest.mark.parametrize("corrupt_metadata", [object(), {"article_number": "2"}])
+def test_bootstrap_collection_verification_rejects_corrupt_chunk_metadata(
+    monkeypatch, corrupt_metadata
+):
+    """Every returned Chroma metadata record needs a nonempty article id."""
+    from app.services.knowledge_base_service import KnowledgeBaseService
+    from config import settings
+    from src.ingestion.index_identity import collection_identity_from_settings
+    from src.ingestion.statute_catalog import StatuteIndexIdentity
+
+    embedding_identity = collection_identity_from_settings(settings)
+    collection = SimpleNamespace(
+        metadata=embedding_identity.collection_metadata(),
+        count=lambda: 2,
+        get=lambda **_kwargs: {"metadatas": [{"article_id": "民法典第1条"}, corrupt_metadata]},
+    )
+    client = SimpleNamespace(get_collection=lambda _name: collection)
+    fake_chromadb = ModuleType("chromadb")
+    fake_chromadb.PersistentClient = lambda **_kwargs: client
+    monkeypatch.setitem(sys.modules, "chromadb", fake_chromadb)
+    identity = StatuteIndexIdentity(
+        "civil-code", "a" * 64, embedding_identity.fingerprint, embedding_identity.schema_version
+    )
+
+    assert KnowledgeBaseService._verify_bootstrap_collection(identity.collection_name, identity) is None

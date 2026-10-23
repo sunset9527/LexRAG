@@ -1,12 +1,12 @@
 """知识库注册表的业务服务。"""
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
-from sqlalchemy import or_, select
+from sqlalchemy import or_, select, update
 from sqlalchemy.orm import Session
 
 from app.models.knowledge_base import KnowledgeBase
@@ -284,44 +284,70 @@ class KnowledgeBaseService:
                 raise KnowledgeBaseBusyError(f"知识库正在重建: {slug}")
             old_collection = knowledge_base.collection_name
             name = knowledge_base.name
-
-        articles = self._parser.parse_law_content(content, name)
-        chunks = self._chunker.chunk_articles(articles)
-        candidate_collection = (
-            self._candidate_collection_name(expected_collection)
-            if old_collection == expected_collection
-            else expected_collection
-        )
-        indexed_count = self._indexer_factory(candidate_collection).rebuild_index(chunks)
-        candidate_counts = self._bootstrap_collection_verifier(candidate_collection, identity)
-        if (
-            candidate_counts is None
-            or candidate_counts.article_count != len(articles)
-            or candidate_counts.chunk_count != len(chunks)
-            or candidate_counts.chunk_count != indexed_count
-        ):
-            # Do not delete the failed candidate automatically.  It is evidence for
-            # recovery, and the old active pointer remains untouched.
-            raise BootstrapCollectionVerificationError("BOOTSTRAP_COLLECTION_VERIFICATION_FAILED")
-
-        with self._session_factory() as session:
-            knowledge_base = self._get_by_slug(session, slug)
-            if knowledge_base.collection_name != old_collection:
-                raise KnowledgeBaseBusyError("知识库版本已被其他 bootstrap 操作切换，请重新检查")
-            knowledge_base.collection_name = candidate_collection
-            knowledge_base.status = "READY"
-            knowledge_base.document_count = len(articles)
-            knowledge_base.chunk_count = indexed_count
-            knowledge_base.source_hash = identity.source_hash
-            knowledge_base.embedding_fingerprint = identity.embedding_fingerprint
-            knowledge_base.index_schema_version = identity.index_schema_version
-            knowledge_base.last_indexed_at = datetime.now()
-            knowledge_base.error_message = None
+            previous_status = knowledge_base.status
+            previous_error_message = knowledge_base.error_message
+            claim = session.execute(
+                update(KnowledgeBase)
+                .where(
+                    KnowledgeBase.slug == slug,
+                    KnowledgeBase.collection_name == old_collection,
+                    KnowledgeBase.status != "INDEXING",
+                )
+                .values(status="INDEXING", error_message=None)
+            )
             session.commit()
-            session.refresh(knowledge_base)
-            result = self._serialize(knowledge_base)
-            result["bootstrap_action"] = "rebuilt"
-            return result
+            if claim.rowcount != 1:
+                raise KnowledgeBaseBusyError(f"知识库正在重建: {slug}")
+
+        try:
+            articles = self._parser.parse_law_content(content, name)
+            chunks = self._chunker.chunk_articles(articles)
+            candidate_collection = (
+                self._candidate_collection_name(expected_collection)
+                if old_collection == expected_collection
+                else expected_collection
+            )
+            indexed_count = self._indexer_factory(candidate_collection).rebuild_index(chunks)
+            candidate_counts = self._bootstrap_collection_verifier(candidate_collection, identity)
+            if (
+                candidate_counts is None
+                or candidate_counts.article_count != len(articles)
+                or candidate_counts.chunk_count != len(chunks)
+                or candidate_counts.chunk_count != indexed_count
+            ):
+                # Do not delete the failed candidate automatically.  It is evidence for
+                # recovery, and the old active pointer remains untouched.
+                raise BootstrapCollectionVerificationError("BOOTSTRAP_COLLECTION_VERIFICATION_FAILED")
+
+            with self._session_factory() as session:
+                knowledge_base = self._get_by_slug(session, slug)
+                if (
+                    knowledge_base.collection_name != old_collection
+                    or knowledge_base.status != "INDEXING"
+                ):
+                    raise KnowledgeBaseBusyError("知识库版本已被其他 bootstrap 操作切换，请重新检查")
+                knowledge_base.collection_name = candidate_collection
+                knowledge_base.status = "READY"
+                knowledge_base.document_count = len(articles)
+                knowledge_base.chunk_count = indexed_count
+                knowledge_base.source_hash = identity.source_hash
+                knowledge_base.embedding_fingerprint = identity.embedding_fingerprint
+                knowledge_base.index_schema_version = identity.index_schema_version
+                knowledge_base.last_indexed_at = datetime.now()
+                knowledge_base.error_message = None
+                session.commit()
+                session.refresh(knowledge_base)
+                result = self._serialize(knowledge_base)
+                result["bootstrap_action"] = "rebuilt"
+                return result
+        except Exception:
+            self._restore_bootstrap_claim(
+                slug,
+                old_collection,
+                previous_status=previous_status,
+                previous_error_message=previous_error_message,
+            )
+            raise
 
     @staticmethod
     def _candidate_collection_name(expected_collection: str) -> str:
@@ -486,12 +512,38 @@ class KnowledgeBaseService:
 
         # Chroma's count is authoritative for chunks; the metadata read proves
         # that every stored chunk remains attributable to an article.
-        if len(metadata) != chunk_count:
+        if not isinstance(metadata, list) or len(metadata) != chunk_count:
             return None
-        article_ids = {item.get("article_id") for item in metadata if item.get("article_id")}
-        if chunk_count and not article_ids:
-            return None
+        article_ids: set[str] = set()
+        for item in metadata:
+            if not isinstance(item, Mapping):
+                return None
+            article_id = item.get("article_id")
+            if not isinstance(article_id, str) or not article_id.strip():
+                return None
+            article_ids.add(article_id)
         return BootstrapCollectionCounts(article_count=len(article_ids), chunk_count=chunk_count)
+
+    def _restore_bootstrap_claim(
+        self,
+        slug: str,
+        old_collection: str,
+        *,
+        previous_status: str,
+        previous_error_message: str | None,
+    ) -> None:
+        """Release only this rebuild's claim; never overwrite a newer pointer."""
+        with self._session_factory() as session:
+            session.execute(
+                update(KnowledgeBase)
+                .where(
+                    KnowledgeBase.slug == slug,
+                    KnowledgeBase.collection_name == old_collection,
+                    KnowledgeBase.status == "INDEXING",
+                )
+                .values(status=previous_status, error_message=previous_error_message)
+            )
+            session.commit()
 
     @staticmethod
     def _delete_collection(collection_name: str) -> None:
