@@ -1,5 +1,5 @@
 # Docker 部署 — LexRAG 法律知识增强检索系统
-# 多阶段构建：API 服务 + Streamlit 前端
+# 多阶段构建：API 服务
 
 FROM python:3.13-slim AS base
 
@@ -39,6 +39,7 @@ COPY init.py .
 COPY alembic.ini .
 COPY alembic/ ./alembic/
 COPY data/ ./data/
+COPY scripts/bootstrap_runtime.py ./scripts/bootstrap_runtime.py
 
 RUN useradd --create-home --shell /bin/bash appuser && \
     chown -R appuser:appuser /app
@@ -50,31 +51,3 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
-
-# ==================== Streamlit 前端 ====================
-FROM dependencies AS frontend
-
-COPY config.py .
-COPY src/ ./src/
-COPY main.py .
-COPY api.py .
-COPY alembic.ini .
-COPY alembic/ ./alembic/
-COPY data/ ./data/
-
-RUN useradd --create-home --shell /bin/bash appuser && \
-    chown -R appuser:appuser /app
-USER appuser
-
-EXPOSE 8501
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:8501/_stcore/health || exit 1
-
-CMD ["streamlit", "run", "main.py", \
-     "--server.port=8501", \
-     "--server.address=0.0.0.0", \
-     "--server.headless=true", \
-     "--browser.gatherUsageStats=false", \
-     "--server.enableCORS=false", \
-     "--server.enableXsrfProtection=false"]

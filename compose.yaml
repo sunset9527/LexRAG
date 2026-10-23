@@ -1,7 +1,6 @@
-# Stage 3 authoritative runtime topology.  It is intentionally separate from
-# the legacy docker-compose*.yml files while they remain available for
-# historical development workflows.  Start it with an isolated project name,
-# for example: docker compose --env-file .env.docker --project-name lexrag-stage3 up --build
+# Stage 3 authoritative runtime topology. Start it with an isolated project
+# name, for example:
+# docker compose --env-file .env.docker --project-name lexrag-stage3 up --build
 
 x-runtime-environment: &runtime-environment
   APP_MODE: production
@@ -141,6 +140,25 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
+    networks: [lexrag_private]
+
+  # MCP uses stdio and is excluded from a normal `docker compose up`.
+  # Enable deliberately with `--profile mcp`; it has no network port.
+  mcp:
+    build:
+      context: .
+      target: api
+    profiles: ["mcp"]
+    command: python -m app.mcp_server
+    environment:
+      <<: *runtime-environment
+      MCP_DEMO_USER_ID: ${MCP_DEMO_USER_ID:?set MCP_DEMO_USER_ID}
+      MCP_DEMO_ORGANIZATION_ID: ${MCP_DEMO_ORGANIZATION_ID:?set MCP_DEMO_ORGANIZATION_ID}
+    volumes: *runtime-volumes
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    restart: "no"
     networks: [lexrag_private]
 
   web:

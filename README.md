@@ -160,7 +160,7 @@ LexRAG/
 ├─ scripts/               # 质量门禁、处理与评测脚本
 ├─ tests/                 # 当前 Stage 2 质量基线收集 300 项后端自动化测试
 ├─ infra/                 # Prometheus / Grafana 配置
-└─ docker-compose.v3.yml  # 本机企业化演示编排
+└─ compose.yaml           # 唯一的 Docker 运行编排（迁移、bootstrap、API、Worker、Web）
 ```
 
 ## 设计边界
