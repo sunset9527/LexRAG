@@ -2,18 +2,23 @@
 
 import asyncio
 import json
+from threading import Event
 
+import pytest
 from langgraph.graph.state import CompiledStateGraph
 
+from src.retrieval.multi_knowledge_base_retriever import (
+    MultiKnowledgeBaseLawRetriever,
+    ScopedRetrievalResult,
+)
 from src.workflow import legal_evidence_workflow as workflow_module
 from src.workflow.evidence import CitationVerifier, EvidenceItem, EvidenceLedger
 from src.workflow.legal_evidence_workflow import (
     LegalEvidenceWorkflow,
+    QueryCancelled,
     QueryEnhancedLawRetriever,
     RouteDecision,
 )
-from src.retrieval.multi_knowledge_base_retriever import ScopedRetrievalResult
-from src.retrieval.multi_knowledge_base_retriever import MultiKnowledgeBaseLawRetriever
 
 
 def statute(
@@ -96,6 +101,21 @@ def test_citation_verifier_returns_source_text_and_deduplicates_repeated_citatio
     assert result.status == "pass"
     assert len(result.citations) == 1
     assert result.citations[0].original_text == "禁止从建筑物中抛掷物品。"
+
+
+def test_citation_verifier_keeps_safe_source_and_retrieval_path_metadata():
+    source = statute(retrieval_path="vector")
+    source.retrieval_paths.add("graph")
+    ledger = EvidenceLedger([source])
+
+    result = CitationVerifier().verify(
+        "依据【中华人民共和国民法典第1254条】处理。",
+        ledger,
+        knowledge_base_slug="civil-code",
+    )
+
+    assert result.citations[0].source_type == "statute"
+    assert result.citations[0].retrieval_paths == ["graph", "vector"]
 
 
 def test_citation_verifier_normalizes_article_subsection_notation():
@@ -617,6 +637,60 @@ def test_case_and_graph_results_are_recorded_in_evidence_ledger_when_routed():
     )
 
 
+def test_statute_and_case_retrieval_start_concurrently_when_both_are_routed():
+    statute_started = Event()
+    case_started = Event()
+    case_evidence = EvidenceItem(
+        source_id="case-1",
+        source_type="case",
+        knowledge_base_slug="annual-cases",
+        law_name="",
+        article_id="",
+        content="高空抛物案件裁判摘要",
+        score=0.7,
+        retrieval_path="case",
+    )
+
+    class LawRetriever:
+        def retrieve(self, query, top_k=5):
+            statute_started.set()
+            assert case_started.wait(timeout=0.2), "案例检索未与法规检索并行启动"
+            return [statute()]
+
+    class CaseRetriever:
+        def retrieve(self, query, top_k=3):
+            case_started.set()
+            assert statute_started.wait(timeout=0.2), "法规检索未与案例检索并行启动"
+            return [case_evidence]
+
+    workflow = LegalEvidenceWorkflow(
+        law_retriever=LawRetriever(),
+        case_retriever=CaseRetriever(),
+        router=lambda question: RouteDecision(include_case=True),
+        answer_generator=lambda question, evidence, issues=None: (
+            "依据【中华人民共和国民法典第1254条】，应当依法调查责任主体。"
+        ),
+    )
+
+    emitted_events = []
+    result = workflow.invoke(
+        "高空抛物与案件裁判",
+        knowledge_base_slug="civil-code",
+        event_sink=emitted_events.append,
+    )
+
+    assert result.verification_status == "pass"
+    assert result.metadata["evidence_count"] == 2
+    assert [
+        event["node"]
+        for event in result.metadata["workflow_trace"]
+        if event["node"] in {"statute_retrieval", "case_retrieval"}
+    ] == ["statute_retrieval", "case_retrieval"]
+    assert [event["node"] for event in emitted_events] == [
+        event["node"] for event in result.metadata["workflow_trace"]
+    ]
+
+
 def test_graph_expansion_is_limited_to_one_hop_and_the_seed_law():
     class GraphRetriever:
         def __init__(self):
@@ -656,7 +730,7 @@ def test_graph_expansion_is_limited_to_one_hop_and_the_seed_law():
         answer_generator=answer_generator,
     )
 
-    result = workflow.query("高空抛物责任", knowledge_base_slug="civil-code")
+    workflow.query("高空抛物责任", knowledge_base_slug="civil-code")
 
     assert graph_retriever.calls == [("1254", 1)]
     assert [item.article_id for item in captured_evidence if item.source_type == "graph"] == ["1254"]
@@ -743,3 +817,46 @@ def test_astream_events_exposes_only_safe_structural_node_events():
     assert all("input" not in event for event in events)
     assert all("output" not in event for event in events)
     assert all("metadata" not in event for event in events)
+
+
+def test_invoke_emits_the_same_safe_node_trace_without_running_the_graph_twice():
+    workflow = LegalEvidenceWorkflow(
+        law_retriever=FakeLawRetriever(),
+        answer_generator=lambda question, evidence, issues=None: (
+            "依据【中华人民共和国民法典第1254条】，应当依法调查责任主体。"
+        ),
+    )
+    events = []
+
+    result = workflow.invoke(
+        "私人案情 SECRET-DO-NOT-LEAK",
+        knowledge_base_slug="civil-code",
+        event_sink=events.append,
+    )
+
+    assert result.verification_status == "pass"
+    assert [event["node"] for event in events] == [
+        event["node"] for event in result.metadata["workflow_trace"]
+    ]
+    assert all("SECRET-DO-NOT-LEAK" not in str(event) for event in events)
+
+
+def test_invoke_stops_before_the_next_node_when_cancellation_is_requested():
+    cancelled = False
+
+    def event_sink(_event):
+        nonlocal cancelled
+        cancelled = True
+
+    workflow = LegalEvidenceWorkflow(
+        law_retriever=FakeLawRetriever(),
+        answer_generator=lambda *_args: (_ for _ in ()).throw(AssertionError("must not answer")),
+    )
+
+    with pytest.raises(QueryCancelled):
+        workflow.invoke(
+            "第1254条规定什么？",
+            knowledge_base_slug="civil-code",
+            event_sink=event_sink,
+            is_cancel_requested=lambda: cancelled,
+        )

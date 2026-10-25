@@ -63,7 +63,7 @@ def classify_rate_limit(method: str, path: str) -> str | None:
     method = method.upper()
     if method == "POST" and path in {"/auth/login", "/auth/register"}:
         return "auth"
-    if method == "POST" and path == "/query":
+    if method == "POST" and path in {"/query", "/query-runs"}:
         return "query"
     if method == "POST" and (
         path == "/upload"

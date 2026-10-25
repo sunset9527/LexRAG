@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
-import { setRuntimeApiKey } from '@/security/runtimeCredentials'
+import { clearRuntimeCredentials, setRuntimeApiKey } from '@/security/runtimeCredentials'
 
 export interface LLMProvider {
   key: string
@@ -44,6 +44,11 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
+  function clearApiKey() {
+    apiKey.value = ''
+    clearRuntimeCredentials()
+  }
+
   return {
     provider,
     model,
@@ -51,5 +56,6 @@ export const useSettingsStore = defineStore('settings', () => {
     baseUrl,
     currentProvider,
     switchProvider,
+    clearApiKey,
   }
 })

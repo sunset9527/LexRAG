@@ -35,6 +35,7 @@ def test_limiter_bounds_its_in_memory_key_space():
         ("POST", "/auth/login", "auth"),
         ("POST", "/auth/register", "auth"),
         ("POST", "/query", "query"),
+        ("POST", "/query-runs", "query"),
         ("POST", "/document-libraries/contracts/documents", "upload"),
         ("POST", "/documents/job-1/retry", "retry"),
         ("PUT", "/admin/agent-config", "admin_write"),

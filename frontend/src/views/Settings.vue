@@ -10,6 +10,7 @@
           <el-button type="primary" size="small" @click="saveLLMSettings" :loading="savingLLM">
             💾 保存设置
           </el-button>
+          <el-button size="small" @click="clearApiKey">清除本次 API Key</el-button>
         </div>
       </template>
 
@@ -158,6 +159,12 @@ function saveLLMSettings() {
     savingLLM.value = false
     ElMessage.success('LLM 设置已保存，下次请求生效')
   }, 300)
+}
+
+function clearApiKey() {
+  settingsStore.clearApiKey()
+  draftApiKey.value = ''
+  ElMessage.success('本次会话的 API Key 已清除')
 }
 
 // ========== Prompt 管理 ==========

@@ -270,6 +270,14 @@ def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypa
         def __init__(self, **_kwargs):
             self.vectorstore = object()
 
+    class FakeRuntimeRegistry:
+        def __init__(self):
+            self.collections = []
+
+        def get_or_create(self, collection_name, factory):
+            self.collections.append(collection_name)
+            return factory()
+
     class FakeWorkflow:
         def __init__(self, **_kwargs):
             pass
@@ -281,6 +289,8 @@ def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypa
             knowledge_base_slugs,
             conversation_context,
             request_context,
+            event_sink=None,
+            is_cancel_requested=None,
         ):
             observed.update(
                 {
@@ -288,19 +298,37 @@ def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypa
                     "knowledge_base_slugs": knowledge_base_slugs,
                     "conversation_context": conversation_context,
                     "request_context": request_context,
+                    "event_sink": event_sink,
+                    "is_cancel_requested": is_cancel_requested,
                 }
             )
             return SimpleNamespace(
                 query=question,
                 answer="合同成立需符合要约与承诺等条件。",
                 intent="law_query",
-                citations=[],
+                citations=[
+                    SimpleNamespace(
+                        article_id="第490条",
+                        citation_text="【中华人民共和国民法典第490条】",
+                        original_text="当事人采用合同书形式订立合同的，自当事人均签名、盖章或者按指印时合同成立。",
+                        is_verified=True,
+                        knowledge_base_slug="civil-code",
+                        version_id=None,
+                        effective_from=None,
+                        effective_to=None,
+                        source_url=None,
+                        content_hash=None,
+                        source_type="statute",
+                        retrieval_paths=["vector", "graph"],
+                    )
+                ],
                 verification_status="pass",
                 verification_issues=[],
                 sub_questions=[],
                 metadata={},
             )
 
+    runtime_registry = FakeRuntimeRegistry()
     monkeypatch.setattr(
         api,
         "components",
@@ -311,6 +339,7 @@ def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypa
             "case_retriever": None,
             "graph_retriever": None,
             "query_rewriter": None,
+            "query_runtime_registry": runtime_registry,
         },
     )
     monkeypatch.setattr(api, "LawIndexer", FakeIndexer)
@@ -338,6 +367,8 @@ def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypa
 
     assert response.status_code == 200
     assert response.json()["answer"] == "合同成立需符合要约与承诺等条件。"
+    assert response.json()["citations"][0]["source_type"] == "statute"
+    assert response.json()["citations"][0]["retrieval_paths"] == ["vector", "graph"]
     assert observed == {
         "question": "合同成立需要满足哪些条件？",
         "knowledge_base_slugs": ["civil-code"],
@@ -348,7 +379,10 @@ def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypa
             "session_id": "session-1",
             "model_id": api.settings.deepseek_model,
         },
+        "event_sink": None,
+        "is_cancel_requested": None,
     }
+    assert runtime_registry.collections == ["kb_civil_code"]
 
 
 def test_only_verified_evidence_workflow_results_are_cacheable():
@@ -362,3 +396,34 @@ def test_only_verified_evidence_workflow_results_are_cacheable():
     assert not api.is_cacheable_query_result(
         {"verification_status": "pass", "metadata": {"cacheable": False}}
     )
+
+
+def test_workflow_invocation_runs_in_a_worker_thread(monkeypatch):
+    """同步 LangGraph 调用不能占用处理 SSE 的事件循环线程。"""
+
+    observed = {}
+
+    class Workflow:
+        def invoke(self, question, **kwargs):
+            return {"question": question, "kwargs": kwargs}
+
+    async def fake_to_thread(function, *args, **kwargs):
+        observed.update({"function": function, "args": args, "kwargs": kwargs})
+        return function(*args, **kwargs)
+
+    monkeypatch.setattr(api.asyncio, "to_thread", fake_to_thread)
+
+    result = asyncio.run(
+        api.invoke_workflow_in_worker(
+            Workflow(),
+            "成年人多大",
+            knowledge_base_slugs=["civil-code"],
+            conversation_context=[],
+            request_context={"user_id": 7},
+        )
+    )
+
+    assert observed["function"].__name__ == "invoke"
+    assert observed["args"] == ("成年人多大",)
+    assert observed["kwargs"]["knowledge_base_slugs"] == ["civil-code"]
+    assert result["question"] == "成年人多大"

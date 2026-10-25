@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator, Callable, Iterable, Mapping, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from time import perf_counter
 from typing import Any, TypedDict
@@ -16,6 +17,10 @@ from .evidence import CitationVerifier, EvidenceItem, EvidenceLedger, VerifiedCi
 EVIDENCE_INSUFFICIENT_ANSWER = (
     "现有证据不足以支持可靠结论。请补充事实、选择相关知识库，或咨询专业律师。"
 )
+
+
+class QueryCancelled(RuntimeError):
+    """调用方已离开或显式取消，工作流应在节点边界停止。"""
 
 WORKFLOW_NODE_NAMES = frozenset(
     {
@@ -98,6 +103,7 @@ class LegalWorkflowState(TypedDict, total=False):
     cacheable: bool
     case_retriever_available: bool
     graph_retriever_available: bool
+    case_retrieval_completed: bool
 
 
 class QueryEnhancedLawRetriever:
@@ -347,7 +353,7 @@ def _routing_node(
         }
 
 
-def _statute_retrieval_node(
+def _statute_retrieval_once(
     state: LegalWorkflowState, runtime: Runtime[WorkflowRuntimeContext]
 ) -> dict[str, Any]:
     started = perf_counter()
@@ -374,6 +380,43 @@ def _statute_retrieval_node(
                 state, "statute_retrieval", "degraded", started, reason=reason
             ),
         }
+
+
+def _statute_retrieval_node(
+    state: LegalWorkflowState, runtime: Runtime[WorkflowRuntimeContext]
+) -> dict[str, Any]:
+    """法规必跑；路由需要案例时与独立案例库并行检索。"""
+    decision = state.get("route_decision", RouteDecision())
+    if not (decision.include_case and state.get("case_retriever_available", False)):
+        return _statute_retrieval_once(state, runtime)
+
+    with ThreadPoolExecutor(max_workers=2, thread_name_prefix="lexrag-retrieval") as executor:
+        statute_future = executor.submit(_statute_retrieval_once, state, runtime)
+        case_future = executor.submit(_case_retrieval_node, state, runtime)
+        statute_update = statute_future.result()
+        case_update = case_future.result()
+
+    base_trace = state.get("trace", [])
+    base_reasons = state.get("degradation_reasons", [])
+    result: dict[str, Any] = {
+        "statute_evidence": statute_update.get("statute_evidence", []),
+        "case_evidence": case_update.get("case_evidence", []),
+        "case_retrieval_completed": True,
+        "trace": [
+            *base_trace,
+            *statute_update.get("trace", [])[len(base_trace) :],
+            *case_update.get("trace", [])[len(base_trace) :],
+        ],
+    }
+    degradation_reasons = [
+        *base_reasons,
+        *statute_update.get("degradation_reasons", [])[len(base_reasons) :],
+        *case_update.get("degradation_reasons", [])[len(base_reasons) :],
+    ]
+    if statute_update.get("degraded") or case_update.get("degraded"):
+        result["degraded"] = True
+        result["degradation_reasons"] = degradation_reasons
+    return result
 
 
 def _case_retrieval_node(
@@ -575,7 +618,11 @@ def _evidence_insufficient_node(state: LegalWorkflowState) -> dict[str, Any]:
 
 def _after_statute_retrieval(state: LegalWorkflowState) -> str:
     decision = state.get("route_decision", RouteDecision())
-    if decision.include_case and state.get("case_retriever_available", False):
+    if (
+        decision.include_case
+        and state.get("case_retriever_available", False)
+        and not state.get("case_retrieval_completed", False)
+    ):
         return "case_retrieval"
     if (
         decision.include_graph
@@ -709,17 +756,36 @@ class LegalEvidenceWorkflow:
         knowledge_base_slugs: Sequence[str] | None = None,
         conversation_context: Sequence[Mapping[str, Any]] | None = None,
         request_context: Mapping[str, Any] | None = None,
+        event_sink: Callable[[dict[str, Any]], None] | None = None,
+        is_cancel_requested: Callable[[], bool] | None = None,
     ) -> EvidenceWorkflowResult:
         runtime_context = self._runtime_context_for(request_context)
-        final_state = self.graph.invoke(
-            self._initial_state(
-                question,
-                knowledge_base_slug=knowledge_base_slug,
-                knowledge_base_slugs=knowledge_base_slugs,
-                conversation_context=conversation_context,
-            ),
-            context=runtime_context,
+        initial_state = self._initial_state(
+            question,
+            knowledge_base_slug=knowledge_base_slug,
+            knowledge_base_slugs=knowledge_base_slugs,
+            conversation_context=conversation_context,
         )
+        if event_sink is None:
+            if is_cancel_requested and is_cancel_requested():
+                raise QueryCancelled()
+            final_state = self.graph.invoke(initial_state, context=runtime_context)
+            return self._result_from_state(final_state)
+
+        final_state = dict(initial_state)
+        for update in self.graph.stream(initial_state, context=runtime_context, stream_mode="updates"):
+            for node_update in update.values():
+                if not isinstance(node_update, Mapping):
+                    continue
+                previous_trace = final_state.get("trace", [])
+                final_state.update(node_update)
+                trace = node_update.get("trace")
+                if isinstance(trace, list) and trace:
+                    for trace_event in trace[len(previous_trace) :]:
+                        if isinstance(trace_event, Mapping):
+                            event_sink(dict(trace_event))
+            if is_cancel_requested and is_cancel_requested():
+                raise QueryCancelled()
         return self._result_from_state(final_state)
 
     def query(
@@ -889,6 +955,7 @@ class LegalEvidenceWorkflow:
             "cacheable": False,
             "case_retriever_available": self.runtime_context.case_retriever is not None,
             "graph_retriever_available": self.runtime_context.graph_retriever is not None,
+            "case_retrieval_completed": False,
         }
 
     @staticmethod

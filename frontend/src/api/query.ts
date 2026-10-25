@@ -2,6 +2,9 @@
  * 法律问答 API
  */
 import client from './client'
+import { buildQueryRunEventsUrl, parseEventPayload } from './sseProtocol'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
 export interface QueryRequest {
   query: string
@@ -22,6 +25,8 @@ export interface Citation {
   source_url?: string
   content_hash?: string
   knowledge_base_slug?: string
+  source_type?: string
+  retrieval_paths?: string[]
 }
 
 export interface WorkflowTraceEvent {
@@ -82,6 +87,31 @@ export interface QueryResponse {
   metadata: WorkflowMetadata
 }
 
+export interface QueryRunAccepted {
+  query_id: string
+}
+
+export interface QueryRunStageEvent {
+  stage: string
+  status: 'completed' | 'degraded' | 'failed' | 'skipped'
+  duration_ms?: number
+  input_count?: number
+  output_count?: number
+  reason?: string
+}
+
+export interface QueryRunCompletedEvent {
+  response: Omit<QueryResponse, 'query'>
+}
+
+export interface QueryRunSubscriptionHandlers {
+  onStage?: (event: QueryRunStageEvent) => void
+  onCompleted?: (event: QueryRunCompletedEvent) => void
+  onCancelled?: () => void
+  onFailed?: (code: string) => void
+  onConnectionError?: () => void
+}
+
 export interface LawDocument {
   content: string
   law_name: string
@@ -97,6 +127,32 @@ export interface GraphData {
 export const queryApi = {
   ask(data: QueryRequest): Promise<QueryResponse> {
     return client.post('/query', data).then((r) => r.data)
+  },
+
+  createRun(data: QueryRequest): Promise<QueryRunAccepted> {
+    return client.post('/query-runs', data).then((r) => r.data)
+  },
+
+  subscribeToRun(queryId: string, handlers: QueryRunSubscriptionHandlers): () => void {
+    const source = new EventSource(buildQueryRunEventsUrl(API_BASE_URL, queryId), {
+      withCredentials: true,
+    })
+    const listen = <T>(eventName: string, handler?: (payload: T) => void) => {
+      source.addEventListener(eventName, (event) => {
+        const payload = parseEventPayload((event as MessageEvent<string>).data) as T | null
+        if (payload) handler?.(payload)
+      })
+    }
+    listen<QueryRunStageEvent>('stage_completed', handlers.onStage)
+    listen<QueryRunCompletedEvent>('completed', handlers.onCompleted)
+    source.addEventListener('cancelled', () => handlers.onCancelled?.())
+    listen<{ code?: string }>('failed', (event) => handlers.onFailed?.(event.code || 'QUERY_FAILED'))
+    source.onerror = () => handlers.onConnectionError?.()
+    return () => source.close()
+  },
+
+  cancelRun(queryId: string): Promise<{ query_id: string; cancelled: boolean }> {
+    return client.post(`/query-runs/${encodeURIComponent(queryId)}/cancel`).then((r) => r.data)
   },
 
   uploadLaw(data: LawDocument): Promise<any> {

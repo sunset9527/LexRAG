@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { queryApi, type QueryResponse, type Citation, type VersionSelection, type WorkflowTraceEvent } from '@/api/query'
+import { queryApi, type QueryResponse, type Citation, type VersionSelection, type WorkflowTraceEvent, type QueryRunStageEvent } from '@/api/query'
 import { sessionsApi, type Recommendation, type SessionSummary } from '@/api/sessions'
 
 export interface KnowledgeBaseRouteCandidate {
@@ -36,6 +36,10 @@ export const useChatStore = defineStore('chat', () => {
   const currentSessionId = ref<string | null>(null)
   const sessions = ref<SessionSummary[]>([])
   const recommendations = ref<Recommendation[]>([])
+  const activeQueryId = ref<string | null>(null)
+  const activeStages = ref<QueryRunStageEvent[]>([])
+  const activeRunStartedAt = ref<number | null>(null)
+  const streamStatus = ref<'idle' | 'running' | 'reconnecting' | 'cancelled'>('idle')
 
   function generateId(): string {
     return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
@@ -52,13 +56,39 @@ export const useChatStore = defineStore('chat', () => {
     messages.value.push(userMsg)
 
     isLoading.value = true
+    activeRunStartedAt.value = Date.now()
 
     try {
-      const res: QueryResponse = await queryApi.ask({
+      const accepted = await queryApi.createRun({
         query: question,
         session_id: currentSessionId.value || undefined,
         knowledge_base_ids: knowledgeBaseIds?.length ? knowledgeBaseIds : undefined,
         case_date: caseDate || undefined,
+      })
+      activeQueryId.value = accepted.query_id
+      activeStages.value = []
+      streamStatus.value = 'running'
+
+      const res = await new Promise<Omit<QueryResponse, 'query'>>((resolve, reject) => {
+        const unsubscribe = queryApi.subscribeToRun(accepted.query_id, {
+          onStage: (event) => activeStages.value.push(event),
+          onCompleted: (event) => {
+            unsubscribe()
+            resolve(event.response)
+          },
+          onCancelled: () => {
+            unsubscribe()
+            streamStatus.value = 'cancelled'
+            reject(new Error('QUERY_CANCELLED'))
+          },
+          onFailed: (code) => {
+            unsubscribe()
+            reject(new Error(code))
+          },
+          onConnectionError: () => {
+            streamStatus.value = 'reconnecting'
+          },
+        })
       })
 
       // 保存 sessionId
@@ -89,6 +119,15 @@ export const useChatStore = defineStore('chat', () => {
       messages.value.push(assistantMsg)
       await loadSessions()
     } catch (error) {
+      if (error instanceof Error && error.message === 'QUERY_CANCELLED') {
+        messages.value.push({
+          id: generateId(),
+          role: 'assistant',
+          content: '已取消本次查询；系统未保存未完成回答。',
+          timestamp: Date.now(),
+        })
+        return
+      }
       const detail = (error as { response?: { data?: { detail?: unknown } } }).response?.data?.detail
       const clarification = detail && typeof detail === 'object'
         ? detail as { code?: string; message?: string; candidates?: unknown }
@@ -111,7 +150,15 @@ export const useChatStore = defineStore('chat', () => {
       messages.value.push(errorMsg)
     } finally {
       isLoading.value = false
+      activeQueryId.value = null
+      activeRunStartedAt.value = null
+      if (streamStatus.value !== 'cancelled') streamStatus.value = 'idle'
     }
+  }
+
+  async function cancelActiveQuery(): Promise<void> {
+    if (!activeQueryId.value) return
+    await queryApi.cancelRun(activeQueryId.value)
   }
 
   function clearMessages() {
@@ -178,7 +225,12 @@ export const useChatStore = defineStore('chat', () => {
     currentSessionId,
     sessions,
     recommendations,
+    activeQueryId,
+    activeStages,
+    activeRunStartedAt,
+    streamStatus,
     sendMessage,
+    cancelActiveQuery,
     clearMessages,
     loadSessions,
     loadSession,

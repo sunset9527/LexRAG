@@ -51,8 +51,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
-import * as echarts from 'echarts'
+import { init, use, type ECharts } from 'echarts/core'
+import { GraphChart } from 'echarts/charts'
+import { TooltipComponent } from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
 import { queryApi } from '@/api/query'
+
+use([GraphChart, TooltipComponent, CanvasRenderer])
 
 const chartRef = ref<HTMLElement>()
 const graphContainer = ref<HTMLElement>()
@@ -62,7 +67,7 @@ const selectedNode = ref<any>(null)
 const lawFilter = ref('')
 const graphLaws = ref<string[]>([])
 
-let chartInstance: echarts.ECharts | null = null
+let chartInstance: ECharts | null = null
 
 function buildGraphOption(graphData: any) {
   const nodes = graphData.nodes || []
@@ -144,7 +149,7 @@ function renderChart(data: any) {
   }
 
   if (!chartInstance) {
-    chartInstance = echarts.init(chartRef.value)
+    chartInstance = init(chartRef.value)
     chartInstance.on('click', (params: any) => {
       if (params.dataType === 'node') {
         selectedNode.value = params.data

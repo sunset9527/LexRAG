@@ -105,6 +105,8 @@ class VerifiedCitation:
     effective_to: str | None = None
     source_url: str | None = None
     content_hash: str | None = None
+    source_type: str | None = None
+    retrieval_paths: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -161,6 +163,8 @@ class CitationVerifier:
                 citation.effective_to = source.effective_to
                 citation.source_url = source.source_url
                 citation.content_hash = source.content_hash
+                citation.source_type = source.source_type
+                citation.retrieval_paths = sorted(source.retrieval_paths)
             elif same_article:
                 issues.append(f"引用法律名称不匹配：{citation.citation_text}")
             else:

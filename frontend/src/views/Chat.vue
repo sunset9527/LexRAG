@@ -112,6 +112,14 @@
           <div v-if="store.isLoading" class="typing-indicator">
             <span></span><span></span><span></span>
           </div>
+          <div v-if="store.isLoading" class="stream-progress">
+            <span>{{ store.streamStatus === 'reconnecting' ? '正在重新连接事件流…' : '正在处理法律咨询…' }}</span>
+            <span>已用 {{ activeElapsed }}</span>
+            <el-tag v-for="stage in store.activeStages" :key="`${stage.stage}-${stage.duration_ms}`" size="small">
+              {{ workflowNodeLabel(stage.stage) }} · {{ workflowEventLabel(stage.status) }}
+            </el-tag>
+            <el-button text type="danger" size="small" @click="store.cancelActiveQuery">取消</el-button>
+          </div>
         </div>
 
         <div class="input-area">
@@ -171,6 +179,8 @@
               {{ selectedCitation.is_verified ? '✅ 已校验' : '❌ 待核实' }}
             </el-tag>
             <p v-if="selectedCitation.knowledge_base_slug">知识库：{{ selectedCitation.knowledge_base_slug }}</p>
+            <p v-if="selectedCitation.source_type">来源类型：{{ selectedCitation.source_type }}</p>
+            <p v-if="selectedCitation.retrieval_paths?.length">检索路径：{{ selectedCitation.retrieval_paths.join('、') }}</p>
             <p v-if="selectedCitation.version_id">版本：{{ selectedCitation.version_id }}</p>
             <p v-if="selectedCitation.effective_from">生效：{{ selectedCitation.effective_from }}{{ selectedCitation.effective_to ? ` 至 ${selectedCitation.effective_to}` : ' 起' }}</p>
             <el-link v-if="selectedCitation.source_url" :href="selectedCitation.source_url" target="_blank" type="primary">查看法规来源</el-link>
@@ -191,7 +201,7 @@
 
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { knowledgeBaseApi, type KnowledgeBase } from '@/api/knowledgeBases'
 import { useRoute, useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
@@ -200,6 +210,7 @@ import type { VersionSelection } from '@/api/query'
 import { favoritesApi } from '@/api/favorites'
 import { ElMessage } from 'element-plus'
 import MarkdownIt from 'markdown-it'
+import { formatElapsedSeconds } from '@/utils/queryRunProgress'
 
 const route = useRoute()
 const router = useRouter()
@@ -214,6 +225,8 @@ const favoriteIds = ref<Record<string, number>>({})
 const favoriteLoading = ref<string | null>(null)
 const sessionQuery = ref('')
 const caseDate = ref('')
+const streamClock = ref(Date.now())
+let streamClockTimer: ReturnType<typeof setInterval> | undefined
 
 const md = new MarkdownIt({ breaks: true, linkify: true })
 
@@ -226,6 +239,23 @@ const examples = [
 const lastMessage = computed(() => {
   const msgs = store.messages
   return msgs.length ? msgs[msgs.length - 1] : null
+})
+
+const activeElapsed = computed(() => {
+  const startedAt = store.activeRunStartedAt
+  return startedAt ? formatElapsedSeconds(startedAt, streamClock.value) : '0 秒'
+})
+
+watch(() => store.isLoading, (isLoading) => {
+  if (streamClockTimer) clearInterval(streamClockTimer)
+  if (isLoading) {
+    streamClock.value = Date.now()
+    streamClockTimer = setInterval(() => { streamClock.value = Date.now() }, 1_000)
+  }
+})
+
+onUnmounted(() => {
+  if (streamClockTimer) clearInterval(streamClockTimer)
 })
 
 const latestCitations = computed(() => {
@@ -502,6 +532,7 @@ watch(() => store.messages.length, () => {
 .typing-indicator {
   display: flex; gap: 6px; padding: 12px 16px;
 }
+.stream-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 16px 12px; color: var(--text-secondary); font-size: 12px; }
 .typing-indicator span {
   width: 8px; height: 8px; border-radius: 50%; background: #c0c4cc; animation: bounce 1.4s infinite both;
 }

@@ -11,13 +11,14 @@ import os
 
 os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
 
+import asyncio
 import hashlib
 import json
 import logging
-import threading
 import time
 import uuid
-from contextlib import asynccontextmanager
+from collections.abc import Mapping
+from contextlib import asynccontextmanager, nullcontext
 from copy import deepcopy
 from datetime import date, datetime
 from pathlib import Path
@@ -35,6 +36,7 @@ from fastapi import (
     UploadFile,
 )
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from prometheus_client import make_asgi_app
 from pydantic import BaseModel, Field
 
@@ -72,6 +74,8 @@ from app.services.knowledge_base_service import KnowledgeBaseBusyError, Knowledg
 from app.services.langfuse_helper import create_llm, flush_langfuse
 from app.services.metrics import record_query_metrics
 from app.services.query_cache_service import QueryCacheService
+from app.services.query_event_store import QueryEvent, RedisQueryEventStore
+from app.services.query_runtime_registry import QueryRuntimeRegistry
 from app.services.query_version_service import QueryVersionService
 from app.services.readiness_probes import (
     RuntimeReadinessDependencies,
@@ -111,6 +115,7 @@ from src.retrieval.reranker import CrossEncoderReranker
 from src.utils.embedding_factory import create_embeddings
 from src.workflow.legal_evidence_workflow import (
     LegalEvidenceWorkflow,
+    QueryCancelled,
     QueryEnhancedLawRetriever,
     RouteDecision,
 )
@@ -188,6 +193,12 @@ class QueryResponse(BaseModel):
     metadata: dict[str, Any]
 
 
+class QueryRunAccepted(BaseModel):
+    """已受理的流式查询；会话 ID 仅在最终结果中返回。"""
+
+    query_id: str
+
+
 class UploadRequest(BaseModel):
     """上传请求"""
 
@@ -252,7 +263,6 @@ def _require_knowledge_base_access(
 # ==================== 全局组件 ====================
 
 components: dict[str, Any] = {}
-scoped_query_lock = threading.Lock()
 
 
 def is_cacheable_query_result(payload: dict[str, Any]) -> bool:
@@ -281,6 +291,7 @@ def record_query_observability(
         verification_status=verification_status,
         cache_hit=str(metadata.get("cache_hit", "none")),
         latency_ms=latency_ms,
+        workflow_trace=metadata.get("workflow_trace"),
     )
     if audit_service is None or usage_service is None:
         return
@@ -401,17 +412,20 @@ def initialize_components():
         case_ingestion_service = None
         annual_case_retriever = None
         query_cache_service = None
+        query_event_store = None
         query_version_service = None
         try:
             import redis
 
+            redis_client = redis.Redis.from_url(settings.redis_url, decode_responses=True)
             query_cache_service = QueryCacheService(
-                redis.Redis.from_url(settings.redis_url, decode_responses=True),
+                redis_client,
                 ttl_seconds=settings.query_cache_ttl_seconds,
                 semantic_threshold=settings.query_cache_semantic_threshold,
             )
+            query_event_store = RedisQueryEventStore(redis_client)
         except Exception as exc:
-            logger.warning("查询缓存初始化失败 error_type=%s", type(exc).__name__)
+            logger.warning("查询 Redis 服务初始化失败 error_type=%s", type(exc).__name__)
         if db_session.SessionLocal is not None:
             knowledge_base_service = KnowledgeBaseService(db_session.SessionLocal)
             query_version_service = QueryVersionService(
@@ -581,6 +595,8 @@ def initialize_components():
             "case_ingestion_service": case_ingestion_service,
             "annual_case_retriever": annual_case_retriever,
             "query_cache_service": query_cache_service,
+            "query_event_store": query_event_store,
+            "query_runtime_registry": QueryRuntimeRegistry(),
         }
 
         def check_graph() -> None:
@@ -1175,7 +1191,9 @@ async def rebuild_knowledge_base(
         raise HTTPException(status_code=503, detail="知识库服务未初始化")
     _require_knowledge_base_access(slug, authorization_context, manage=True)
     try:
-        return service.rebuild_knowledge_base(slug, content=request.content)
+        result = service.rebuild_knowledge_base(slug, content=request.content)
+        _invalidate_rebuilt_collection_runtime(result)
+        return result
     except IndexIdentityError as exc:
         # This in-place endpoint cannot safely repair a legacy/mismatched current
         # collection.  It has not rebuilt anything; callers need an explicit
@@ -1250,6 +1268,220 @@ async def delete_knowledge_base(
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+def _query_event_store() -> Any:
+    store = components.get("query_event_store")
+    if store is None:
+        raise HTTPException(status_code=503, detail="查询事件服务未初始化")
+    return store
+
+
+def _invalidate_rebuilt_collection_runtime(result: Mapping[str, Any]) -> None:
+    """丢弃刚被原地重建的 collection 的只读检索器缓存。"""
+    collection_name = result.get("collection_name")
+    registry = components.get("query_runtime_registry")
+    if isinstance(collection_name, str) and collection_name and registry is not None:
+        registry.invalidate(collection_name)
+
+
+def _sse_encode(event: QueryEvent) -> str:
+    payload = json.dumps(event.data, ensure_ascii=False, separators=(",", ":"))
+    return f"id: {event.sequence}\nevent: {event.type}\ndata: {payload}\n\n"
+
+
+async def iter_query_run_events(
+    *,
+    store: Any,
+    query_id: str,
+    after_sequence: int,
+    is_disconnected: Any,
+):
+    """短轮询事件存储；心跳仅用于维持连接，不作为事件刷新周期。"""
+    sequence = after_sequence
+    terminal_events = {"completed", "cancelled", "failed"}
+    next_heartbeat_at = time.monotonic() + 10
+    while True:
+        events = store.events_after(query_id, after_sequence=sequence)
+        for event in events:
+            sequence = event.sequence
+            yield _sse_encode(event)
+            if event.type in terminal_events:
+                return
+        if await is_disconnected():
+            return
+        if time.monotonic() >= next_heartbeat_at:
+            yield ": heartbeat\n\n"
+            next_heartbeat_at = time.monotonic() + 10
+        await asyncio.sleep(0.25)
+
+
+async def invoke_workflow_in_worker(
+    workflow: LegalEvidenceWorkflow,
+    question: str,
+    **kwargs: Any,
+) -> Any:
+    """在线程池运行同步 Graph，保持事件循环可处理 SSE 与取消请求。"""
+    return await asyncio.to_thread(workflow.invoke, question, **kwargs)
+
+
+async def execute_query_run(
+    *,
+    query_id: str,
+    http_request: Request,
+    request: QueryRequest,
+    x_api_key: str | None,
+    x_model: str | None,
+    x_base_url: str | None,
+    x_request_id: str | None,
+    authorization: str | None,
+    current_user: User,
+    authorization_context: AuthorizationContext,
+) -> None:
+    """执行现有查询主链，并将最终结果以短生命周期事件投递。"""
+    store = _query_event_store()
+    if store.is_cancel_requested(query_id):
+        return
+    store.append(query_id, "stage_started", {"stage": "workflow"})
+
+    def emit_workflow_trace(trace: dict[str, Any]) -> None:
+        if store.is_cancel_requested(query_id):
+            return
+        payload = {
+            key: trace[key]
+            for key in ("node", "status", "duration_ms", "input_count", "output_count", "reason")
+            if key in trace
+        }
+        if "node" in payload:
+            payload["stage"] = payload.pop("node")
+            store.append(query_id, "stage_completed", payload)
+
+    http_request.state.workflow_event_sink = emit_workflow_trace
+    http_request.state.workflow_cancel_requested = lambda: store.is_cancel_requested(query_id)
+    try:
+        response = await query(
+            http_request=http_request,
+            request=request,
+            x_api_key=x_api_key,
+            x_model=x_model,
+            x_base_url=x_base_url,
+            x_request_id=x_request_id,
+            authorization=authorization,
+            current_user=current_user,
+            authorization_context=authorization_context,
+        )
+    except HTTPException as exc:
+        if not store.is_cancel_requested(query_id):
+            store.append(query_id, "failed", {"code": f"HTTP_{exc.status_code}"})
+        return
+    except QueryCancelled:
+        return
+    except Exception as exc:
+        logger.error("流式查询执行失败 query_id=%s error_type=%s", query_id, type(exc).__name__)
+        if not store.is_cancel_requested(query_id):
+            store.append(query_id, "failed", {"code": "QUERY_EXECUTION_FAILED"})
+        return
+    finally:
+        for attribute in ("workflow_event_sink", "workflow_cancel_requested"):
+            if hasattr(http_request.state, attribute):
+                delattr(http_request.state, attribute)
+    if store.is_cancel_requested(query_id):
+        return
+    store.append(query_id, "completed", {"response": response.model_dump(exclude={"query"})})
+
+
+@app.post("/query-runs", response_model=QueryRunAccepted, status_code=202)
+async def create_query_run(
+    http_request: Request,
+    request: QueryRequest,
+    x_api_key: str | None = Header(None, alias="X-API-Key"),
+    x_model: str | None = Header(None, alias="X-Model"),
+    x_base_url: str | None = Header(None, alias="X-Base-URL"),
+    x_request_id: str | None = Header(None, alias="X-Request-ID"),
+    authorization: str | None = Header(None, alias="Authorization"),
+    current_user: User = Depends(get_current_user),
+    authorization_context: AuthorizationContext = Depends(get_authorization_context),
+):
+    """受理流式查询，后续结果通过同一查询 ID 的 SSE 读取。"""
+    if not authorization_context.can("queries:create"):
+        raise HTTPException(status_code=403, detail="权限不足")
+    store = _query_event_store()
+    query_id = uuid.uuid4().hex
+    store.create_run(
+        query_id,
+        user_id=current_user.id,
+        organization_id=authorization_context.organization_id,
+    )
+    store.append(query_id, "accepted", {"query_id": query_id})
+    asyncio.create_task(
+        execute_query_run(
+            query_id=query_id,
+            http_request=http_request,
+            request=request,
+            x_api_key=x_api_key,
+            x_model=x_model,
+            x_base_url=x_base_url,
+            x_request_id=x_request_id,
+            authorization=authorization,
+            current_user=current_user,
+            authorization_context=authorization_context,
+        )
+    )
+    return QueryRunAccepted(query_id=query_id)
+
+
+@app.get("/query-runs/{query_id}/events")
+async def stream_query_run_events(
+    query_id: str,
+    http_request: Request,
+    last_event_id: str | None = Header(None, alias="Last-Event-ID"),
+    current_user: User = Depends(get_current_user),
+    authorization_context: AuthorizationContext = Depends(get_authorization_context),
+):
+    """以安全白名单事件回放或订阅一个短生命周期查询运行。"""
+    store = _query_event_store()
+    if not store.can_access(
+        query_id,
+        user_id=current_user.id,
+        organization_id=authorization_context.organization_id,
+    ):
+        raise HTTPException(status_code=404, detail="查询不存在或无访问权限")
+    try:
+        sequence = max(0, int(last_event_id or "0"))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="Last-Event-ID 无效") from exc
+
+    async def event_stream():
+        async for event in iter_query_run_events(
+            store=store,
+            query_id=query_id,
+            after_sequence=sequence,
+            is_disconnected=http_request.is_disconnected,
+        ):
+            yield event
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@app.post("/query-runs/{query_id}/cancel", status_code=202)
+async def cancel_query_run(
+    query_id: str,
+    current_user: User = Depends(get_current_user),
+    authorization_context: AuthorizationContext = Depends(get_authorization_context),
+):
+    """请求协作式取消；重复调用不会制造重复终态事件。"""
+    store = _query_event_store()
+    if not store.can_access(
+        query_id,
+        user_id=current_user.id,
+        organization_id=authorization_context.organization_id,
+    ):
+        raise HTTPException(status_code=404, detail="查询不存在或无访问权限")
+    return {"query_id": query_id, "cancelled": store.request_cancel(query_id)}
 
 
 @app.post("/query", response_model=QueryResponse)
@@ -1480,13 +1712,25 @@ async def query(
                 )
                 return QueryResponse(**cached_response)
 
-        # 每次请求使用目标 collection 构造独立检索器；工具注册表为模块级状态，
-        # 因此用锁避免并发请求在不同知识库之间交叉。
-        with scoped_query_lock:
-            scoped_indexer = LawIndexer(
+        # 索引器仅承载只读 collection 与已缓存的 Embedding；按 collection 复用，
+        # 不再用全局锁串行化整条查询主链。
+        runtime_registry = components.get("query_runtime_registry")
+
+        def build_indexer(collection_name: str) -> LawIndexer:
+            return LawIndexer(
                 persist_directory=settings.chroma_persist_directory,
                 embedding_model=settings.embedding_model,
-                collection_name=collection_names[selected_ids[0]],
+                collection_name=collection_name,
+            )
+
+        with nullcontext():
+            primary_collection = collection_names[selected_ids[0]]
+            scoped_indexer = (
+                runtime_registry.get_or_create(
+                    primary_collection, lambda: build_indexer(primary_collection)
+                )
+                if runtime_registry is not None
+                else build_indexer(primary_collection)
             )
             query_embedding = None
             if query_cache_service and not cache_bypass:
@@ -1540,10 +1784,14 @@ async def query(
                     logger.warning("语义查询缓存不可用 error_type=%s", type(exc).__name__)
             scoped_retrievers = {}
             for slug, collection_name in collection_names.items():
-                indexer = scoped_indexer if slug == selected_ids[0] else LawIndexer(
-                    persist_directory=settings.chroma_persist_directory,
-                    embedding_model=settings.embedding_model,
-                    collection_name=collection_name,
+                indexer = (
+                    scoped_indexer
+                    if slug == selected_ids[0]
+                    else runtime_registry.get_or_create(
+                        collection_name, lambda name=collection_name: build_indexer(name)
+                    )
+                    if runtime_registry is not None
+                    else build_indexer(collection_name)
                 )
                 scoped_retrievers[slug] = LawRetriever(
                     vectorstore=indexer.vectorstore,
@@ -1584,7 +1832,8 @@ async def query(
                 case_retriever=components.get("case_retriever"),
                 graph_retriever=components.get("graph_retriever"),
             )
-            result = workflow.invoke(
+            result = await invoke_workflow_in_worker(
+                workflow,
                 request.query,
                 knowledge_base_slugs=selected_ids,
                 conversation_context=memory_turns,
@@ -1594,6 +1843,8 @@ async def query(
                     "session_id": session_id,
                     "model_id": effective_model,
                 },
+                event_sink=getattr(http_request.state, "workflow_event_sink", None),
+                is_cancel_requested=getattr(http_request.state, "workflow_cancel_requested", None),
             )
         if cache_bypass:
             result.metadata["cache_bypassed"] = True
@@ -1622,6 +1873,8 @@ async def query(
                     "effective_to": getattr(c, "effective_to", None),
                     "source_url": getattr(c, "source_url", None),
                     "content_hash": getattr(c, "content_hash", None),
+                    "source_type": getattr(c, "source_type", None),
+                    "retrieval_paths": list(getattr(c, "retrieval_paths", []) or []),
                 }
                 for c in result.citations
             ]
@@ -1693,7 +1946,7 @@ async def query(
         )
         return response
 
-    except HTTPException:
+    except (HTTPException, QueryCancelled):
         raise
     except Exception as exc:
         logger.error(
@@ -1734,6 +1987,7 @@ async def upload_law(
             request.knowledge_base_slug,
             content=request.content,
         )
+        _invalidate_rebuilt_collection_runtime(result)
         _append_audit_event(
             http_request,
             authorization_context,
