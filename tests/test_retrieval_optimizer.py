@@ -40,8 +40,18 @@ class TestExtractArticleNums:
     def test_chinese(self):
         assert ropt.extract_article_nums("第一百四十二条") == ["142"]
 
+    def test_article_subsection(self):
+        assert ropt.extract_article_nums("第十七条之一如何适用？") == ["17-1"]
+
     def test_none(self):
         assert ropt.extract_article_nums("成年人多少岁？") == []
+
+
+def test_legal_alias_expansion_adds_crime_name_without_article_specific_hardcoding():
+    expanded = ropt.expand_legal_aliases("虚构事实、隐瞒真相骗取他人财物")
+
+    assert expanded.startswith("虚构事实、隐瞒真相骗取他人财物")
+    assert "诈骗罪" in expanded
 
 
 class TestRrfWeights:

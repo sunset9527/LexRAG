@@ -12,6 +12,8 @@ from src.workflow.legal_evidence_workflow import (
     QueryEnhancedLawRetriever,
     RouteDecision,
 )
+from src.retrieval.multi_knowledge_base_retriever import ScopedRetrievalResult
+from src.retrieval.multi_knowledge_base_retriever import MultiKnowledgeBaseLawRetriever
 
 
 def statute(
@@ -96,6 +98,19 @@ def test_citation_verifier_returns_source_text_and_deduplicates_repeated_citatio
     assert result.citations[0].original_text == "禁止从建筑物中抛掷物品。"
 
 
+def test_citation_verifier_normalizes_article_subsection_notation():
+    ledger = EvidenceLedger([statute(article_id="17-1")])
+
+    result = CitationVerifier().verify(
+        "依据【中华人民共和国民法典第十七条之一】处理。",
+        ledger,
+        knowledge_base_slug="civil-code",
+    )
+
+    assert result.status == "pass"
+    assert result.citations[0].article_id == "17-1"
+
+
 def test_citation_verifier_rejects_fabricated_article_wrong_law_and_missing_citation():
     ledger = EvidenceLedger([statute()])
     verifier = CitationVerifier()
@@ -124,6 +139,97 @@ def test_citation_verifier_rejects_fabricated_article_wrong_law_and_missing_cita
     assert missing.issues == ["回答中未包含可校验的法条引用"]
 
 
+def test_citation_verifier_accepts_verified_citations_from_each_selected_knowledge_base():
+    ledger = EvidenceLedger(
+        [
+            statute(
+                knowledge_base_slug="civil-code",
+                law_name="中华人民共和国民法典",
+                article_id="第597条",
+            ),
+            statute(
+                knowledge_base_slug="company-law",
+                law_name="中华人民共和国公司法",
+                article_id="第597条",
+            ),
+        ]
+    )
+
+    result = CitationVerifier().verify(
+        "应分别参考【中华人民共和国民法典第597条】和【中华人民共和国公司法第597条】。",
+        ledger,
+        knowledge_base_slugs=["civil-code", "company-law"],
+    )
+
+    assert result.status == "pass"
+    assert [citation.is_verified for citation in result.citations] == [True, True]
+
+
+def test_statute_evidence_uses_the_scope_attached_to_a_multi_knowledge_base_result():
+    raw = type(
+        "Result",
+        (),
+        {
+            "article_number": "597",
+            "law_name": "中华人民共和国公司法",
+            "full_content": "公司法第597条原文",
+            "chunk_id": "company-597",
+            "score": 0.9,
+        },
+    )()
+
+    evidence = workflow_module._to_statute_evidence(
+        ScopedRetrievalResult(knowledge_base_slug="company-law", result=raw),
+        "civil-code",
+    )
+
+    assert evidence is not None
+    assert evidence.knowledge_base_slug == "company-law"
+
+
+def test_workflow_verifies_citations_from_all_selected_knowledge_bases():
+    class Retriever:
+        def __init__(self, law_name, article_number, slug):
+            self.law_name = law_name
+            self.article_number = article_number
+            self.slug = slug
+
+        def retrieve(self, _question, *, top_k):
+            assert top_k == 5
+            return [
+                type(
+                    "Result",
+                    (),
+                    {
+                        "article_number": self.article_number,
+                        "law_name": self.law_name,
+                        "full_content": f"{self.law_name}第{self.article_number}条原文",
+                        "chunk_id": f"{self.slug}-{self.article_number}",
+                        "score": 0.9,
+                    },
+                )()
+            ]
+
+    multi = MultiKnowledgeBaseLawRetriever(
+        {
+            "company-law": Retriever("中华人民共和国公司法", "20", "company"),
+            "civil-code": Retriever("中华人民共和国民法典", "597", "civil"),
+        }
+    )
+    workflow = LegalEvidenceWorkflow(
+        law_retriever=multi,
+        answer_generator=lambda *_args: "【中华人民共和国公司法第20条】\n【中华人民共和国民法典第597条】",
+    )
+
+    result = workflow.invoke(
+        "公司合同纠纷",
+        knowledge_base_slugs=["company-law", "civil-code"],
+    )
+
+    assert result.verification_status == "pass"
+    assert len(result.citations) == 2
+
+
 class FakeLawRetriever:
     def __init__(self, results=None):
         self.results = results or [statute()]
@@ -140,6 +246,7 @@ def test_workflow_exports_one_shared_compiled_langgraph_with_explicit_nodes():
     assert isinstance(graph, CompiledStateGraph)
     assert {
         "planning",
+        "knowledge_base_routing",
         "routing",
         "statute_retrieval",
         "case_retrieval",
@@ -184,6 +291,7 @@ def test_simple_question_skips_planning_and_returns_verified_workflow_result():
     assert result.metadata["orchestration_engine"] == "langgraph-stategraph"
     assert [event["node"] for event in result.metadata["workflow_trace"]] == [
         "planning",
+        "knowledge_base_routing",
         "routing",
         "statute_retrieval",
         "evidence_ledger",
@@ -405,7 +513,7 @@ def test_query_enhanced_retriever_preserves_v2_multi_query_and_hyde_retrieval():
             return [statute()]
 
     base = BaseRetriever()
-    wrapper = QueryEnhancedLawRetriever(base, Rewriter())
+    wrapper = QueryEnhancedLawRetriever(base, Rewriter(), enable_hyde=True)
 
     results = wrapper.retrieve("高空抛物怎么办", top_k=5)
 
@@ -432,6 +540,25 @@ def test_query_enhanced_retriever_falls_back_to_original_question_when_expansion
     wrapper.retrieve("高空抛物怎么办", top_k=5)
 
     assert base.queries == [("高空抛物怎么办", 5)]
+
+
+def test_query_enhanced_retriever_uses_hybrid_route_without_a_rewriter():
+    class BaseRetriever:
+        enable_optimization = True
+
+        def __init__(self):
+            self.calls = []
+
+        def retrieve_optimized(self, query, top_k):
+            self.calls.append((query, top_k))
+            return [statute()], "", ["1254"]
+
+    base = BaseRetriever()
+
+    results = QueryEnhancedLawRetriever(base).retrieve("高空抛物怎么办", top_k=5)
+
+    assert results[0].article_id == "1254"
+    assert base.calls == [("高空抛物怎么办", 5)]
 
 
 def test_case_and_graph_results_are_recorded_in_evidence_ledger_when_routed():
@@ -490,6 +617,51 @@ def test_case_and_graph_results_are_recorded_in_evidence_ledger_when_routed():
     )
 
 
+def test_graph_expansion_is_limited_to_one_hop_and_the_seed_law():
+    class GraphRetriever:
+        def __init__(self):
+            self.calls = []
+
+        def retrieve(self, article_id, max_hops=1):
+            self.calls.append((article_id, max_hops))
+            return type(
+                "Graph",
+                (),
+                {
+                    "retrieved_articles": [
+                        {
+                            "article_id": "1254",
+                            "law_name": "中华人民共和国民法典",
+                            "content": "禁止从建筑物中抛掷物品。",
+                        },
+                        {
+                            "article_id": "12",
+                            "law_name": "中华人民共和国公司法",
+                            "content": "不相关的公司法条文。",
+                        },
+                    ]
+                },
+            )()
+
+    graph_retriever = GraphRetriever()
+    captured_evidence = []
+    def answer_generator(question, evidence, issues=None):
+        captured_evidence.extend(evidence)
+        return "依据【中华人民共和国民法典第1254条】处理。"
+
+    workflow = LegalEvidenceWorkflow(
+        law_retriever=FakeLawRetriever(),
+        router=lambda question: RouteDecision(include_graph=True),
+        graph_retriever=graph_retriever,
+        answer_generator=answer_generator,
+    )
+
+    result = workflow.query("高空抛物责任", knowledge_base_slug="civil-code")
+
+    assert graph_retriever.calls == [("1254", 1)]
+    assert [item.article_id for item in captured_evidence if item.source_type == "graph"] == ["1254"]
+
+
 def test_ainvoke_returns_the_graph_backed_result_contract():
     workflow = LegalEvidenceWorkflow(
         law_retriever=FakeLawRetriever(),
@@ -545,6 +717,7 @@ def test_astream_events_exposes_only_safe_structural_node_events():
     }
     known_nodes = {
         "planning",
+        "knowledge_base_routing",
         "routing",
         "statute_retrieval",
         "case_retrieval",

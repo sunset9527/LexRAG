@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,11 @@ REQUIRED_FIELDS = {
 
 class EvaluationDatasetError(ValueError):
     """评测集不符合可审计数据契约。"""
+
+
+def _canonical_article_id(article_id: str) -> str:
+    """统一「第17条之1」与「第17-1条」这类等价条号写法。"""
+    return re.sub(r"第(\d+)条之(\d+)", r"第\1-\2条", article_id)
 
 
 def load_labels(path: Path, *, require_reviewed: bool = False) -> list[dict[str, Any]]:
@@ -75,13 +81,14 @@ def evaluate_labels(
         ranked_article_ids: list[str] = []
         seen_article_ids: set[str] = set()
         for article_id in retrieve(label):
+            article_id = _canonical_article_id(article_id)
             if article_id in seen_article_ids:
                 continue
             seen_article_ids.add(article_id)
             ranked_article_ids.append(article_id)
             if len(ranked_article_ids) >= top_k:
                 break
-        relevant = set(label["relevant_article_ids"])
+        relevant = {_canonical_article_id(article_id) for article_id in label["relevant_article_ids"]}
         hits = [article_id for article_id in ranked_article_ids if article_id in relevant]
         recall_scores.append(len(set(hits)) / len(relevant))
 

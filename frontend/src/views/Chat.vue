@@ -16,7 +16,7 @@
       <!-- 左栏：对话区 -->
       <div class="chat-panel">
         <div class="panel-header"><el-icon><ChatDotRound /></el-icon><span>法律咨询</span>
-          <el-select v-model="knowledgeBaseId" size="small" aria-label="选择检索知识库" style="width: 190px; margin-left: 12px">
+          <el-select v-model="knowledgeBaseId" multiple clearable collapse-tags size="small" aria-label="选择检索知识库，留空自动选择" placeholder="自动选择知识库" style="width: 240px; margin-left: 12px">
             <el-option v-for="item in knowledgeBases" :key="item.slug" :label="item.name" :value="item.slug" />
           </el-select>
           <el-date-picker v-model="caseDate" value-format="YYYY-MM-DD" type="date" size="small" clearable placeholder="案件发生日期（可选）" style="width: 190px" />
@@ -50,6 +50,22 @@
               <div class="msg-content markdown-body" v-html="renderMarkdown(msg.content)" />
               <div v-if="msg.role === 'assistant' && msg.cacheHit === 'semantic'" class="cache-hint">
                 基于相似问题“{{ msg.cacheOriginalQuery }}”的缓存结果（相似度 {{ msg.cacheSimilarity }}）
+              </div>
+              <div v-if="msg.role === 'assistant' && msg.knowledgeBaseRouting" class="cache-hint">
+                {{ msg.knowledgeBaseRouting.mode === 'automatic' ? '系统自动选择法规库：' : '指定法规库：' }}
+                {{ msg.knowledgeBaseRouting.selected_slugs.join('、') }}
+              </div>
+              <div v-if="msg.role === 'assistant' && msg.routingCandidates?.length" class="routing-candidates">
+                <span>请选择法规库后重问：</span>
+                <el-button
+                  v-for="candidate in msg.routingCandidates"
+                  :key="candidate.slug"
+                  size="small"
+                  :disabled="store.isLoading"
+                  @click="retryWithKnowledgeBase(index, candidate.slug)"
+                >
+                  {{ knowledgeBaseLabel(candidate.slug) }}
+                </el-button>
               </div>
               <details v-if="msg.role === 'assistant' && msg.workflowTrace?.length" class="workflow-summary">
                 <summary>
@@ -154,6 +170,10 @@
             <el-tag :type="selectedCitation.is_verified ? 'success' : 'danger'" size="small">
               {{ selectedCitation.is_verified ? '✅ 已校验' : '❌ 待核实' }}
             </el-tag>
+            <p v-if="selectedCitation.knowledge_base_slug">知识库：{{ selectedCitation.knowledge_base_slug }}</p>
+            <p v-if="selectedCitation.version_id">版本：{{ selectedCitation.version_id }}</p>
+            <p v-if="selectedCitation.effective_from">生效：{{ selectedCitation.effective_from }}{{ selectedCitation.effective_to ? ` 至 ${selectedCitation.effective_to}` : ' 起' }}</p>
+            <el-link v-if="selectedCitation.source_url" :href="selectedCitation.source_url" target="_blank" type="primary">查看法规来源</el-link>
             <div class="citation-text">{{ selectedCitation.citation_text || '（暂无引用上下文）' }}</div>
             <el-divider />
             <h4>📜 原文</h4>
@@ -189,7 +209,7 @@ const inputText = ref('')
 const selectedCitation = ref<Citation | null>(null)
 const msgContainer = ref<HTMLElement>()
 const knowledgeBases = ref<KnowledgeBase[]>([])
-const knowledgeBaseId = ref('')
+const knowledgeBaseId = ref<string[]>([])
 const favoriteIds = ref<Record<string, number>>({})
 const favoriteLoading = ref<string | null>(null)
 const sessionQuery = ref('')
@@ -244,6 +264,7 @@ function renderMarkdown(text: string): string {
 function workflowNodeLabel(node: string): string {
   return {
     planning: '问题拆解',
+    knowledge_base_routing: '知识库路由',
     routing: '检索路由',
     statute_retrieval: '法条检索',
     case_retrieval: '案例检索',
@@ -253,6 +274,24 @@ function workflowNodeLabel(node: string): string {
     citation_verifier: '引用校验',
     repair: '受控修复',
   }[node] || node
+}
+
+function knowledgeBaseLabel(slug: string): string {
+  return knowledgeBases.value.find((item) => item.slug === slug)?.name || slug
+}
+
+async function retryWithKnowledgeBase(messageIndex: number, slug: string) {
+  if (store.isLoading) return
+  const question = [...store.messages.slice(0, messageIndex)].reverse().find((item) => item.role === 'user')?.content
+  if (!question) {
+    ElMessage.warning('未找到需要重问的问题')
+    return
+  }
+  knowledgeBaseId.value = [slug]
+  await store.sendMessage(question, [slug], caseDate.value || undefined)
+  if (store.currentSessionId) await router.replace(`/chat/${store.currentSessionId}`)
+  await nextTick()
+  scrollToBottom()
 }
 
 function workflowEventLabel(status: string): string {
@@ -337,7 +376,7 @@ async function toggleFavorite(msg: typeof store.messages[number], index: number)
       question,
       answer: msg.content,
       citations: msg.citations || [],
-      knowledge_base_slug: msg.knowledgeBaseSlug || knowledgeBaseId.value || null,
+      knowledge_base_slug: msg.knowledgeBaseSlug || knowledgeBaseId.value.join('|') || null,
       law_area: null,
     })
     favoriteIds.value[msg.id] = favorite.id
@@ -364,9 +403,9 @@ onMounted(async () => {
   knowledgeBaseApi.list().then(items => {
     knowledgeBases.value = items.filter(item => item.status === 'READY')
     const requestedKnowledgeBase = route.query.kb as string | undefined
-    knowledgeBaseId.value = knowledgeBases.value.find(item => item.slug === requestedKnowledgeBase)?.slug
-      || knowledgeBases.value[0]?.slug
-      || ''
+    knowledgeBaseId.value = requestedKnowledgeBase && knowledgeBases.value.some(item => item.slug === requestedKnowledgeBase)
+      ? [requestedKnowledgeBase]
+      : []
   })
   await store.loadSessions()
   await store.loadRecommendations()
@@ -445,6 +484,7 @@ watch(() => store.messages.length, () => {
 
 .msg-body { padding: 12px 16px; max-width: 80%; }
 .cache-hint { margin-top: 8px; color: #909399; font-size: 12px; }
+.routing-candidates { margin-top: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 12px; color: #606266; }
 .workflow-summary { margin-top: 8px; color: #606266; font-size: 12px; }
 .workflow-summary summary { cursor: pointer; color: var(--brand-primary); }
 .workflow-summary summary span { margin-left: 6px; }

@@ -64,12 +64,30 @@ def cn2num(num_str: str) -> str:
     return str(result) if result else num_str
 
 
-ARTICLE_PATTERN = re.compile(r"第([一二三四五六七八九十百千零\d]+)条")
+ARTICLE_PATTERN = re.compile(r"第([一二三四五六七八九十百千零\d]+)条(?:之([一二三四五六七八九十百千零\d]+))?")
+
+_LEGAL_TERM_ALIASES: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
+    (("虚构事实", "隐瞒真相", "骗取"), ("诈骗", "诈骗罪", "诈骗公私财物")),
+    (("盗窃",), ("盗窃罪", "秘密窃取")),
+    (("试用期",), ("劳动合同试用期",)),
+)
 
 
 def extract_article_nums(query: str) -> list[str]:
-    """从 query 提取所有「第X条」条号（如 第188条 -> ['188']）"""
-    return [cn2num(m.group(1)) for m in ARTICLE_PATTERN.finditer(query)]
+    """提取条号，保留附款标识（如「第十七条之一」-> ``17-1``）。"""
+    return [
+        "-".join(filter(None, (cn2num(match.group(1)), cn2num(match.group(2) or ""))))
+        for match in ARTICLE_PATTERN.finditer(query)
+    ]
+
+
+def expand_legal_aliases(query: str) -> str:
+    """补充可审计的法律术语别名，不绑定任何具体法条。"""
+    additions: list[str] = []
+    for triggers, aliases in _LEGAL_TERM_ALIASES:
+        if all(trigger in query for trigger in triggers):
+            additions.extend(alias for alias in aliases if alias not in query)
+    return " ".join([query, *additions]) if additions else query
 
 
 # ==================== RRF 动态加权 ====================

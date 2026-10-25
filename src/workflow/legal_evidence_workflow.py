@@ -20,6 +20,7 @@ EVIDENCE_INSUFFICIENT_ANSWER = (
 WORKFLOW_NODE_NAMES = frozenset(
     {
         "planning",
+        "knowledge_base_routing",
         "routing",
         "statute_retrieval",
         "case_retrieval",
@@ -77,6 +78,8 @@ class LegalWorkflowState(TypedDict, total=False):
 
     question: str
     knowledge_base_slug: str
+    knowledge_base_slugs: list[str]
+    knowledge_base_route: dict[str, Any]
     conversation_context: list[dict[str, Any]]
     sub_questions: list[dict[str, str]]
     route_decision: RouteDecision
@@ -100,24 +103,35 @@ class LegalWorkflowState(TypedDict, total=False):
 class QueryEnhancedLawRetriever:
     """复用多候选改写、HyDE 与 RRF 检索，失败时只查原问题。"""
 
-    def __init__(self, law_retriever: Any, query_rewriter: Any | None = None) -> None:
+    def __init__(
+        self, law_retriever: Any, query_rewriter: Any | None = None, *, enable_hyde: bool = False
+    ) -> None:
         self.law_retriever = law_retriever
         self.query_rewriter = query_rewriter
+        self.enable_hyde = enable_hyde
 
     def retrieve(self, question: str, *, top_k: int = 5) -> Any:
         if self.query_rewriter is None:
-            return self.law_retriever.retrieve(question, top_k=top_k)
+            return self._retrieve_original(question, top_k=top_k)
         try:
             rewritten = self.query_rewriter.rewrite_candidates(question)
             search_queries = getattr(rewritten, "search_queries", None) or [question]
-            hyde_query = self.query_rewriter.generate_hyde(question)
+            hyde_query = self.query_rewriter.generate_hyde(question) if self.enable_hyde else None
             return self.law_retriever.retrieve_multi_query(
                 search_queries,
                 hyde_query=hyde_query,
                 top_k=top_k,
             )
         except Exception:
-            return self.law_retriever.retrieve(question, top_k=top_k)
+            return self._retrieve_original(question, top_k=top_k)
+
+    def _retrieve_original(self, question: str, *, top_k: int) -> Any:
+        """主检索入口优先走已启用的 BM25 + 向量 RRF，不能静默退回单路。"""
+        retrieve_optimized = getattr(self.law_retriever, "retrieve_optimized", None)
+        if getattr(self.law_retriever, "enable_optimization", False) and callable(retrieve_optimized):
+            results, _, _ = retrieve_optimized(question, top_k=top_k)
+            return results
+        return self.law_retriever.retrieve(question, top_k=top_k)
 
 
 def _is_complex(question: str) -> bool:
@@ -162,6 +176,10 @@ def _route(
 def _to_statute_evidence(result: Any, knowledge_base_slug: str) -> EvidenceItem | None:
     if isinstance(result, EvidenceItem):
         return result
+    scoped_slug = str(getattr(result, "knowledge_base_slug", "") or "")
+    scoped_result = getattr(result, "result", None)
+    if scoped_slug and scoped_result is not None:
+        result = scoped_result
     article_id = str(getattr(result, "article_number", "") or getattr(result, "article_id", ""))
     law_name = str(getattr(result, "law_name", ""))
     content = str(getattr(result, "full_content", "") or getattr(result, "content", ""))
@@ -171,13 +189,23 @@ def _to_statute_evidence(result: Any, knowledge_base_slug: str) -> EvidenceItem 
     return EvidenceItem(
         source_id=source_id,
         source_type="statute",
-        knowledge_base_slug=knowledge_base_slug,
+        knowledge_base_slug=scoped_slug or knowledge_base_slug,
         law_name=law_name,
         article_id=article_id,
         content=content,
         score=float(getattr(result, "score", 0.0) or 0.0),
         retrieval_path="statute",
+        version_id=getattr(result, "metadata", {}).get("version_id"),
+        effective_from=getattr(result, "metadata", {}).get("effective_from"),
+        effective_to=getattr(result, "metadata", {}).get("effective_to"),
+        source_url=getattr(result, "metadata", {}).get("source_url"),
+        content_hash=getattr(result, "metadata", {}).get("content_hash"),
     )
+
+
+def _selected_knowledge_base_slugs(state: LegalWorkflowState) -> list[str]:
+    slugs = [slug for slug in state.get("knowledge_base_slugs", []) if slug]
+    return slugs or [state["knowledge_base_slug"]]
 
 
 def _to_case_evidence(result: Any) -> EvidenceItem | None:
@@ -383,14 +411,23 @@ def _graph_retrieval_node(
     started = perf_counter()
     statute_evidence = state.get("statute_evidence", [])
     try:
+        if not statute_evidence:
+            return {
+                "graph_evidence": [],
+                "trace": _append_trace(state, "graph_retrieval", "skipped", started),
+            }
+        seed = statute_evidence[0]
         graph = runtime.context.graph_retriever.retrieve(
-            statute_evidence[0].normalized_article_id
+            seed.normalized_article_id, max_hops=1
         )
         results = getattr(graph, "retrieved_articles", []) if graph else []
         evidence = [
             item
             for result in results
-            if (item := _to_graph_evidence(result, state["knowledge_base_slug"])) is not None
+            if _graph_result_law_name(result) == seed.law_name
+            and (
+                item := _to_graph_evidence(result, seed.knowledge_base_slug)
+            ) is not None
         ]
         return {
             "graph_evidence": evidence,
@@ -408,6 +445,14 @@ def _graph_retrieval_node(
                 state, "graph_retrieval", "degraded", started, reason=reason
             ),
         }
+
+
+def _graph_result_law_name(result: Any) -> str:
+    if isinstance(result, EvidenceItem):
+        return result.law_name
+    if isinstance(result, dict):
+        return str(result.get("law_name", ""))
+    return str(getattr(result, "law_name", ""))
 
 
 def _evidence_ledger_node(state: LegalWorkflowState) -> dict[str, Any]:
@@ -451,7 +496,7 @@ def _citation_verifier_node(
     verification = verifier.verify(
         state.get("answer", ""),
         ledger,
-        knowledge_base_slug=state["knowledge_base_slug"],
+        knowledge_base_slugs=_selected_knowledge_base_slugs(state),
     )
     return {
         "citations": verification.citations,
@@ -463,6 +508,18 @@ def _citation_verifier_node(
             "completed" if verification.status == "pass" else "failed",
             started,
             output_count=len(verification.citations),
+        ),
+    }
+
+
+def _knowledge_base_routing_node(state: LegalWorkflowState) -> dict[str, Any]:
+    """在图内记录已通过权限与版本校验的知识库范围。"""
+    started = perf_counter()
+    slugs = _selected_knowledge_base_slugs(state)
+    return {
+        "knowledge_base_route": {"selected_slugs": slugs},
+        "trace": _append_trace(
+            state, "knowledge_base_routing", "completed", started, output_count=len(slugs)
         ),
     }
 
@@ -494,9 +551,9 @@ def _finalize_node(state: LegalWorkflowState) -> dict[str, Any]:
 
 def _evidence_insufficient_node(state: LegalWorkflowState) -> dict[str, Any]:
     started = perf_counter()
+    selected_slugs = set(_selected_knowledge_base_slugs(state))
     no_statutes = not any(
-        item.source_type == "statute"
-        and item.knowledge_base_slug == state["knowledge_base_slug"]
+        item.source_type == "statute" and item.knowledge_base_slug in selected_slugs
         for item in state.get("evidence", [])
     )
     update: dict[str, Any] = {
@@ -541,9 +598,9 @@ def _after_case_retrieval(state: LegalWorkflowState) -> str:
 
 
 def _after_evidence_ledger(state: LegalWorkflowState) -> str:
+    selected_slugs = set(_selected_knowledge_base_slugs(state))
     has_statute = any(
-        item.source_type == "statute"
-        and item.knowledge_base_slug == state["knowledge_base_slug"]
+        item.source_type == "statute" and item.knowledge_base_slug in selected_slugs
         for item in state.get("evidence", [])
     )
     return "answer" if has_statute else "evidence_insufficient"
@@ -560,6 +617,7 @@ def _after_verification(state: LegalWorkflowState) -> str:
 def _build_legal_evidence_graph() -> CompiledStateGraph:
     builder = StateGraph(LegalWorkflowState, context_schema=WorkflowRuntimeContext)
     builder.add_node("planning", _planning_node)
+    builder.add_node("knowledge_base_routing", _knowledge_base_routing_node)
     builder.add_node("routing", _routing_node)
     builder.add_node("statute_retrieval", _statute_retrieval_node)
     builder.add_node("case_retrieval", _case_retrieval_node)
@@ -572,7 +630,8 @@ def _build_legal_evidence_graph() -> CompiledStateGraph:
     builder.add_node("evidence_insufficient", _evidence_insufficient_node)
 
     builder.add_edge(START, "planning")
-    builder.add_edge("planning", "routing")
+    builder.add_edge("planning", "knowledge_base_routing")
+    builder.add_edge("knowledge_base_routing", "routing")
     builder.add_edge("routing", "statute_retrieval")
     builder.add_conditional_edges(
         "statute_retrieval",
@@ -646,7 +705,8 @@ class LegalEvidenceWorkflow:
         self,
         question: str,
         *,
-        knowledge_base_slug: str,
+        knowledge_base_slug: str | None = None,
+        knowledge_base_slugs: Sequence[str] | None = None,
         conversation_context: Sequence[Mapping[str, Any]] | None = None,
         request_context: Mapping[str, Any] | None = None,
     ) -> EvidenceWorkflowResult:
@@ -655,6 +715,7 @@ class LegalEvidenceWorkflow:
             self._initial_state(
                 question,
                 knowledge_base_slug=knowledge_base_slug,
+                knowledge_base_slugs=knowledge_base_slugs,
                 conversation_context=conversation_context,
             ),
             context=runtime_context,
@@ -796,12 +857,20 @@ class LegalEvidenceWorkflow:
         self,
         question: str,
         *,
-        knowledge_base_slug: str,
+        knowledge_base_slug: str | None,
+        knowledge_base_slugs: Sequence[str] | None = None,
         conversation_context: Sequence[Mapping[str, Any]] | None,
     ) -> LegalWorkflowState:
+        slugs = list(dict.fromkeys(slug for slug in (knowledge_base_slugs or []) if slug))
+        if knowledge_base_slug and knowledge_base_slug not in slugs:
+            slugs.insert(0, knowledge_base_slug)
+        if not slugs:
+            raise ValueError("至少需要一个知识库")
         return {
             "question": question,
-            "knowledge_base_slug": knowledge_base_slug,
+            "knowledge_base_slug": slugs[0],
+            "knowledge_base_slugs": slugs,
+            "knowledge_base_route": {"selected_slugs": slugs},
             "conversation_context": [dict(turn) for turn in conversation_context or []],
             "sub_questions": [{"question": question, "depends_on": ""}],
             "route_decision": RouteDecision(),

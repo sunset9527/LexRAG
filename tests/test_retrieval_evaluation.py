@@ -245,3 +245,25 @@ def test_evaluation_deduplicates_repeated_article_candidates_before_scoring():
         "中华人民共和国民法典第17条",
         "中华人民共和国民法典第18条",
     ]
+
+
+def test_evaluation_normalizes_equivalent_article_subsection_notation():
+    labels = [
+        {
+            "id": "criminal-17-1",
+            "query": "第十七条之一",
+            "knowledge_base_slug": "criminal-law",
+            "relevant_article_ids": ["中华人民共和国刑法第17-1条"],
+            "source": "人工核验",
+            "reviewed_at": "2026-10-25",
+        }
+    ]
+
+    report = evaluate_labels(
+        labels,
+        lambda _label: ["中华人民共和国刑法第17条之1"],
+        top_k=5,
+    )
+
+    assert report["metrics"]["recall_at_k"] == 1.0
+    assert report["items"][0]["ranked_article_ids"] == ["中华人民共和国刑法第17-1条"]

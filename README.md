@@ -40,13 +40,14 @@ LexRAG 建立一条可检查的证据链，而不是把所有材料混进一个�
 ### 多知识库混合检索
 
 - 法规、案例和自定义文档拥有独立 Chroma collection，查询从源头限制知识库范围。
-- BGE-M3 本地向量检索与 BM25 并行召回，经 RRF 融合；条号问题使用精确条号增强。
-- 原问题、多候选法律改写与 HyDE 分路召回；增强失败自动回退原问题。
+- 用户留空时按可解释的领域规则自动选库；显式单库/多库选择优先。低置信度会返回候选库，用户点击后以该库重问。
+- 主检索入口在优化已启用时使用 BM25 + BGE-M3 的 RRF；向量、BM25、RRF 均可离线切换，条号问题使用精确条号增强。
+- 原问题与有限、去重的法律改写候选分路召回；HyDE 默认关闭，只有显式配置才参与检索。
 - 法规解析保留“编 → 章 → 节 → 条 → 款 → 项”结构、法律名称、条号与相互引用。
 
 ### 证据驱动回答
 
-- 当前主链是显式 LangGraph `StateGraph`：拆解、路由、检索、证据聚合、回答、校验、一次受控修复和证据不足终止均对应独立节点与条件边。
+- 当前主链是显式 LangGraph `StateGraph`：拆解、知识库路由、意图路由、检索、证据聚合、回答、校验、一次受控修复和证据不足终止均对应独立节点与条件边。
 - Evidence Ledger 按来源与知识库记录证据，阻断跨库、跨会话或跨用户的引用穿透。
 - Citation Verifier 校验回答引用真实存在于本轮账本，并返回可定位原文。
 - 最近 5 轮会话记忆仅作为非证据上下文，不能绕过当前轮证据门控。
@@ -134,6 +135,8 @@ python scripts\bootstrap_admin.py
 质量报告写入本地 `reports/quality/`（已 Git 忽略），包含真实命令、退出码、耗时和覆盖率，不记录 API Key 或用户咨询原文。
 
 Stage 2 的已执行命令、结果和未覆盖边界见 [`docs/status/stage-2-security-verification.md`](docs/status/stage-2-security-verification.md)。
+
+Stage 5 的自动/显式多知识库路由、跨库证据溯源、RRF 主检索、低置信度候选重问与前端引用展示已完成。聚焦回归共 **74 passed**，Ruff 和前端生产构建通过；真实 Chroma 的 8 条工程回归报告仅用于检索回归，不作为正式法律效果指标。详见 [`docs/status/stage-5-multikb-retrieval-verification.md`](docs/status/stage-5-multikb-retrieval-verification.md)。
 
 ## Stage 3 部署状态
 

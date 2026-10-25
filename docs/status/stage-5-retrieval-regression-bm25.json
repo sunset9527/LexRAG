@@ -1,0 +1,295 @@
+{
+  "overall": {
+    "sample_count": 8,
+    "top_k": 5,
+    "metrics": {
+      "recall_at_k": 0.8125,
+      "mrr_at_k": 0.875,
+      "ndcg_at_k": 0.826643
+    },
+    "items": [
+      {
+        "id": "stage5-civil-597-term",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第597条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第597条",
+          "中华人民共和国民法典第598条",
+          "中华人民共和国民法典第610条",
+          "中华人民共和国民法典第607条",
+          "中华人民共和国民法典第603条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "stage5-civil-633-condition",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第633条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第633条",
+          "中华人民共和国民法典第610条",
+          "中华人民共和国民法典第603条",
+          "中华人民共和国民法典第754条",
+          "中华人民共和国民法典第627条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "stage5-criminal-266-alias",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第266条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第270条",
+          "中华人民共和国刑法第385条",
+          "中华人民共和国刑法第163条",
+          "中华人民共和国刑法第184条",
+          "中华人民共和国刑法第198条"
+        ],
+        "first_relevant_rank": null
+      },
+      {
+        "id": "stage5-criminal-17-1",
+        "knowledge_base_slug": "criminal-law",
+        "relevant_article_ids": [
+          "中华人民共和国刑法第17条之1"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国刑法第17-1条",
+          "中华人民共和国刑法第72条",
+          "中华人民共和国刑法第49条",
+          "中华人民共和国刑法第17条",
+          "中华人民共和国刑法第236-1条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "stage5-civil-586-amount",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第586条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第586条",
+          "中华人民共和国民法典第588条",
+          "中华人民共和国民法典第587条",
+          "中华人民共和国民法典第455条",
+          "中华人民共和国民法典第438条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "stage5-civil-705-duration",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第705条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第705条",
+          "中华人民共和国民法典第717条",
+          "中华人民共和国民法典第758条",
+          "中华人民共和国民法典第586条",
+          "中华人民共和国民法典第188条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "stage5-civil-402-neighbor",
+        "knowledge_base_slug": "civil-code",
+        "relevant_article_ids": [
+          "中华人民共和国民法典第402条",
+          "中华人民共和国民法典第395条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国民法典第402条",
+          "中华人民共和国民法典第403条",
+          "中华人民共和国民法典第397条",
+          "中华人民共和国民法典第410条",
+          "中华人民共和国民法典第411条"
+        ],
+        "first_relevant_rank": 1
+      },
+      {
+        "id": "stage5-labor-19-duration",
+        "knowledge_base_slug": "labor-contract-law",
+        "relevant_article_ids": [
+          "中华人民共和国劳动合同法第19条"
+        ],
+        "ranked_article_ids": [
+          "中华人民共和国劳动合同法第19条",
+          "中华人民共和国劳动合同法第13条",
+          "中华人民共和国劳动合同法第14条",
+          "中华人民共和国劳动合同法第58条",
+          "中华人民共和国劳动合同法第15条"
+        ],
+        "first_relevant_rank": 1
+      }
+    ]
+  },
+  "by_knowledge_base": {
+    "civil-code": {
+      "sample_count": 5,
+      "top_k": 5,
+      "metrics": {
+        "recall_at_k": 0.9,
+        "mrr_at_k": 1.0,
+        "ndcg_at_k": 0.922629
+      },
+      "items": [
+        {
+          "id": "stage5-civil-597-term",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第597条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第597条",
+            "中华人民共和国民法典第598条",
+            "中华人民共和国民法典第610条",
+            "中华人民共和国民法典第607条",
+            "中华人民共和国民法典第603条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "stage5-civil-633-condition",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第633条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第633条",
+            "中华人民共和国民法典第610条",
+            "中华人民共和国民法典第603条",
+            "中华人民共和国民法典第754条",
+            "中华人民共和国民法典第627条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "stage5-civil-586-amount",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第586条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第586条",
+            "中华人民共和国民法典第588条",
+            "中华人民共和国民法典第587条",
+            "中华人民共和国民法典第455条",
+            "中华人民共和国民法典第438条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "stage5-civil-705-duration",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第705条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第705条",
+            "中华人民共和国民法典第717条",
+            "中华人民共和国民法典第758条",
+            "中华人民共和国民法典第586条",
+            "中华人民共和国民法典第188条"
+          ],
+          "first_relevant_rank": 1
+        },
+        {
+          "id": "stage5-civil-402-neighbor",
+          "knowledge_base_slug": "civil-code",
+          "relevant_article_ids": [
+            "中华人民共和国民法典第402条",
+            "中华人民共和国民法典第395条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国民法典第402条",
+            "中华人民共和国民法典第403条",
+            "中华人民共和国民法典第397条",
+            "中华人民共和国民法典第410条",
+            "中华人民共和国民法典第411条"
+          ],
+          "first_relevant_rank": 1
+        }
+      ]
+    },
+    "criminal-law": {
+      "sample_count": 2,
+      "top_k": 5,
+      "metrics": {
+        "recall_at_k": 0.5,
+        "mrr_at_k": 0.5,
+        "ndcg_at_k": 0.5
+      },
+      "items": [
+        {
+          "id": "stage5-criminal-266-alias",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第266条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第270条",
+            "中华人民共和国刑法第385条",
+            "中华人民共和国刑法第163条",
+            "中华人民共和国刑法第184条",
+            "中华人民共和国刑法第198条"
+          ],
+          "first_relevant_rank": null
+        },
+        {
+          "id": "stage5-criminal-17-1",
+          "knowledge_base_slug": "criminal-law",
+          "relevant_article_ids": [
+            "中华人民共和国刑法第17条之1"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国刑法第17-1条",
+            "中华人民共和国刑法第72条",
+            "中华人民共和国刑法第49条",
+            "中华人民共和国刑法第17条",
+            "中华人民共和国刑法第236-1条"
+          ],
+          "first_relevant_rank": 1
+        }
+      ]
+    },
+    "labor-contract-law": {
+      "sample_count": 1,
+      "top_k": 5,
+      "metrics": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0,
+        "ndcg_at_k": 1.0
+      },
+      "items": [
+        {
+          "id": "stage5-labor-19-duration",
+          "knowledge_base_slug": "labor-contract-law",
+          "relevant_article_ids": [
+            "中华人民共和国劳动合同法第19条"
+          ],
+          "ranked_article_ids": [
+            "中华人民共和国劳动合同法第19条",
+            "中华人民共和国劳动合同法第13条",
+            "中华人民共和国劳动合同法第14条",
+            "中华人民共和国劳动合同法第58条",
+            "中华人民共和国劳动合同法第15条"
+          ],
+          "first_relevant_rank": 1
+        }
+      ]
+    }
+  },
+  "mode": "bm25",
+  "dataset": "data\\evaluation\\stage5_retrieval_regression.jsonl",
+  "evaluation_tier": "engineering_regression",
+  "formal_metric": false,
+  "notice": "样本待逐条人工审核；本报告仅用于检索回归，不能作为对外效果指标。"
+}

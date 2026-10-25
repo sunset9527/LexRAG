@@ -47,6 +47,17 @@ def authenticated_query(monkeypatch):
 
 
 class FakeKnowledgeBaseService:
+    def list_visible_knowledge_bases(self, *, organization_id):
+        assert organization_id == 9
+        return [
+            {
+                "slug": "civil-code",
+                "name": "中华人民共和国民法典",
+                "type": "statute",
+                "status": "READY",
+            }
+        ]
+
     def get_ready_collection_name(self, slug):
         assert slug == "civil-code"
         return "kb_civil_code"
@@ -120,6 +131,9 @@ def test_query_returns_exact_cache_before_constructing_a_retriever(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["metadata"]["cache_hit"] == "exact"
+    assert response.json()["metadata"]["knowledge_base_routing"]["selected_slugs"] == [
+        "civil-code"
+    ]
     assert cache.scope["knowledge_base_slug"] == "civil-code"
     assert cache.scope["user_scope"] != "Bearer a-user-token"
 
@@ -264,14 +278,14 @@ def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypa
             self,
             question,
             *,
-            knowledge_base_slug,
+            knowledge_base_slugs,
             conversation_context,
             request_context,
         ):
             observed.update(
                 {
                     "question": question,
-                    "knowledge_base_slug": knowledge_base_slug,
+                    "knowledge_base_slugs": knowledge_base_slugs,
                     "conversation_context": conversation_context,
                     "request_context": request_context,
                 }
@@ -326,7 +340,7 @@ def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypa
     assert response.json()["answer"] == "合同成立需符合要约与承诺等条件。"
     assert observed == {
         "question": "合同成立需要满足哪些条件？",
-        "knowledge_base_slug": "civil-code",
+        "knowledge_base_slugs": ["civil-code"],
         "conversation_context": memory_turns,
         "request_context": {
             "user_id": 7,

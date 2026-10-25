@@ -1,4 +1,4 @@
-"""在多个法律知识库上运行经人工核验的检索评测。"""
+"""对阶段 5 跨法规库检索样本运行 vector、BM25 或 RRF 回归。"""
 
 from __future__ import annotations
 
@@ -12,67 +12,65 @@ sys.path.insert(0, str(ROOT))
 
 from src.evaluation.multikb_retrieval import evaluate_multi_knowledge_base
 from src.evaluation.retrieval_evaluation import EvaluationDatasetError, load_labels
+from src.ingestion.indexer import LawIndexer
+from src.retrieval.law_retriever import LawRetriever
 
 
-def default_collection_name(slug: str) -> str:
-    """知识库 slug 到项目默认 Chroma collection 名称。"""
-    return f"kb_{slug.replace('-', '_')}"
+def _parse_collection(value: str) -> tuple[str, str]:
+    try:
+        slug, collection_name = value.split("=", 1)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("collection 格式必须为 slug=collection_name") from exc
+    if not slug or not collection_name:
+        raise argparse.ArgumentTypeError("collection 格式必须为 slug=collection_name")
+    return slug, collection_name
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="按知识库路由，评测向量、BM25 或 RRF 检索")
-    parser.add_argument("--dataset", required=True, type=Path, help="全部人工核验的 JSONL 数据集")
-    parser.add_argument(
-        "--mode", required=True, choices=["vector", "bm25", "rrf"], help="待评测的检索路线"
-    )
-    parser.add_argument("--top-k", required=True, type=int)
-    parser.add_argument("--output", required=True, type=Path)
+    parser = argparse.ArgumentParser(description="按知识库路由运行法规检索回归")
+    parser.add_argument("--dataset", type=Path, required=True)
+    parser.add_argument("--collection", type=_parse_collection, action="append", required=True)
+    parser.add_argument("--mode", choices=("vector", "bm25", "rrf"), required=True)
+    parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--persist-directory", type=Path, default=Path("data/chroma_db"))
+    parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
     try:
-        labels = load_labels(args.dataset, require_reviewed=True)
-        from src.ingestion.indexer import LawIndexer
-        from src.retrieval.law_retriever import LawRetriever
-
-        retrievers: dict[str, LawRetriever] = {}
-
-        def retriever_for_slug(slug: str) -> LawRetriever:
-            if slug not in retrievers:
-                indexer = LawIndexer(
-                    persist_directory=str(args.persist_directory),
-                    collection_name=default_collection_name(slug),
-                )
-                retrievers[slug] = LawRetriever(vectorstore=indexer.vectorstore)
-            return retrievers[slug]
-
-        def law_name_for_slug(slug: str) -> str:
-            collection = retriever_for_slug(slug).vectorstore._collection
-            metadata = collection.get(limit=1, include=["metadatas"])["metadatas"]
-            law_name = str(metadata[0].get("law_name", "")) if metadata else ""
-            if not law_name:
-                raise RuntimeError(f"知识库 {slug} 缺少 law_name 元数据")
-            return law_name
-
+        labels = load_labels(args.dataset, require_reviewed=False)
+        collections = dict(args.collection)
+        missing = sorted({label["knowledge_base_slug"] for label in labels} - set(collections))
+        if missing:
+            raise EvaluationDatasetError(f"缺少知识库 collection 映射: {', '.join(missing)}")
+        retrievers = {
+            slug: LawRetriever(
+                vectorstore=LawIndexer(
+                    persist_directory=str(args.persist_directory), collection_name=collection_name
+                ).vectorstore
+            )
+            for slug, collection_name in collections.items()
+        }
+        law_names = {label["knowledge_base_slug"]: label.get("law_name", "") for label in labels}
         report = evaluate_multi_knowledge_base(
             labels,
-            retriever_for_slug,
+            lambda slug: retrievers[slug],
             mode=args.mode,
             top_k=args.top_k,
-            law_name_for_slug=law_name_for_slug if args.mode == "rrf" else None,
+            law_name_for_slug=lambda slug: law_names[slug],
         )
-        report["run"] = {
-            "mode": args.mode,
-            "persist_directory": str(args.persist_directory),
-            "collections": {
-                slug: default_collection_name(slug)
-                for slug in sorted({label["knowledge_base_slug"] for label in labels})
-            },
-        }
+        report.update(
+            {
+                "mode": args.mode,
+                "dataset": str(args.dataset),
+                "evaluation_tier": "engineering_regression",
+                "formal_metric": False,
+                "notice": "样本待逐条人工审核；本报告仅用于检索回归，不能作为对外效果指标。",
+            }
+        )
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         return 0
-    except (OSError, EvaluationDatasetError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
+    except (EvaluationDatasetError, OSError, ValueError) as exc:
         print(f"评测失败: {exc}", file=sys.stderr)
         return 2
 

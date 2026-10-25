@@ -130,6 +130,7 @@ class GraphRetriever:
                 {
                     "article_id": art_id,
                     "content": node_data.get("content", ""),
+                    "law_name": node_data.get("law_name", ""),
                     "chapter": node_data.get("chapter", ""),
                     "references_from": list(self.graph.predecessors(art_id)),
                     "references_to": list(self.graph.successors(art_id)),

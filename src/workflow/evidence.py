@@ -20,6 +20,11 @@ class EvidenceItem:
     score: float
     retrieval_path: str
     source_position: str | None = None
+    version_id: str | None = None
+    effective_from: str | None = None
+    effective_to: str | None = None
+    source_url: str | None = None
+    content_hash: str | None = None
     retrieval_paths: set[str] = field(default_factory=set, init=False)
 
     def __post_init__(self) -> None:
@@ -94,6 +99,12 @@ class VerifiedCitation:
     citation_text: str
     is_verified: bool
     original_text: str = ""
+    knowledge_base_slug: str | None = None
+    version_id: str | None = None
+    effective_from: str | None = None
+    effective_to: str | None = None
+    source_url: str | None = None
+    content_hash: str | None = None
 
 
 @dataclass
@@ -107,7 +118,7 @@ class CitationVerifier:
     """不调用模型，只允许引用当前证据账本中的法条。"""
 
     _CITATION_PATTERN = re.compile(
-        r"【(?P<law_name>[^【】]*?)第(?P<article_id>[零一二三四五六七八九十百千\d]+)条】"
+        r"【(?P<law_name>[^【】]*?)第(?P<article_id>[零一二三四五六七八九十百千\d]+)(?:条之(?P<subsection>[零一二三四五六七八九十百千\d]+))?条?】"
     )
 
     def verify(
@@ -115,7 +126,8 @@ class CitationVerifier:
         answer: str,
         ledger: EvidenceLedger,
         *,
-        knowledge_base_slug: str,
+        knowledge_base_slug: str | None = None,
+        knowledge_base_slugs: Iterable[str] | None = None,
     ) -> CitationVerificationResult:
         citations = self._extract(answer)
         if not citations:
@@ -125,7 +137,14 @@ class CitationVerifier:
                 issues=["回答中未包含可校验的法条引用"],
             )
 
-        allowed = ledger.statutes_for(knowledge_base_slug)
+        selected_slugs = {slug for slug in (knowledge_base_slugs or []) if slug}
+        if knowledge_base_slug:
+            selected_slugs.add(knowledge_base_slug)
+        allowed = [
+            item
+            for slug in selected_slugs
+            for item in ledger.statutes_for(slug)
+        ]
         issues: list[str] = []
         for citation in citations:
             same_article = [
@@ -133,8 +152,15 @@ class CitationVerifier:
             ]
             exact_items = [item for item in same_article if item.law_name == citation.law_name]
             if exact_items:
+                source = max(exact_items, key=lambda item: item.score)
                 citation.is_verified = True
-                citation.original_text = max(exact_items, key=lambda item: item.score).content
+                citation.original_text = source.content
+                citation.knowledge_base_slug = source.knowledge_base_slug
+                citation.version_id = source.version_id
+                citation.effective_from = source.effective_from
+                citation.effective_to = source.effective_to
+                citation.source_url = source.source_url
+                citation.content_hash = source.content_hash
             elif same_article:
                 issues.append(f"引用法律名称不匹配：{citation.citation_text}")
             else:
@@ -150,7 +176,11 @@ class CitationVerifier:
         citations: list[VerifiedCitation] = []
         seen: set[tuple[str, str]] = set()
         for match in self._CITATION_PATTERN.finditer(answer):
-            article_id = normalize_article_id(match.group("article_id"))
+            raw_article_id = match.group("article_id")
+            subsection = match.group("subsection")
+            if subsection:
+                raw_article_id = f"{raw_article_id}-{subsection}"
+            article_id = normalize_article_id(raw_article_id)
             law_name = match.group("law_name").strip()
             key = (law_name, article_id)
             if not article_id or key in seen:
@@ -169,7 +199,13 @@ class CitationVerifier:
 
 def normalize_article_id(value: str) -> str:
     """将阿拉伯或常见中文条号规范化为阿拉伯数字字符串。"""
-    value = value.strip().replace("第", "").replace("条", "")
+    value = value.strip().replace("第", "")
+    subsection_match = re.fullmatch(r"(.+?)(?:条之|-)([零一二三四五六七八九十百千\d]+)条?", value)
+    if subsection_match:
+        base = normalize_article_id(subsection_match.group(1))
+        subsection = normalize_article_id(subsection_match.group(2))
+        return f"{base}-{subsection}" if base and subsection else ""
+    value = value.replace("条", "")
     if value.isdigit():
         return str(int(value))
 

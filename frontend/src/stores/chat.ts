@@ -3,6 +3,12 @@ import { ref } from 'vue'
 import { queryApi, type QueryResponse, type Citation, type VersionSelection, type WorkflowTraceEvent } from '@/api/query'
 import { sessionsApi, type Recommendation, type SessionSummary } from '@/api/sessions'
 
+export interface KnowledgeBaseRouteCandidate {
+  slug: string
+  confidence: number
+  reason_code: string
+}
+
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
@@ -19,6 +25,8 @@ export interface ChatMessage {
   cacheOriginalQuery?: string
   cacheSimilarity?: number
   versionSelection?: VersionSelection
+  knowledgeBaseRouting?: QueryResponse['metadata']['knowledge_base_routing']
+  routingCandidates?: KnowledgeBaseRouteCandidate[]
   timestamp: number
 }
 
@@ -33,7 +41,7 @@ export const useChatStore = defineStore('chat', () => {
     return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
   }
 
-  async function sendMessage(question: string, knowledgeBaseId?: string, caseDate?: string): Promise<void> {
+  async function sendMessage(question: string, knowledgeBaseIds?: string[], caseDate?: string): Promise<void> {
     // 添加用户消息
     const userMsg: ChatMessage = {
       id: generateId(),
@@ -49,7 +57,7 @@ export const useChatStore = defineStore('chat', () => {
       const res: QueryResponse = await queryApi.ask({
         query: question,
         session_id: currentSessionId.value || undefined,
-        knowledge_base_ids: knowledgeBaseId ? [knowledgeBaseId] : undefined,
+        knowledge_base_ids: knowledgeBaseIds?.length ? knowledgeBaseIds : undefined,
         case_date: caseDate || undefined,
       })
 
@@ -70,20 +78,34 @@ export const useChatStore = defineStore('chat', () => {
         workflowStatus: res.metadata?.workflow_status,
         evidenceCount: res.metadata?.evidence_count,
         verificationAttempts: res.metadata?.verification_attempts,
-        knowledgeBaseSlug: knowledgeBaseId,
+        knowledgeBaseSlug: knowledgeBaseIds?.join('|'),
         cacheHit: res.metadata?.cache_hit,
         cacheOriginalQuery: res.metadata?.cache_original_query,
         cacheSimilarity: res.metadata?.cache_similarity,
         versionSelection: res.metadata?.version_selection,
+        knowledgeBaseRouting: res.metadata?.knowledge_base_routing,
         timestamp: Date.now(),
       }
       messages.value.push(assistantMsg)
       await loadSessions()
     } catch (error) {
+      const detail = (error as { response?: { data?: { detail?: unknown } } }).response?.data?.detail
+      const clarification = detail && typeof detail === 'object'
+        ? detail as { code?: string; message?: string; candidates?: unknown }
+        : undefined
+      const routingCandidates = clarification?.code === 'KNOWLEDGE_BASE_CLARIFICATION_REQUIRED'
+        && Array.isArray(clarification.candidates)
+        ? clarification.candidates.filter((item): item is KnowledgeBaseRouteCandidate => {
+            return Boolean(item)
+              && typeof item === 'object'
+              && typeof (item as KnowledgeBaseRouteCandidate).slug === 'string'
+          })
+        : undefined
       const errorMsg: ChatMessage = {
         id: generateId(),
         role: 'assistant',
-        content: '抱歉，处理请求时出现了错误。请稍后重试。',
+        content: clarification?.message || '抱歉，处理请求时出现了错误。请稍后重试。',
+        routingCandidates,
         timestamp: Date.now(),
       }
       messages.value.push(errorMsg)
@@ -120,6 +142,7 @@ export const useChatStore = defineStore('chat', () => {
           evidenceCount: item.metadata?.evidence_count,
           verificationAttempts: item.metadata?.verification_attempts,
           versionSelection: item.metadata?.version_selection,
+          knowledgeBaseRouting: item.metadata?.knowledge_base_routing,
           timestamp,
         },
       ]

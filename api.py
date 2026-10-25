@@ -103,7 +103,9 @@ from src.retrieval.case_retriever import CaseRetriever
 from src.retrieval.context_compressor import ContextCompressor
 from src.retrieval.graph_retriever import GraphRetriever
 from src.retrieval.intent_router import IntentRouter
+from src.retrieval.knowledge_base_router import KnowledgeBaseRouter
 from src.retrieval.law_retriever import LawRetriever
+from src.retrieval.multi_knowledge_base_retriever import MultiKnowledgeBaseLawRetriever
 from src.retrieval.query_rewriter import QueryRewriter
 from src.retrieval.reranker import CrossEncoderReranker
 from src.utils.embedding_factory import create_embeddings
@@ -1297,26 +1299,63 @@ async def query(
             len(request.query),
         )
 
-        selected_ids = request.knowledge_base_ids or ["civil-code"]
-        if len(selected_ids) != 1:
-            raise HTTPException(status_code=400, detail="当前版本一次只能选择一个知识库")
         knowledge_base_service = components.get("knowledge_base_service")
         if knowledge_base_service is None:
             raise HTTPException(status_code=503, detail="知识库服务未初始化")
+        if hasattr(knowledge_base_service, "list_visible_knowledge_bases"):
+            visible_knowledge_bases = [
+                item
+                for item in knowledge_base_service.list_visible_knowledge_bases(
+                    organization_id=authorization_context.organization_id
+                )
+                if item.get("type") == "statute" and item.get("status") == "READY"
+            ]
+        else:  # legacy test seam; production service always exposes the visible registry.
+            visible_knowledge_bases = [
+                {"slug": "civil-code", "name": "中华人民共和国民法典", "type": "statute", "status": "READY"}
+            ]
+        route_decision = KnowledgeBaseRouter().route(
+            request.query,
+            visible_knowledge_bases,
+            explicit_slugs=request.knowledge_base_ids,
+        )
+        selected_ids = route_decision.selected_slugs
+        if not selected_ids:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "code": "KNOWLEDGE_BASE_CLARIFICATION_REQUIRED",
+                    "message": "无法可靠判断适用知识库，请选择法规库后重问。",
+                    "candidates": [
+                        {
+                            "slug": item.slug,
+                            "confidence": item.confidence,
+                            "reason_code": item.reason_code,
+                        }
+                        for item in route_decision.candidates
+                    ],
+                },
+            )
         version_selection = None
+        version_selections = {}
+        collection_names = {}
         query_version_service = components.get("query_version_service")
         try:
             if query_version_service is not None:
-                version_selection = query_version_service.resolve(
-                    selected_ids[0],
-                    organization_id=authorization_context.organization_id,
-                    case_date=request.case_date,
-                )
-                collection_name = version_selection.collection_name
+                for slug in selected_ids:
+                    selection = query_version_service.resolve(
+                        slug,
+                        organization_id=authorization_context.organization_id,
+                        case_date=request.case_date,
+                    )
+                    version_selections[slug] = selection
+                    collection_names[slug] = selection.collection_name
+                version_selection = version_selections[selected_ids[0]]
             else:
-                collection_name = knowledge_base_service.get_ready_collection_name_for_organization(
-                    selected_ids[0], organization_id=authorization_context.organization_id
-                )
+                for slug in selected_ids:
+                    collection_names[slug] = knowledge_base_service.get_ready_collection_name_for_organization(
+                        slug, organization_id=authorization_context.organization_id
+                    )
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -1330,6 +1369,27 @@ async def query(
             if version_selection is not None
             else None
         )
+        knowledge_base_routing_metadata = {
+            "mode": route_decision.mode,
+            "selected_slugs": selected_ids,
+            "candidates": [
+                {
+                    "slug": candidate.slug,
+                    "confidence": candidate.confidence,
+                    "reason_code": candidate.reason_code,
+                }
+                for candidate in route_decision.candidates
+            ],
+        }
+        version_selections_metadata = {
+            slug: {
+                **selection.provenance,
+                "as_of": selection.as_of.isoformat(),
+                "assumption": selection.assumption,
+                "timeline": selection.timeline,
+            }
+            for slug, selection in version_selections.items()
+        }
 
         if db_session.SessionLocal is None:
             raise HTTPException(status_code=503, detail="数据库服务未初始化")
@@ -1370,15 +1430,16 @@ async def query(
         cache_scope = {
             "user_scope": user_scope,
             "session_id": session_id,
-            "knowledge_base_slug": selected_ids[0],
+            "knowledge_base_slug": "|".join(sorted(selected_ids)),
             "base_url": x_base_url or settings.deepseek_base_url,
             "model": x_model or settings.deepseek_model,
             "prompt_version": "runtime-v1",
             "retrieval_version": settings.query_cache_retrieval_version,
             "case_date": request.case_date.isoformat() if request.case_date else "",
-            "version_id": version_selection.provenance["version_id"]
-            if version_selection is not None
-            else "",
+            "version_id": "|".join(
+                f"{slug}:{selection.provenance['version_id']}"
+                for slug, selection in sorted(version_selections.items())
+            ),
         }
         query_cache_service = components.get("query_cache_service")
         cache_bypass = request.config.get("cache_bypass") is True
@@ -1390,6 +1451,8 @@ async def query(
                     **cached_response.get("metadata", {}),
                     "cache_hit": "exact",
                     "memory_turns_used": len(memory_turns),
+                    "knowledge_base_routing": knowledge_base_routing_metadata,
+                    **({"version_selections": version_selections_metadata} if version_selections_metadata else {}),
                     **({"version_selection": version_metadata} if version_metadata else {}),
                 }
                 session_service.record_turn(
@@ -1423,7 +1486,7 @@ async def query(
             scoped_indexer = LawIndexer(
                 persist_directory=settings.chroma_persist_directory,
                 embedding_model=settings.embedding_model,
-                collection_name=collection_name,
+                collection_name=collection_names[selected_ids[0]],
             )
             query_embedding = None
             if query_cache_service and not cache_bypass:
@@ -1445,6 +1508,8 @@ async def query(
                             "cache_original_query": semantic_hit["original_query"],
                             "cache_similarity": semantic_hit["similarity"],
                             "memory_turns_used": len(memory_turns),
+                            "knowledge_base_routing": knowledge_base_routing_metadata,
+                            **({"version_selections": version_selections_metadata} if version_selections_metadata else {}),
                             **({"version_selection": version_metadata} if version_metadata else {}),
                         }
                         session_service.record_turn(
@@ -1473,12 +1538,19 @@ async def query(
                         return QueryResponse(**cached_response)
                 except Exception as exc:
                     logger.warning("语义查询缓存不可用 error_type=%s", type(exc).__name__)
-            scoped_retriever = LawRetriever(
-                vectorstore=scoped_indexer.vectorstore,
-                api_key=settings.deepseek_api_key,
-                base_url=settings.deepseek_base_url,
-                model=settings.deepseek_model,
-            )
+            scoped_retrievers = {}
+            for slug, collection_name in collection_names.items():
+                indexer = scoped_indexer if slug == selected_ids[0] else LawIndexer(
+                    persist_directory=settings.chroma_persist_directory,
+                    embedding_model=settings.embedding_model,
+                    collection_name=collection_name,
+                )
+                scoped_retrievers[slug] = LawRetriever(
+                    vectorstore=indexer.vectorstore,
+                    api_key=settings.deepseek_api_key,
+                    base_url=settings.deepseek_base_url,
+                    model=settings.deepseek_model,
+                )
             effective_api_key = x_api_key or settings.deepseek_api_key
             effective_base_url = x_base_url or settings.deepseek_base_url
             effective_model = x_model or settings.deepseek_model
@@ -1496,7 +1568,14 @@ async def query(
                     model=effective_model,
                 )
             workflow = LegalEvidenceWorkflow(
-                law_retriever=QueryEnhancedLawRetriever(scoped_retriever, runtime_rewriter),
+                law_retriever=MultiKnowledgeBaseLawRetriever(
+                    {
+                        slug: QueryEnhancedLawRetriever(
+                            retriever, runtime_rewriter, enable_hyde=settings.hyde_enabled
+                        )
+                        for slug, retriever in scoped_retrievers.items()
+                    }
+                ),
                 answer_generator=build_evidence_answer_generator(
                     runtime_llm, memory_turns=memory_turns
                 ),
@@ -1507,7 +1586,7 @@ async def query(
             )
             result = workflow.invoke(
                 request.query,
-                knowledge_base_slug=selected_ids[0],
+                knowledge_base_slugs=selected_ids,
                 conversation_context=memory_turns,
                 request_context={
                     "user_id": current_user.id,
@@ -1520,6 +1599,9 @@ async def query(
             result.metadata["cache_bypassed"] = True
 
         result.metadata["memory_turns_used"] = len(memory_turns)
+        result.metadata["knowledge_base_routing"] = knowledge_base_routing_metadata
+        if version_selections_metadata:
+            result.metadata["version_selections"] = version_selections_metadata
         if version_metadata is not None:
             result.metadata["version_selection"] = version_metadata
         query_id = session_id
@@ -1534,11 +1616,24 @@ async def query(
                     "citation_text": c.citation_text if hasattr(c, "citation_text") else "",
                     "original_text": c.original_text if hasattr(c, "original_text") else "",
                     "is_verified": c.is_verified if hasattr(c, "is_verified") else False,
+                    "knowledge_base_slug": getattr(c, "knowledge_base_slug", None),
+                    "version_id": getattr(c, "version_id", None),
+                    "effective_from": getattr(c, "effective_from", None),
+                    "effective_to": getattr(c, "effective_to", None),
+                    "source_url": getattr(c, "source_url", None),
+                    "content_hash": getattr(c, "content_hash", None),
                 }
                 for c in result.citations
             ]
         if version_selection is not None:
-            citations_safe = [{**citation, **version_selection.provenance} for citation in citations_safe]
+            primary_slug = selected_ids[0]
+            for citation in citations_safe:
+                # 多知识库引用优先使用证据账本带回的逐条版本信息；仅为主库的缺失字段补值。
+                if citation.get("knowledge_base_slug") not in (None, primary_slug):
+                    continue
+                for field, value in version_selection.provenance.items():
+                    if not citation.get(field):
+                        citation[field] = value
 
         # v2.4: 统一由会话服务持久化、更新时间并在通过校验时更新画像。
         try:

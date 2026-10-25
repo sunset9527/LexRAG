@@ -49,3 +49,23 @@ def test_multi_query_retrieval_fuses_original_candidates_and_hyde():
     assert calls == ["原问题", "候选问题", "HyDE 假设答案"]
     assert [item.article_id for item in results] == ["article-b", "article-a", "article-c"]
     assert results[0].metadata["retrieval_queries"] == ["原问题", "候选问题", "HyDE 假设答案"]
+    assert results[0].metadata["score_direction"] == "higher_is_more_relevant"
+    assert results[0].metadata["score_type"] == "multi_query_rrf"
+    assert results[0].metadata["normalized_score"] == 1.0
+
+
+def test_multi_query_retrieval_uses_hybrid_route_when_optimization_is_enabled():
+    retriever = LawRetriever.__new__(LawRetriever)
+    retriever.enable_optimization = True
+    calls = []
+
+    def fake_hybrid(query, *, top_k, **_kwargs):
+        calls.append((query, top_k))
+        return [_result(f"article-{query}")], "", []
+
+    retriever.retrieve_optimized = fake_hybrid
+
+    results = retriever.retrieve_multi_query(["原问题", "候选问题"], top_k=2)
+
+    assert calls == [("原问题", 2), ("候选问题", 2)]
+    assert [item.article_id for item in results] == ["article-候选问题", "article-原问题"]

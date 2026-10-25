@@ -26,6 +26,11 @@ from .intent_router import IntentType, QueryIntent
 logger = logging.getLogger(__name__)
 
 
+def _unit_interval(value: float) -> float:
+    """将可比较的相关性显式限制到 ``[0, 1]``。"""
+    return max(0.0, min(1.0, float(value)))
+
+
 @dataclass
 class RetrievalResult:
     """检索结果"""
@@ -171,14 +176,33 @@ class LawRetriever:
         if chapter:
             filter_dict["chapter"] = chapter
 
+        retrieval_query = ropt.expand_legal_aliases(query)
+
         # 执行检索
         try:
-            if filter_dict:
-                results = self.vectorstore.similarity_search_with_score(
-                    query, k=top_k * 2, filter=filter_dict
-                )
+            if hasattr(self.vectorstore, "similarity_search_with_relevance_scores"):
+                if filter_dict:
+                    results = self.vectorstore.similarity_search_with_relevance_scores(
+                        retrieval_query, k=top_k * 2, filter=filter_dict
+                    )
+                else:
+                    results = self.vectorstore.similarity_search_with_relevance_scores(
+                        retrieval_query, k=top_k * 2
+                    )
+            elif filter_dict:
+                results = [
+                    (doc, 1.0 / (1.0 + float(distance)))
+                    for doc, distance in self.vectorstore.similarity_search_with_score(
+                        retrieval_query, k=top_k * 2, filter=filter_dict
+                    )
+                ]
             else:
-                results = self.vectorstore.similarity_search_with_score(query, k=top_k * 2)
+                results = [
+                    (doc, 1.0 / (1.0 + float(distance)))
+                    for doc, distance in self.vectorstore.similarity_search_with_score(
+                        retrieval_query, k=top_k * 2
+                    )
+                ]
         except Exception as exc:
             logger.error("向量检索失败 error_type=%s", type(exc).__name__)
             return []
@@ -212,8 +236,14 @@ class LawRetriever:
                 full_content=full_content,
                 chapter=metadata.get("chapter", ""),
                 section=metadata.get("section", ""),
-                score=score,
-                metadata=metadata,
+                score=float(score),
+                metadata={
+                    **metadata,
+                    "score_type": "vector_relevance",
+                    "score_direction": "higher_is_more_relevant",
+                    "normalized_score": _unit_interval(float(score)),
+                    "query_expanded_with_aliases": retrieval_query != query,
+                },
             )
 
             retrieval_results.append(result)
@@ -246,17 +276,27 @@ class LawRetriever:
 
         fused: dict[str, tuple[float, RetrievalResult]] = {}
         for query in retrieval_queries:
-            results = self.retrieve(query, top_k=top_k, **retrieve_kwargs)
+            if getattr(self, "enable_optimization", False):
+                results, _, _ = self.retrieve_optimized(query, top_k=top_k, **retrieve_kwargs)
+            else:
+                results = self.retrieve(query, top_k=top_k, **retrieve_kwargs)
             for rank, result in enumerate(results):
                 score, first_result = fused.get(result.article_id, (0.0, result))
                 fused[result.article_id] = (score + 1 / (60 + rank), first_result)
 
         ordered = sorted(fused.values(), key=lambda item: (-item[0], item[1].article_id))[:top_k]
+        normalization_denominator = ordered[0][0] if ordered else 1.0
         return [
             replace(
                 result,
                 score=score,
-                metadata={**result.metadata, "retrieval_queries": retrieval_queries},
+                metadata={
+                    **result.metadata,
+                    "retrieval_queries": retrieval_queries,
+                    "score_type": "multi_query_rrf",
+                    "score_direction": "higher_is_more_relevant",
+                    "normalized_score": _unit_interval(score / normalization_denominator),
+                },
             )
             for score, result in ordered
         ]
@@ -289,9 +329,11 @@ class LawRetriever:
             results = self.retrieve(query, top_k=top_k, law_name=law_name, intent=intent)
             return results, "", [r.article_number for r in results]
 
+        retrieval_query = ropt.expand_legal_aliases(query)
+
         # 1) 两路召回
-        bm25_results = self._bm25.retrieve(query, top_k=top_k * 2)
-        vec_results = self.vectorstore.similarity_search(query, k=top_k * 2)
+        bm25_results = self._bm25.retrieve(retrieval_query, top_k=top_k * 2)
+        vec_results = self.vectorstore.similarity_search(retrieval_query, k=top_k * 2)
 
         # 2) 加权 RRF 融合
         wb, wv = ropt.rrf_weights(query)
@@ -323,6 +365,7 @@ class LawRetriever:
 
         # 3) 精确条号置顶
         ranked = ropt.exact_article_boost(ranked, info, query)
+        normalization_denominator = max((score for _, score in ranked), default=1.0)
 
         # 4) 按条号去重，构建 RetrievalResult
         seen: set[str] = set()
@@ -346,7 +389,14 @@ class LawRetriever:
                     chapter=val["chapter"],
                     section=None,
                     score=_score,
-                    metadata={"article_number": art, "chapter": val["chapter"]},
+                    metadata={
+                        "article_number": art,
+                        "chapter": val["chapter"],
+                        "score_type": "rrf",
+                        "score_direction": "higher_is_more_relevant",
+                        "normalized_score": _unit_interval(_score / normalization_denominator),
+                        "query_expanded_with_aliases": retrieval_query != query,
+                    },
                 )
             )
             if len(results) >= top_k:
@@ -417,7 +467,12 @@ class LawRetriever:
                     chapter=metadata.get("chapter", ""),
                     section=metadata.get("section", ""),
                     score=1.0,
-                    metadata=metadata,
+                    metadata={
+                        **metadata,
+                        "score_type": "exact_article",
+                        "score_direction": "higher_is_more_relevant",
+                        "normalized_score": 1.0,
+                    },
                 )
         except Exception as exc:
             logger.error("精确检索失败 error_type=%s", type(exc).__name__)

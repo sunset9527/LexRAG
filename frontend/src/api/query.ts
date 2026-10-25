@@ -21,6 +21,7 @@ export interface Citation {
   effective_to?: string
   source_url?: string
   content_hash?: string
+  knowledge_base_slug?: string
 }
 
 export interface WorkflowTraceEvent {
@@ -43,6 +44,12 @@ export interface WorkflowMetadata {
   cache_original_query?: string
   cache_similarity?: number
   version_selection?: VersionSelection
+  version_selections?: Record<string, VersionSelection>
+  knowledge_base_routing?: {
+    mode: 'automatic' | 'explicit' | 'clarification'
+    selected_slugs: string[]
+    candidates: Array<{ slug: string; confidence: number; reason_code: string }>
+  }
   [key: string]: unknown
 }
 

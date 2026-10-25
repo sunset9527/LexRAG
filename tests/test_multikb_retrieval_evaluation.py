@@ -1,8 +1,28 @@
 """八库检索评测运行器的路线与分库路由测试。"""
 
+import subprocess
+import sys
+from pathlib import Path
+
 from types import SimpleNamespace
 
 from src.evaluation.multikb_retrieval import collect_ranked_article_ids
+
+
+ROOT = Path(__file__).parent.parent
+
+
+def test_multikb_regression_cli_exposes_explicit_collection_mapping():
+    completed = subprocess.run(
+        [sys.executable, "scripts/evaluate_multikb_retrieval.py", "--help"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0
+    assert "--collection" in completed.stdout
 
 
 class _FakeRetriever:

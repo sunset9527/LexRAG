@@ -64,6 +64,9 @@ def test_retrieve_filters_before_deduplicating_article_chunks():
     ]
     assert [item.article_id for item in results] == ["民法典第17条", "民法典第18条"]
     assert results[0].content == "第十七条原文"
+    assert results[0].metadata["score_direction"] == "higher_is_more_relevant"
+    assert results[0].metadata["score_type"] == "vector_relevance"
+    assert results[0].metadata["normalized_score"] == 1 / 1.1
 
 
 def test_retrieve_returns_empty_result_when_vector_store_fails():
