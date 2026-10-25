@@ -4,9 +4,33 @@ from __future__ import annotations
 
 from hashlib import sha256
 from pathlib import Path
+import subprocess
+import sys
 
 from src.ingestion.statute_catalog import CatalogStatute
 from src.ingestion.statute_ingestion import StatuteDefinition
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_knowledge_base_service_registers_its_foreign_key_target_model():
+    """A clean bootstrap process must resolve ``knowledge_bases.organization_id``."""
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from app.services.knowledge_base_service import KnowledgeBaseService; "
+            "from app.db.base import Base; "
+            "print([table.name for table in Base.metadata.sorted_tables])",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "organizations" in result.stdout
 
 
 def _catalog_entry(tmp_path: Path, *, slug: str = "company-law") -> CatalogStatute:
@@ -106,3 +130,19 @@ def test_runtime_bootstrap_cli_exposes_validate_statute_all_and_json_contracts()
     assert parse_args(["all"]).action == "all"
     args = parse_args(["statute", "company-law"])
     assert (args.action, args.slug) == ("statute", "company-law")
+
+
+def test_runtime_bootstrap_persists_graph_after_validated_statute_sources(tmp_path: Path):
+    from scripts.bootstrap_runtime import rebuild_runtime_graph
+    from src.graph.law_graph import LawGraph
+
+    entry = _catalog_entry(tmp_path)
+    graph_path = tmp_path / "runtime_graphs" / "law_graph.json"
+
+    summary = rebuild_runtime_graph(
+        catalog=(entry,), project_root=tmp_path, graph_path=graph_path
+    )
+
+    graph = LawGraph.from_json(str(graph_path))
+    assert summary == {"status": "READY", "node_count": 2, "edge_count": 0}
+    assert graph.graph.number_of_nodes() == 2

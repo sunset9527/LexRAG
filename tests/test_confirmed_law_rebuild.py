@@ -67,6 +67,37 @@ def test_confirmed_rebuild_switches_collection_only_after_new_index_succeeds():
     assert result["collection_name"] == "kb_civil_v_abcdef123456"
 
 
+def test_confirmed_rebuild_passes_verified_version_provenance_to_isolated_index():
+    seen = []
+    factory = setup(None)
+    provenance = {
+        "version_id": "civil-code@2020-05-28",
+        "effective_from": "2021-01-01",
+        "effective_to": "",
+        "source_url": "https://flk.npc.gov.cn/example",
+        "content_hash": "a" * 64,
+    }
+    service = KnowledgeBaseService(
+        factory,
+        parser=Parser(),
+        chunker=Chunker(),
+        indexer_factory=lambda _: pytest.fail("must use versioned indexer factory"),
+        versioned_indexer_factory=lambda collection, metadata: type(
+            "I", (), {"rebuild_index": lambda _, chunks: seen.append((collection, metadata)) or len(chunks)}
+        )(),
+    )
+
+    service.rebuild_confirmed_law_version(
+        "civil",
+        organization_id=1,
+        content="新法条",
+        version_hash="abcdef123456",
+        provenance_metadata=provenance,
+    )
+
+    assert seen == [("kb_civil_v_abcdef123456", provenance)]
+
+
 def test_confirmed_rebuild_does_not_switch_or_mark_ready_library_failed_when_new_index_fails():
     factory = setup(None)
     service = KnowledgeBaseService(
@@ -91,3 +122,44 @@ def test_confirmed_rebuild_does_not_switch_or_mark_ready_library_failed_when_new
         item = db.query(KnowledgeBase).one()
         assert item.collection_name == "kb_civil_old"
         assert item.status == "READY"
+
+
+def test_historical_rebuild_keeps_active_collection_pointer_unchanged():
+    seen = []
+    factory = setup(None)
+    service = KnowledgeBaseService(
+        factory,
+        parser=Parser(),
+        chunker=Chunker(),
+        indexer_factory=lambda collection: type(
+            "I", (), {"rebuild_index": lambda _, chunks: seen.append(collection) or len(chunks)}
+        )(),
+    )
+
+    result = service.rebuild_confirmed_law_version(
+        "civil",
+        organization_id=1,
+        content="历史法条",
+        version_hash="123456789abc",
+        activate=False,
+    )
+
+    assert result["collection_name"] == "kb_civil_v_123456789abc"
+    with factory() as db:
+        assert db.query(KnowledgeBase).one().collection_name == "kb_civil_old"
+
+
+def test_confirmed_version_collection_requires_an_existing_isolated_collection():
+    factory = setup(None)
+    service = KnowledgeBaseService(
+        factory,
+        collection_exists=lambda collection: collection == "kb_civil_v_abcdef123456",
+    )
+
+    assert service.get_confirmed_version_collection_name_for_organization(
+        "civil", organization_id=1, content_hash="abcdef1234567890"
+    ) == "kb_civil_v_abcdef123456"
+    with pytest.raises(ValueError, match="VERSION_COLLECTION_NOT_READY"):
+        service.get_confirmed_version_collection_name_for_organization(
+            "civil", organization_id=1, content_hash="0" * 64
+        )

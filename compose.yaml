@@ -37,7 +37,7 @@ services:
     volumes:
       - lexrag_mysql:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$$MYSQL_ROOT_PASSWORD"]
+      test: ["CMD-SHELL", "mysqladmin ping --protocol=tcp -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD"]
       interval: 10s
       timeout: 5s
       retries: 15
@@ -55,6 +55,22 @@ services:
       interval: 10s
       timeout: 3s
       retries: 10
+    networks: [lexrag_private]
+
+  volume-init:
+    build:
+      context: .
+      target: api
+    user: "0:0"
+    command: >-
+      sh -c "chown -R appuser:appuser /app/data/chroma_db /app/data/uploads
+      /app/data/runtime_graphs /app/data/law_snapshots"
+    volumes:
+      - lexrag_chroma:/app/data/chroma_db
+      - lexrag_uploads:/app/data/uploads
+      - lexrag_graphs:/app/data/runtime_graphs
+      - lexrag_law_snapshots:/app/data/law_snapshots
+    restart: "no"
     networks: [lexrag_private]
 
   migrate:
@@ -82,6 +98,8 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
+      volume-init:
+        condition: service_completed_successfully
     restart: "no"
     networks: [lexrag_private]
 
@@ -147,6 +165,12 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /tmp/lexrag-beat.pid && kill -0 \"$$(cat /tmp/lexrag-beat.pid)\""]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     restart: unless-stopped
     networks: [lexrag_private]
 

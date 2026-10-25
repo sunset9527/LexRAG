@@ -41,6 +41,14 @@ def test_mysql_creates_an_application_user_and_runtime_never_uses_root():
     assert "mysql+pymysql://root:" not in runtime_environment["DATABASE_URL"]
 
 
+def test_mysql_healthcheck_waits_for_the_tcp_listener_not_the_init_socket():
+    """MySQL's init-time Unix socket must not release one-shot migrations early."""
+    healthcheck = _compose()["services"]["mysql"]["healthcheck"]
+
+    assert "--protocol=tcp" in healthcheck["test"][-1]
+    assert "127.0.0.1" in healthcheck["test"][-1]
+
+
 def test_api_and_redis_are_private_by_default_and_web_is_the_only_default_port():
     services = _compose()["services"]
 
@@ -70,6 +78,24 @@ def test_one_shot_migration_and_bootstrap_gate_runtime_services():
         assert depends_on["migrate"]["condition"] == "service_completed_successfully"
         assert depends_on["bootstrap"]["condition"] == "service_completed_successfully"
     assert services["api"]["healthcheck"]["test"][-1] == "http://localhost:8000/health/ready"
+
+
+def test_volume_permissions_are_initialized_before_non_root_bootstrap():
+    services = _compose()["services"]
+    volume_init = services["volume-init"]
+
+    assert volume_init["user"] == "0:0"
+    assert volume_init["restart"] == "no"
+    assert "chown -R appuser:appuser" in volume_init["command"]
+    assert set(volume_init["volumes"]) == {
+        "lexrag_chroma:/app/data/chroma_db",
+        "lexrag_uploads:/app/data/uploads",
+        "lexrag_graphs:/app/data/runtime_graphs",
+        "lexrag_law_snapshots:/app/data/law_snapshots",
+    }
+    assert services["bootstrap"]["depends_on"]["volume-init"]["condition"] == (
+        "service_completed_successfully"
+    )
 
 
 def test_api_image_contains_the_bootstrap_command_source():

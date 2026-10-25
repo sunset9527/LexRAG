@@ -27,7 +27,7 @@ LexRAG 建立一条可检查的证据链，而不是把所有材料混进一个�
 
 | 维度 | 可验证事实 |
 | --- | --- |
-| 法规数据 | 仓库包含民法典及刑法、劳动法、劳动合同法、公司法、专利法、商标法、著作权法 8 部法规文本；民法典历史入库记录为 **1,260** 条、**1,636** 个 chunks，权威来源与版本链仍待阶段 4 收口 |
+| 法规数据 | 已登记并人工核验 22 份来自国家法律法规数据库的候选原件，另有 1 份由“2020 刑法全文 + 修正案十二”按显式补丁生成并经人工审核的合并文本；10 部现行法律已按版本元数据重建并原子切换。民法典为 **1,260** 条、**1,634** 个 chunks；刑法为 **505** 条、**768** 个 chunks |
 | 当前主链 | `/query` 调用共享编译的 LangGraph `StateGraph`：规划、路由、检索、证据账本、回答、引用校验和最多一次受控修复；依赖通过请求级 context 传入 |
 | 评测状态 | 15 条民法典数据仅保留为历史回归基线；八部法律 100 条快照中有 85 条缺少逐条人工审核记录，相关报告只作临时工程记录，不作为正式效果指标 |
 | 案例与文档 | 10 本本地案例汇编、3,661 页 OCR、623 条结构化案例；PDF/DOCX 支持异步解析与页级来源 |
@@ -146,7 +146,7 @@ Copy-Item .env.docker.example .env.docker
 docker compose --env-file .env.docker --project-name lexrag-stage3-acceptance config
 ```
 
-完整启动、健康检查、验证脚本的安全边界及未完成项见 [`docs/deployment.md`](docs/deployment.md) 和 [`docs/status/stage-3-deployment-verification.md`](docs/status/stage-3-deployment-verification.md)。其中完整带哈希的传递依赖锁与干净 Linux 安装验证已按决定放弃；Docker 冷启动、真实 MySQL/BGE-M3/Chroma 和恢复演练尚无成功证据，不能据此宣称生产可用。
+2026-10-24 已在隔离项目 `lexrag-stage3-acceptance` 完成一次空卷冷启动：镜像构建、MySQL 迁移、八部法规 bootstrap、BGE-M3/Chroma、持久化图谱、API/Worker/Beat/Web 健康检查及 Web `18080` 响应均通过；脱敏机器可读证据位于 [`reports/deployment/deployment-verification.md`](reports/deployment/deployment-verification.md)。完整启动、健康检查和边界见 [`docs/deployment.md`](docs/deployment.md) 与 [`docs/status/stage-3-deployment-verification.md`](docs/status/stage-3-deployment-verification.md)。完整带哈希的传递依赖锁与干净 Linux 安装验证已按决定放弃；浏览器人工端到端、真实 LLM 查询、重启恢复和受控故障注入仍未执行，不能据此宣称生产可用。
 
 ```powershell
 # 在真实 Chroma collection 上复现 15 条民法典检索基线
@@ -181,9 +181,9 @@ LexRAG/
 - 15 条评测不被夸大为通用法律问答正确率。
 - 100 条八部法律快照存在批量 `approved` 与“待人工核验”冲突，已明确降级为临时工程记录；修正前不对外引用其指标。
 - OCR/文档解析已完成真实处理链路验收，但没有人工逐页字符和表格标注，因此不宣称 OCR 准确率。
-- Compose 已通过静态解析；Docker 冷启动与浏览器人工端到端验收仍待在可用本机环境完成。
+- Compose 已在隔离空卷环境完成真实冷启动；浏览器人工端到端、真实 LLM 查询、重启恢复和受控故障注入仍待后续验收。
 - `constraints-py313.txt` 不是完整哈希依赖锁；该验收工作已经放弃，不把它当作可复现 Linux 安装的证据。
-- Stage 2 的安全代码和完整后端自动化已经收口；真实多组织攻击性验收、受控 SSRF/DNS 重绑定实验及 Docker 冷启动证据仍分别留在阶段 8 和阶段 3，因此当前版本仍不表述为生产可用。
+- Stage 2 的安全代码和完整后端自动化已经收口；Stage 3 已有真实 Docker 冷启动证据，但真实多组织攻击性验收、受控 SSRF/DNS 重绑定实验、浏览器端到端与恢复/故障演练仍留在阶段 8 或后续专项验收，因此当前版本仍不表述为生产可用。
 
 ## License
 

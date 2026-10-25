@@ -8,6 +8,7 @@ export interface QueryRequest {
   session_id?: string
   config?: Record<string, any>
   knowledge_base_ids?: string[]
+  case_date?: string
 }
 
 export interface Citation {
@@ -15,6 +16,11 @@ export interface Citation {
   citation_text: string
   original_text: string
   is_verified: boolean
+  version_id?: string
+  effective_from?: string
+  effective_to?: string
+  source_url?: string
+  content_hash?: string
 }
 
 export interface WorkflowTraceEvent {
@@ -36,7 +42,25 @@ export interface WorkflowMetadata {
   cache_hit?: 'exact' | 'semantic'
   cache_original_query?: string
   cache_similarity?: number
+  version_selection?: VersionSelection
   [key: string]: unknown
+}
+
+export interface VersionTimelineItem {
+  target_version_id: string
+  effective_from: string
+  effective_to: string | null
+}
+
+export interface VersionSelection {
+  version_id: string
+  effective_from: string
+  effective_to: string
+  source_url: string
+  content_hash: string
+  as_of: string
+  assumption: string | null
+  timeline: VersionTimelineItem[]
 }
 
 export interface QueryResponse {

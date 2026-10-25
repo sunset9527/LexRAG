@@ -19,7 +19,7 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 from copy import deepcopy
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -37,6 +37,7 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import make_asgi_app
 from pydantic import BaseModel, Field
+
 from app.api.admin import (
     get_authorization_context,
 )
@@ -71,6 +72,7 @@ from app.services.knowledge_base_service import KnowledgeBaseBusyError, Knowledg
 from app.services.langfuse_helper import create_llm, flush_langfuse
 from app.services.metrics import record_query_metrics
 from app.services.query_cache_service import QueryCacheService
+from app.services.query_version_service import QueryVersionService
 from app.services.readiness_probes import (
     RuntimeReadinessDependencies,
     alembic_head_revision,
@@ -79,6 +81,7 @@ from app.services.readiness_probes import (
 )
 from app.services.readiness_service import ReadinessService
 from app.services.session_service import ConversationTurn, SessionNotFoundError, SessionService
+from app.services.statute_version_chain_service import StatuteVersionChainService
 from app.services.usage_service import UsageService
 from app.tasks.document_tasks import process_document_task
 from config import get_project_root, settings, validate_security_settings
@@ -166,6 +169,7 @@ class QueryRequest(BaseModel):
     session_id: str | None = Field(None, description="会话ID")
     config: dict[str, Any] | None = Field(default_factory=dict, description="配置参数")
     knowledge_base_ids: list[str] = Field(default_factory=list, description="限定检索的知识库 ID")
+    case_date: date | None = Field(None, description="案件发生日期，格式 YYYY-MM-DD")
 
 
 class QueryResponse(BaseModel):
@@ -395,6 +399,7 @@ def initialize_components():
         case_ingestion_service = None
         annual_case_retriever = None
         query_cache_service = None
+        query_version_service = None
         try:
             import redis
 
@@ -407,6 +412,9 @@ def initialize_components():
             logger.warning("查询缓存初始化失败 error_type=%s", type(exc).__name__)
         if db_session.SessionLocal is not None:
             knowledge_base_service = KnowledgeBaseService(db_session.SessionLocal)
+            query_version_service = QueryVersionService(
+                StatuteVersionChainService(db_session.SessionLocal), knowledge_base_service
+            )
             document_ingestion_service = DocumentIngestionService(
                 db_session.SessionLocal,
                 uploads_root=Path(settings.document_uploads_path),
@@ -565,6 +573,7 @@ def initialize_components():
             "query_rewriter": query_rewriter,
             "graph_retriever": graph_retriever,
             "knowledge_base_service": knowledge_base_service,
+            "query_version_service": query_version_service,
             "document_ingestion_service": document_ingestion_service,
             "document_result_service": document_result_service,
             "case_ingestion_service": case_ingestion_service,
@@ -1294,12 +1303,33 @@ async def query(
         knowledge_base_service = components.get("knowledge_base_service")
         if knowledge_base_service is None:
             raise HTTPException(status_code=503, detail="知识库服务未初始化")
+        version_selection = None
+        query_version_service = components.get("query_version_service")
         try:
-            collection_name = knowledge_base_service.get_ready_collection_name_for_organization(
-                selected_ids[0], organization_id=authorization_context.organization_id
-            )
+            if query_version_service is not None:
+                version_selection = query_version_service.resolve(
+                    selected_ids[0],
+                    organization_id=authorization_context.organization_id,
+                    case_date=request.case_date,
+                )
+                collection_name = version_selection.collection_name
+            else:
+                collection_name = knowledge_base_service.get_ready_collection_name_for_organization(
+                    selected_ids[0], organization_id=authorization_context.organization_id
+                )
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+        version_metadata = (
+            {
+                **version_selection.provenance,
+                "as_of": version_selection.as_of.isoformat(),
+                "assumption": version_selection.assumption,
+                "timeline": version_selection.timeline,
+            }
+            if version_selection is not None
+            else None
+        )
 
         if db_session.SessionLocal is None:
             raise HTTPException(status_code=503, detail="数据库服务未初始化")
@@ -1345,6 +1375,10 @@ async def query(
             "model": x_model or settings.deepseek_model,
             "prompt_version": "runtime-v1",
             "retrieval_version": settings.query_cache_retrieval_version,
+            "case_date": request.case_date.isoformat() if request.case_date else "",
+            "version_id": version_selection.provenance["version_id"]
+            if version_selection is not None
+            else "",
         }
         query_cache_service = components.get("query_cache_service")
         cache_bypass = request.config.get("cache_bypass") is True
@@ -1356,6 +1390,7 @@ async def query(
                     **cached_response.get("metadata", {}),
                     "cache_hit": "exact",
                     "memory_turns_used": len(memory_turns),
+                    **({"version_selection": version_metadata} if version_metadata else {}),
                 }
                 session_service.record_turn(
                     user_id=current_user.id,
@@ -1410,6 +1445,7 @@ async def query(
                             "cache_original_query": semantic_hit["original_query"],
                             "cache_similarity": semantic_hit["similarity"],
                             "memory_turns_used": len(memory_turns),
+                            **({"version_selection": version_metadata} if version_metadata else {}),
                         }
                         session_service.record_turn(
                             user_id=current_user.id,
@@ -1484,6 +1520,8 @@ async def query(
             result.metadata["cache_bypassed"] = True
 
         result.metadata["memory_turns_used"] = len(memory_turns)
+        if version_metadata is not None:
+            result.metadata["version_selection"] = version_metadata
         query_id = session_id
 
         # 处理引文格式
@@ -1499,6 +1537,8 @@ async def query(
                 }
                 for c in result.citations
             ]
+        if version_selection is not None:
+            citations_safe = [{**citation, **version_selection.provenance} for citation in citations_safe]
 
         # v2.4: 统一由会话服务持久化、更新时间并在通过校验时更新画像。
         try:

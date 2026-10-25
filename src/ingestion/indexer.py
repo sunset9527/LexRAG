@@ -5,6 +5,7 @@
 """
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from langchain_community.vectorstores import Chroma
@@ -37,6 +38,7 @@ class LawIndexer:
         embedding_model: str = "embedding-3",
         collection_name: str = "law_articles",
         source_hash: str | None = None,
+        provenance_metadata: Mapping[str, str] | None = None,
     ):
         """
         初始化索引器
@@ -49,6 +51,7 @@ class LawIndexer:
         self.persist_directory = persist_directory
         self.collection_name = collection_name
         self.source_hash = source_hash
+        self.provenance_metadata = dict(provenance_metadata or {})
 
         self.index_identity = collection_identity_from_settings(
             settings, zhipu_model=embedding_model
@@ -131,6 +134,7 @@ class LawIndexer:
             "latest_amendment": chunk.latest_amendment or "",
             "version": chunk.version,
             "referenced_articles": str(chunk.metadata.get("referenced_articles", [])),
+            **getattr(self, "provenance_metadata", {}),
         }
 
         return Document(page_content=page_content, metadata=metadata)
@@ -170,10 +174,13 @@ class LawIndexer:
         if self.vectorstore is None:
             self._initialize_vectorstore()
 
-        # 分批添加（智谱AI 免费 Key 限流严格：QPS=1，每次最多4条）
+        # 云端 embedding 受 QPS 限流；本地 BGE-M3 不应沿用该等待策略。
         import time
 
-        batch_size = 4  # 极小批次，避免触发限流
+        is_local_embedding = settings.embedding_provider == "local"
+        # BGE-M3 is memory hungry on CPU.  Keep local batches modest so a full
+        # statute rebuild does not get terminated by Windows at a batch boundary.
+        batch_size = 8 if is_local_embedding else 4
         total = len(documents)
         for i in range(0, total, batch_size):
             batch = documents[i : i + batch_size]
@@ -195,7 +202,8 @@ class LawIndexer:
                     else:
                         raise
             logger.info(f"索引进度: {min(i + batch_size, total)}/{total}")
-            time.sleep(3)  # 批次间延迟3s，确保不超过 QPS 限制
+            if not is_local_embedding:
+                time.sleep(3)  # 云端限流：确保不超过 QPS 限制
 
         self.vectorstore.persist()
 

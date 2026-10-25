@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 import pytest
+import scripts.verify_deployment as deployment_module
 
 from scripts.verify_deployment import (
     CommandResult,
@@ -21,6 +22,29 @@ class RecordingExecutor:
     def __call__(self, command: list[str]) -> CommandResult:
         self.commands.append(command)
         return next(self.results, CommandResult(returncode=0, stdout="ok", stderr=""))
+
+
+def test_default_executor_decodes_docker_output_as_utf8_with_safe_replacement(monkeypatch):
+    captured = {}
+
+    class Completed:
+        returncode = 0
+        stdout = "ok"
+        stderr = ""
+
+    def fake_run(*_args, **kwargs):
+        captured.update(kwargs)
+        return Completed()
+
+    monkeypatch.setattr(deployment_module.subprocess, "run", fake_run)
+
+    assert deployment_module._default_executor(["docker", "version"]).stdout == "ok"
+    assert captured["encoding"] == "utf-8"
+    assert captured["errors"] == "replace"
+
+
+def test_one_shot_evidence_rejects_missing_command_output_without_crashing():
+    assert DeploymentVerifier._one_shot_service_succeeded(None) is False
 
 
 def test_project_name_must_be_explicit_and_isolated():
@@ -75,6 +99,17 @@ def test_execute_collects_compose_and_runtime_evidence_without_cleanup(tmp_path)
         ["docker", "compose", "--project-name", "lexrag-stage3-acceptance", "config"],
         ["docker", "compose", "--project-name", "lexrag-stage3-acceptance", "build"],
         ["docker", "compose", "--project-name", "lexrag-stage3-acceptance", "up", "--detach"],
+    ]
+    assert executor.commands[3] == [
+        "docker",
+        "compose",
+        "--project-name",
+        "lexrag-stage3-acceptance",
+        "ps",
+        "--all",
+        "migrate",
+        "--format",
+        "json",
     ]
     assert all("down" not in command and "rm" not in command for command in executor.commands)
     assert report["checks"][-1]["name"] == "api_readiness"

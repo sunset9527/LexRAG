@@ -19,6 +19,7 @@
           <el-select v-model="knowledgeBaseId" size="small" aria-label="选择检索知识库" style="width: 190px; margin-left: 12px">
             <el-option v-for="item in knowledgeBases" :key="item.slug" :label="item.name" :value="item.slug" />
           </el-select>
+          <el-date-picker v-model="caseDate" value-format="YYYY-MM-DD" type="date" size="small" clearable placeholder="案件发生日期（可选）" style="width: 190px" />
         </div>
 
         <div class="messages-container" ref="msgContainer">
@@ -122,6 +123,14 @@
       <div class="citation-panel">
         <div class="panel-header"><el-icon><Reading /></el-icon><span>法条溯源</span></div>
         <div class="citation-content">
+          <section v-if="latestVersionSelection" class="version-card">
+            <h4>适用版本</h4>
+            <p><strong>{{ latestVersionSelection.version_id }}</strong></p>
+            <p>适用日期：{{ latestVersionSelection.effective_from }}{{ latestVersionSelection.effective_to ? ` 至 ${latestVersionSelection.effective_to}` : ' 起' }}</p>
+            <el-alert v-if="latestVersionSelection.assumption" type="warning" :title="latestVersionSelection.assumption" :closable="false" />
+            <el-link :href="latestVersionSelection.source_url" target="_blank" type="primary">查看官方来源</el-link>
+            <details v-if="latestVersionSelection.timeline.length" class="version-timeline"><summary>版本时间线</summary><ul><li v-for="item in latestVersionSelection.timeline" :key="item.target_version_id">{{ item.target_version_id }}：{{ item.effective_from }}{{ item.effective_to ? ` 至 ${item.effective_to}` : ' 起' }}</li></ul></details>
+          </section>
           <div v-if="visibleCitations.length" class="citation-list">
             <div
               v-for="(c, index) in visibleCitations"
@@ -167,6 +176,7 @@ import { knowledgeBaseApi, type KnowledgeBase } from '@/api/knowledgeBases'
 import { useRoute, useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
 import type { Citation } from '@/api/query'
+import type { VersionSelection } from '@/api/query'
 import { favoritesApi } from '@/api/favorites'
 import { ElMessage } from 'element-plus'
 import MarkdownIt from 'markdown-it'
@@ -183,6 +193,7 @@ const knowledgeBaseId = ref('')
 const favoriteIds = ref<Record<string, number>>({})
 const favoriteLoading = ref<string | null>(null)
 const sessionQuery = ref('')
+const caseDate = ref('')
 
 const md = new MarkdownIt({ breaks: true, linkify: true })
 
@@ -218,6 +229,14 @@ const visibleCitations = computed(() => {
   })
 })
 
+const latestVersionSelection = computed<VersionSelection | undefined>(() => {
+  for (let i = store.messages.length - 1; i >= 0; i--) {
+    const message = store.messages[i]
+    if (message.role === 'assistant' && message.versionSelection) return message.versionSelection
+  }
+  return undefined
+})
+
 function renderMarkdown(text: string): string {
   return md.render(text || '')
 }
@@ -249,7 +268,7 @@ async function handleSend() {
   const q = inputText.value.trim()
   if (!q || store.isLoading) return
   inputText.value = ''
-  await store.sendMessage(q, knowledgeBaseId.value)
+  await store.sendMessage(q, knowledgeBaseId.value, caseDate.value || undefined)
   if (store.currentSessionId) await router.replace(`/chat/${store.currentSessionId}`)
   await nextTick()
   scrollToBottom()
@@ -477,6 +496,9 @@ watch(() => store.messages.length, () => {
 }
 
 .citation-detail { padding: 16px 0 8px; }
+.version-card { margin-bottom: 12px; padding: 12px; border: 1px solid var(--brand-soft); border-radius: var(--radius-sm); background: var(--surface-selected); }
+.version-card h4, .version-card p { margin: 0 0 8px; font-size: 13px; color: var(--text-primary); word-break: break-word; }
+.version-timeline { margin-top: 10px; font-size: 12px; color: var(--text-secondary); }.version-timeline summary { cursor: pointer; }.version-timeline ul { padding-left: 16px; margin: 6px 0 0; }.version-timeline li { margin: 4px 0; }
 .citation-detail h4 { font-size: 14px; color: var(--text-primary); margin: 0 0 8px; }
 .citation-text { font-size: 14px; color: var(--text-secondary); margin: 12px 0; padding: 12px; background: var(--surface-subtle); border-radius: var(--radius-sm); }
 .citation-original { font-size: 13px; color: var(--text-primary); }

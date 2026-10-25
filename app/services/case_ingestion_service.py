@@ -192,6 +192,13 @@ class CaseIngestionService:
 
     @staticmethod
     def _serialize_case(case: LegalCase) -> dict[str, Any]:
+        auditable_fields = {
+            "case_number": case.case_number,
+            "court_name": case.court_name,
+            "judgment_date": case.judgment_date,
+            "court_reasoning": case.court_reasoning,
+        }
+        missing_fields = [key for key, value in auditable_fields.items() if not str(value or "").strip()]
         return {
             "id": case.id,
             "source_id": case.source_id,
@@ -208,4 +215,6 @@ class CaseIngestionService:
             "source_start_page": case.source_start_page,
             "source_end_page": case.source_end_page,
             "extraction_warnings": case.extraction_warnings,
+            "metadata_complete": not missing_fields,
+            "missing_fields": missing_fields,
         }

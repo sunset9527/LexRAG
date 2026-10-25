@@ -46,8 +46,8 @@ sse-starlette>=1.8.0
 # LLM API (for embedding and chat)
 openai>=1.0.0
 
-# ZhipuAI Embedding API
-zhipuai>=2.0.0
+# Zhipu API adapter is restored by Stage 3 Task 3; keep its conflicting SDK
+# outside the base runtime lock until that adapter has its own dependency contract.
 
 # BM25 & Chinese Segmentation
 rank-bm25>=0.2.2
@@ -56,6 +56,9 @@ jieba>=0.42.1
 # Embedding & Reranker
 langchain-huggingface>=0.1.0
 sentence-transformers>=2.2.0
+# The verified Linux CPython 3.13 wheel resolves from the official CPU index as
+# torch-2.14.1+cpu; pip's public requirement specifier remains torch==2.14.1.
+torch==2.14.1
 
 # Utilities
 numpy>=1.24.0

@@ -58,9 +58,11 @@ class KnowledgeBaseService:
         parser: LawParser | None = None,
         chunker: StructuredLawChunker | None = None,
         indexer_factory: Callable[[str], LawIndexer] | None = None,
+        versioned_indexer_factory: Callable[[str, Mapping[str, str]], LawIndexer] | None = None,
         bootstrap_indexer_factory: Callable[[str, "StatuteIndexIdentity"], LawIndexer] | None = None,
         article_reader: Callable[[str], list[dict[str, str]]] | None = None,
         collection_deleter: Callable[[str], None] | None = None,
+        collection_exists: Callable[[str], bool] | None = None,
         bootstrap_collection_verifier: Callable[
             [str, "StatuteIndexIdentity"], BootstrapCollectionCounts | None
         ]
@@ -70,6 +72,12 @@ class KnowledgeBaseService:
         self._parser = parser or LawParser()
         self._chunker = chunker or StructuredLawChunker(version="v1.9")
         self._indexer_factory = indexer_factory or self._create_indexer
+        if versioned_indexer_factory is not None:
+            self._versioned_indexer_factory = versioned_indexer_factory
+        elif indexer_factory is None:
+            self._versioned_indexer_factory = self._create_versioned_indexer
+        else:
+            self._versioned_indexer_factory = lambda name, _metadata: self._indexer_factory(name)
         if bootstrap_indexer_factory is not None:
             self._bootstrap_indexer_factory = bootstrap_indexer_factory
         elif indexer_factory is None:
@@ -80,6 +88,7 @@ class KnowledgeBaseService:
             self._bootstrap_indexer_factory = lambda name, _identity: self._indexer_factory(name)
         self._article_reader = article_reader or self._read_articles
         self._collection_deleter = collection_deleter or self._delete_collection
+        self._collection_exists = collection_exists or self._collection_exists_with_identity
         self._bootstrap_collection_verifier = (
             bootstrap_collection_verifier or self._verify_bootstrap_collection
         )
@@ -218,7 +227,14 @@ class KnowledgeBaseService:
             return self._serialize(knowledge_base)
 
     def rebuild_confirmed_law_version(
-        self, slug: str, *, organization_id: int, content: str, version_hash: str
+        self,
+        slug: str,
+        *,
+        organization_id: int,
+        content: str,
+        version_hash: str,
+        provenance_metadata: Mapping[str, str] | None = None,
+        activate: bool = True,
     ) -> dict[str, Any]:
         """安全构建新法规版本：先写隔离 collection，全部成功后才原子切换指针。
 
@@ -238,10 +254,29 @@ class KnowledgeBaseService:
         try:
             articles = self._parser.parse_law_content(content, name)
             chunks = self._chunker.chunk_articles(articles)
-            indexed_count = self._indexer_factory(new_collection).rebuild_index(chunks)
+            indexer = (
+                self._versioned_indexer_factory(new_collection, provenance_metadata)
+                if provenance_metadata is not None
+                else self._indexer_factory(new_collection)
+            )
+            indexed_count = indexer.rebuild_index(chunks)
         except Exception:
             # 最多留下未被引用的临时 collection；线上指针和 READY 状态保持不变。
             raise
+
+        if not activate:
+            with self._session_factory() as session:
+                knowledge_base = self._get_by_slug(session, slug)
+                result = self._serialize(knowledge_base)
+            result.update(
+                {
+                    "collection_name": new_collection,
+                    "document_count": len(articles),
+                    "chunk_count": indexed_count,
+                    "status": "READY",
+                }
+            )
+            return result
 
         with self._session_factory() as session:
             knowledge_base = self._get_by_slug(session, slug)
@@ -426,6 +461,16 @@ class KnowledgeBaseService:
                 raise ValueError(f"知识库不可用于检索，当前状态: {knowledge_base.status}")
             return knowledge_base.collection_name
 
+    def get_confirmed_version_collection_name_for_organization(
+        self, slug: str, *, organization_id: int, content_hash: str
+    ) -> str:
+        """Return an already-built isolated collection; never create one during a query."""
+        self.get_visible_knowledge_base(slug, organization_id=organization_id)
+        collection_name = f"{self.collection_name_for_slug(slug)}_v_{content_hash[:12]}"
+        if not self._collection_exists(collection_name):
+            raise ValueError("VERSION_COLLECTION_NOT_READY")
+        return collection_name
+
     def assert_system_shared_statutes_ready(
         self, identities: Mapping[str, "StatuteIndexIdentity"]
     ) -> None:
@@ -540,6 +585,17 @@ class KnowledgeBaseService:
         )
 
     @staticmethod
+    def _create_versioned_indexer(
+        collection_name: str, provenance_metadata: Mapping[str, str]
+    ) -> LawIndexer:
+        return LawIndexer(
+            persist_directory=settings.chroma_persist_directory,
+            embedding_model=settings.embedding_model,
+            collection_name=collection_name,
+            provenance_metadata=provenance_metadata,
+        )
+
+    @staticmethod
     def _create_bootstrap_indexer(
         collection_name: str, identity: "StatuteIndexIdentity"
     ) -> LawIndexer:
@@ -572,6 +628,19 @@ class KnowledgeBaseService:
                     "content": content,
                 }
         return list(articles.values())
+
+    @staticmethod
+    def _collection_exists_with_identity(collection_name: str) -> bool:
+        """Check a collection without creating it, and reject incompatible indexes."""
+        import chromadb
+
+        client = chromadb.PersistentClient(path=settings.chroma_persist_directory)
+        try:
+            collection = client.get_collection(collection_name)
+        except chromadb.errors.NotFoundError:
+            return False
+        assert_collection_identity(collection, collection_identity_from_settings(settings))
+        return True
 
     @staticmethod
     def _verify_bootstrap_collection(

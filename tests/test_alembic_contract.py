@@ -13,6 +13,9 @@ VERSIONS_DIRECTORY = REPOSITORY_ROOT / "alembic" / "versions"
 INITIAL_REVISION = "20260930_00"
 FIRST_BUSINESS_REVISION = "20261001_01"
 INDEX_IDENTITY_REVISION = "20261022_01"
+SOURCE_INTAKE_REVISION = "20261024_01"
+SOURCE_CONTENT_REVISION = "20261024_02"
+VERSION_CHAIN_REVISION = "20261024_03"
 HISTORICAL_BASE_TABLES = {
     "users",
     "chat_history",
@@ -80,7 +83,7 @@ def test_migration_graph_has_one_root_and_one_head() -> None:
     heads = set(parents) - referenced_revisions
 
     assert roots == {INITIAL_REVISION}
-    assert heads == {INDEX_IDENTITY_REVISION}
+    assert heads == {VERSION_CHAIN_REVISION}
 
 
 def test_first_business_migration_depends_on_initial_schema() -> None:
@@ -109,11 +112,13 @@ def test_all_registered_model_tables_are_owned_by_a_migration() -> None:
         "favorite",
         "knowledge_base",
         "law_update",
+        "legal_source_import",
         "organization",
         "prompt",
         "rbac",
         "scenario_job",
         "session",
+        "statute_version_chain",
         "usage_daily",
         "user",
         "user_profile",
@@ -143,6 +148,42 @@ def test_index_identity_migration_is_the_current_descendant() -> None:
 
     assert parent == "20261021_01"
     assert {"source_hash", "embedding_fingerprint", "index_schema_version"} <= column_names
+
+
+def test_source_intake_migration_owns_local_source_catalogue() -> None:
+    definitions = _migration_definitions()
+    parent, _, migration = definitions[SOURCE_INTAKE_REVISION]
+
+    assert parent == INDEX_IDENTITY_REVISION
+    assert _created_tables(migration) == {"legal_source_imports"}
+
+
+def test_source_content_migration_expands_the_legal_text_capacity() -> None:
+    definitions = _migration_definitions()
+    parent, _, migration = definitions[SOURCE_CONTENT_REVISION]
+    altered_columns = {
+        node.args[1].value
+        for node in ast.walk(migration)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "alter_column"
+        and len(node.args) >= 2
+        and isinstance(node.args[1], ast.Constant)
+    }
+
+    assert parent == SOURCE_INTAKE_REVISION
+    assert altered_columns == {"content"}
+
+
+def test_version_chain_migration_adds_verification_and_chain_tables() -> None:
+    definitions = _migration_definitions()
+    parent, _, migration = definitions[VERSION_CHAIN_REVISION]
+
+    assert parent == SOURCE_CONTENT_REVISION
+    assert _created_tables(migration) == {
+        "statute_version_chains",
+        "statute_version_chain_members",
+    }
 
 
 def test_api_lifespan_does_not_run_migrations() -> None:

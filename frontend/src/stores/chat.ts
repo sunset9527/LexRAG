@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { queryApi, type QueryResponse, type Citation, type WorkflowTraceEvent } from '@/api/query'
+import { queryApi, type QueryResponse, type Citation, type VersionSelection, type WorkflowTraceEvent } from '@/api/query'
 import { sessionsApi, type Recommendation, type SessionSummary } from '@/api/sessions'
 
 export interface ChatMessage {
@@ -18,6 +18,7 @@ export interface ChatMessage {
   cacheHit?: 'exact' | 'semantic'
   cacheOriginalQuery?: string
   cacheSimilarity?: number
+  versionSelection?: VersionSelection
   timestamp: number
 }
 
@@ -32,7 +33,7 @@ export const useChatStore = defineStore('chat', () => {
     return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
   }
 
-  async function sendMessage(question: string, knowledgeBaseId?: string): Promise<void> {
+  async function sendMessage(question: string, knowledgeBaseId?: string, caseDate?: string): Promise<void> {
     // 添加用户消息
     const userMsg: ChatMessage = {
       id: generateId(),
@@ -49,6 +50,7 @@ export const useChatStore = defineStore('chat', () => {
         query: question,
         session_id: currentSessionId.value || undefined,
         knowledge_base_ids: knowledgeBaseId ? [knowledgeBaseId] : undefined,
+        case_date: caseDate || undefined,
       })
 
       // 保存 sessionId
@@ -72,6 +74,7 @@ export const useChatStore = defineStore('chat', () => {
         cacheHit: res.metadata?.cache_hit,
         cacheOriginalQuery: res.metadata?.cache_original_query,
         cacheSimilarity: res.metadata?.cache_similarity,
+        versionSelection: res.metadata?.version_selection,
         timestamp: Date.now(),
       }
       messages.value.push(assistantMsg)
@@ -116,6 +119,7 @@ export const useChatStore = defineStore('chat', () => {
           workflowStatus: item.metadata?.workflow_status,
           evidenceCount: item.metadata?.evidence_count,
           verificationAttempts: item.metadata?.verification_attempts,
+          versionSelection: item.metadata?.version_selection,
           timestamp,
         },
       ]

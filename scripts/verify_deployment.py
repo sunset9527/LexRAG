@@ -58,7 +58,15 @@ def redact_text(value: str) -> str:
 
 
 def _default_executor(command: list[str]) -> CommandResult:
-    completed = subprocess.run(command, check=False, capture_output=True, text=True, shell=False)
+    completed = subprocess.run(
+        command,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        shell=False,
+    )
     return CommandResult(completed.returncode, completed.stdout, completed.stderr)
 
 
@@ -92,12 +100,12 @@ class DeploymentVerifier:
             ("compose_up", self._compose("up", "--detach"), "start the declared services"),
             (
                 "migration_completed",
-                self._compose("ps", "migrate", "--format", "json"),
+                self._compose("ps", "--all", "migrate", "--format", "json"),
                 "capture the one-shot migration service state",
             ),
             (
                 "bootstrap_completed",
-                self._compose("ps", "bootstrap", "--format", "json"),
+                self._compose("ps", "--all", "bootstrap", "--format", "json"),
                 "capture the one-shot bootstrap service state",
             ),
             (
@@ -111,8 +119,10 @@ class DeploymentVerifier:
         ]
 
     @staticmethod
-    def _one_shot_service_succeeded(output: str) -> bool:
+    def _one_shot_service_succeeded(output: str | None) -> bool:
         """Fail closed when Compose did not report a completed successful job."""
+        if not isinstance(output, str):
+            return False
         try:
             payload = json.loads(output)
         except json.JSONDecodeError:

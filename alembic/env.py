@@ -13,11 +13,13 @@ import app.models.document_structure  # noqa: F401
 import app.models.favorite  # noqa: F401
 import app.models.knowledge_base  # noqa: F401
 import app.models.law_update  # noqa: F401
+import app.models.legal_source_import  # noqa: F401
 import app.models.organization  # noqa: F401
 import app.models.prompt  # noqa: F401
 import app.models.rbac  # noqa: F401
 import app.models.scenario_job  # noqa: F401
 import app.models.session  # noqa: F401
+import app.models.statute_version_chain  # noqa: F401
 import app.models.usage_daily  # noqa: F401
 import app.models.user  # noqa: F401
 import app.models.user_profile  # noqa: F401

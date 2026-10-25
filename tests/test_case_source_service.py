@@ -148,3 +148,35 @@ def test_list_sources_and_get_case_keep_the_traceability_fields(tmp_path):
     assert sources == [source]
     assert case["source_id"] == source["id"]
     assert case["source_start_page"] == 2
+
+
+def test_case_metadata_audit_reports_missing_original_fields_without_fabricating_them(tmp_path):
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    file = tmp_path / "cases.pdf"
+    file.write_bytes(b"cases")
+    service = CaseIngestionService(
+        sessionmaker(bind=engine, expire_on_commit=False), page_counter=lambda _path: 1
+    )
+    source = service.register_source(
+        path=file, title="劳动案例", domain="labor", publisher_note="用户提供"
+    )
+    created = service.persist_case(
+        source_id=source["id"],
+        sequence_no=1,
+        parsed=AnnualCaseParser(domain="labor").parse_case(
+            sequence_no=1,
+            case_cause="确认劳动关系纠纷",
+            pages=[{"page": 1, "text": "某甲诉某公司案\n【案件焦点】劳动关系。"}],
+        ),
+    )
+
+    case = service.get_case(created["id"])
+
+    assert case["metadata_complete"] is False
+    assert case["missing_fields"] == [
+        "case_number",
+        "court_name",
+        "judgment_date",
+        "court_reasoning",
+    ]

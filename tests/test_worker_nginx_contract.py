@@ -105,6 +105,17 @@ def test_compose_worker_beat_and_health_contracts_are_stable():
     assert beat["hostname"] == "beat"
     assert "--pidfile=/tmp/lexrag-beat.pid" in beat["command"]
     assert "--schedule=/tmp/lexrag-beat-schedule" in beat["command"]
+    assert beat["healthcheck"]["test"] == [
+        "CMD-SHELL",
+        "test -s /tmp/lexrag-beat.pid && kill -0 \"$$(cat /tmp/lexrag-beat.pid)\"",
+    ]
+
+
+def test_worker_health_script_adds_project_root_when_executed_by_docker():
+    source = (ROOT / "scripts" / "check_worker_health.py").read_text(encoding="utf-8")
+
+    assert "PROJECT_ROOT = Path(__file__).resolve().parent.parent" in source
+    assert "sys.path.insert(0, str(PROJECT_ROOT))" in source
 
 
 def test_celery_uses_default_task_time_limits_and_api_image_copies_health_script():
@@ -120,6 +131,12 @@ def test_api_image_uses_the_non_dependency_live_probe_for_its_own_healthcheck():
     dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
 
     assert "CMD curl -f http://localhost:8000/health/live || exit 1" in dockerfile
+
+
+def test_frontend_healthcheck_uses_the_ipv4_listener_explicitly():
+    dockerfile = (ROOT / "frontend" / "Dockerfile").read_text(encoding="utf-8")
+
+    assert "http://127.0.0.1:3000/" in dockerfile
 
 
 def test_nginx_preserves_api_rewrite_and_proxy_operational_contracts():

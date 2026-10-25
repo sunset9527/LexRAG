@@ -1,8 +1,10 @@
 # Stage 3 deployment guide
 
 This guide describes the versioned Stage 3 runtime contract. It distinguishes
-what is implemented and statically tested from a Docker acceptance run. It is
-not evidence that a particular computer has completed a cold start.
+versioned implementation from evidence recorded for a particular environment.
+An isolated cold-start acceptance was completed on 2026-10-24; its exact scope
+and exclusions are recorded in
+[the Stage 3 verification ledger](status/stage-3-deployment-verification.md).
 
 ## Runtime topology
 
@@ -150,16 +152,16 @@ bootstrap, liveness/readiness separation, Compose start gates, worker/Nginx
 contracts, and a non-destructive acceptance runner. The detailed ledger is
 [stage-3-deployment-verification.md](status/stage-3-deployment-verification.md).
 
-The following have **not** been claimed as successful in this repository:
+The following remain **outside** the recorded isolated acceptance:
 
 - A completed full, hash-pinned transitive Python dependency lock or a clean
   Linux installation of that lock; this Task 1 acceptance work was explicitly
   abandoned after registry/network failures.
-- An executed Docker cold start, browser end-to-end run, restart recovery, or
-  fault-injection exercise.
-- A real MySQL migration test, or real BGE-M3/Chroma Compose acceptance on the
-  current code revision.
+- A browser end-to-end run, restart recovery, or fault-injection exercise.
+- A real LLM-answer smoke test or a legal-effectiveness/production acceptance.
 
-Those distinctions matter: static contracts make the intended behaviour
-reviewable, but they are not a substitute for evidence from a real isolated
-environment.
+The 2026-10-24 run did complete image build, fresh-volume migration, local
+BGE-M3/Chroma statute bootstrap and dependency-aware API readiness in the
+isolated project \`lexrag-stage3-acceptance\`. Those facts are still narrower
+than the exclusions above; they do not establish production readiness or legal
+answer quality.

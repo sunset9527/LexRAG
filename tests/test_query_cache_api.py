@@ -124,6 +124,63 @@ def test_query_returns_exact_cache_before_constructing_a_retriever(monkeypatch):
     assert cache.scope["user_scope"] != "Bearer a-user-token"
 
 
+def test_query_case_date_selects_version_and_keeps_it_in_cache_scope(monkeypatch):
+    cache = ExactHitCache()
+    observed = {}
+
+    class FakeVersionService:
+        def resolve(self, slug, *, organization_id, case_date):
+            observed.update({"slug": slug, "organization_id": organization_id, "case_date": case_date})
+            return SimpleNamespace(
+                collection_name="kb_civil_code_v_abcdef123456",
+                provenance={
+                    "version_id": "civil-code@2020-05-28",
+                    "effective_from": "2021-01-01",
+                    "effective_to": "",
+                    "source_url": "https://flk.npc.gov.cn/",
+                    "content_hash": "a" * 64,
+                },
+                timeline=[],
+                assumption=None,
+                as_of=__import__("datetime").date(2025, 1, 1),
+            )
+
+    monkeypatch.setattr(
+        api,
+        "components",
+        {
+            "workflow": object(),
+            "knowledge_base_service": FakeKnowledgeBaseService(),
+            "query_cache_service": cache,
+            "query_version_service": FakeVersionService(),
+        },
+    )
+
+    async def request():
+        transport = httpx.ASGITransport(app=api.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            return await client.post(
+                "/query",
+                headers={"Authorization": "Bearer a-user-token"},
+                json={
+                    "query": "成年人多大",
+                    "knowledge_base_ids": ["civil-code"],
+                    "case_date": "2025-01-01",
+                },
+            )
+
+    response = asyncio.run(request())
+
+    assert response.status_code == 200
+    assert observed == {
+        "slug": "civil-code",
+        "organization_id": 9,
+        "case_date": __import__("datetime").date(2025, 1, 1),
+    }
+    assert cache.scope["case_date"] == "2025-01-01"
+    assert response.json()["metadata"]["version_selection"]["version_id"] == "civil-code@2020-05-28"
+
+
 def test_exact_cache_hit_writes_redacted_audit_and_idempotent_usage_event(monkeypatch):
     cache = ExactHitCache()
     audit = FakeAuditService()
