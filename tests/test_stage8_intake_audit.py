@@ -7,6 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from src.evaluation.stage8_intake_audit import audit_stage8_intake
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -121,6 +123,22 @@ def test_audit_reports_malformed_json_and_duplicate_keys_per_line(tmp_path: Path
     assert [row["issues"][0]["code"] for row in report["rows"]] == [
         "malformed_json",
         "duplicate_json_key",
+    ]
+
+
+@pytest.mark.parametrize("constant", ["NaN", "Infinity", "-Infinity"])
+def test_audit_reports_nonstandard_json_constants_as_malformed_rows(
+    tmp_path: Path, constant: str
+) -> None:
+    report = audit_stage8_intake(_write_jsonl(tmp_path, f'{{"id": {constant}}}'))
+
+    assert report["summary"]["readable_rows"] == 0
+    assert report["summary"]["malformed_rows"] == 1
+    assert report["rows"] == [
+        {
+            "line_number": 1,
+            "issues": [{"code": "malformed_json", "message": "该行不是合法 JSON"}],
+        }
     ]
 
 

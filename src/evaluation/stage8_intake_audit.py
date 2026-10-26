@@ -51,6 +51,10 @@ class _DuplicateJsonKeyError(ValueError):
     """A JSON object has duplicate keys and cannot be audited reliably."""
 
 
+class _NonstandardJsonConstantError(ValueError):
+    """The input used a non-standard JSON numeric constant."""
+
+
 def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for key, value in pairs:
@@ -58,6 +62,10 @@ def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
             raise _DuplicateJsonKeyError(key)
         result[key] = value
     return result
+
+
+def _reject_nonstandard_json_constant(constant: str) -> None:
+    raise _NonstandardJsonConstantError(constant)
 
 
 def _issue(code: str, message: str) -> dict[str, str]:
@@ -216,12 +224,16 @@ def audit_stage8_intake(path: Path | str) -> dict[str, Any]:
             continue
         input_rows += 1
         try:
-            decoded = json.loads(line, object_pairs_hook=_reject_duplicate_json_keys)
+            decoded = json.loads(
+                line,
+                object_pairs_hook=_reject_duplicate_json_keys,
+                parse_constant=_reject_nonstandard_json_constant,
+            )
         except _DuplicateJsonKeyError:
             issues = [_issue("duplicate_json_key", "JSON 对象包含重复键")]
             rows.append({"line_number": line_number, "issues": issues})
             malformed_rows += 1
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, _NonstandardJsonConstantError):
             issues = [_issue("malformed_json", "该行不是合法 JSON")]
             rows.append({"line_number": line_number, "issues": issues})
             malformed_rows += 1
