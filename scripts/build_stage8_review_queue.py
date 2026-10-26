@@ -24,6 +24,10 @@ class _DuplicateJsonKeyError(ValueError):
     """A JSON object has duplicate keys."""
 
 
+class _NonstandardJsonConstantError(ValueError):
+    """A JSON object uses a non-standard numeric constant."""
+
+
 def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for key, value in pairs:
@@ -31,6 +35,10 @@ def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
             raise _DuplicateJsonKeyError(key)
         result[key] = value
     return result
+
+
+def _reject_nonstandard_json_constant(constant: str) -> None:
+    raise _NonstandardJsonConstantError(constant)
 
 
 def _arguments() -> argparse.ArgumentParser:
@@ -63,8 +71,12 @@ def _load_jsonl(path: Path) -> list[dict[str, Any]]:
         if not line.strip():
             continue
         try:
-            row = json.loads(line, object_pairs_hook=_reject_duplicate_json_keys)
-        except (_DuplicateJsonKeyError, json.JSONDecodeError) as exc:
+            row = json.loads(
+                line,
+                object_pairs_hook=_reject_duplicate_json_keys,
+                parse_constant=_reject_nonstandard_json_constant,
+            )
+        except (_DuplicateJsonKeyError, _NonstandardJsonConstantError, json.JSONDecodeError) as exc:
             raise Stage8ReviewQueueError(f"{path} 第 {line_number} 行不是合法 JSON 对象") from exc
         if not isinstance(row, dict):
             raise Stage8ReviewQueueError(f"{path} 第 {line_number} 行必须是 JSON 对象")

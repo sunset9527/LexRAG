@@ -222,6 +222,27 @@ def test_cli_validation_error_preserves_existing_output_without_partial_write(
     assert not list(tmp_path.glob(".review-queue.jsonl.*.tmp"))
 
 
+@pytest.mark.parametrize("constant", ["NaN", "Infinity", "-Infinity"])
+def test_cli_rejects_nonstandard_json_constants_without_creating_output(
+    tmp_path: Path, constant: str
+) -> None:
+    legacy = tmp_path / "legacy.jsonl"
+    hard = tmp_path / "hard.jsonl"
+    output = tmp_path / "review-queue.jsonl"
+    legacy_lines = [json.dumps(row, ensure_ascii=False) for row in _legacy_rows()]
+    legacy_lines[0] = legacy_lines[0].replace('"unverified legacy source content"', constant)
+    legacy.write_text("\n".join(legacy_lines) + "\n", encoding="utf-8")
+    _write_jsonl(hard, _hard_rows())
+
+    assert (
+        queue_cli.main(
+            ["--legacy", str(legacy), "--hard-candidates", str(hard), "--output", str(output)]
+        )
+        == 1
+    )
+    assert not output.exists()
+
+
 @pytest.mark.parametrize("failure", ["write", "replace"])
 def test_cli_preserves_existing_output_when_atomic_write_or_replace_fails(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure: str
