@@ -195,6 +195,29 @@ def test_audit_cli_writes_report_and_returns_zero_for_not_ready_rows(tmp_path: P
     assert json.loads(output.read_text(encoding="utf-8"))["summary"]["not_ready_rows"] == 1
 
 
+def test_audit_cli_creates_a_nested_output_parent(tmp_path: Path) -> None:
+    dataset = _write_jsonl(tmp_path, _json_line(_ready_record()))
+    output = tmp_path / "reports" / "stage8" / "intake" / "audit.json"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/audit_stage8_evaluation_intake.py",
+            "--dataset",
+            str(dataset),
+            "--output",
+            str(output),
+        ],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert json.loads(output.read_text(encoding="utf-8"))["summary"]["ready_rows"] == 1
+
+
 def test_audit_cli_returns_nonzero_and_does_not_create_output_for_unreadable_input(
     tmp_path: Path,
 ) -> None:

@@ -25,6 +25,7 @@ def _arguments() -> argparse.ArgumentParser:
 
 def _write_report_atomically(output: Path, report: object) -> None:
     payload = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
+    output.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary_name = tempfile.mkstemp(
         dir=output.parent,
         prefix=f".{output.name}.",
