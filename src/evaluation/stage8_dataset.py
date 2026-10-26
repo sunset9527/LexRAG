@@ -1,0 +1,201 @@
+"""Validation contract for the future Stage 8 frozen evaluation dataset."""
+
+from __future__ import annotations
+
+import json
+from collections.abc import Mapping
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+from urllib.parse import urlsplit
+
+
+REQUIRED_STAGE8_FIELDS = frozenset(
+    {
+        "id",
+        "question",
+        "question_type",
+        "difficulty",
+        "expected_knowledge_base_slugs",
+        "relevant_article_ids",
+        "should_abstain",
+        "source_url",
+        "source_version",
+        "source_locator",
+        "reviewer",
+        "reviewed_at",
+        "review_note",
+        "review_status",
+    }
+)
+
+_STRING_FIELDS = (
+    "id",
+    "question",
+    "question_type",
+    "difficulty",
+    "source_url",
+    "source_version",
+    "source_locator",
+    "reviewer",
+    "reviewed_at",
+    "review_note",
+    "review_status",
+)
+_PENDING_REVIEW_MARKER = "待人工核验"
+
+
+class Stage8DatasetError(ValueError):
+    """Stage 8 frozen-evaluation dataset violates its auditable contract."""
+
+
+def _line_error(line_number: int, message: str) -> Stage8DatasetError:
+    return Stage8DatasetError(f"第 {line_number} 行{message}")
+
+
+def _require_nonblank_string(item: Mapping[str, Any], field: str, line_number: int) -> str:
+    value = item[field]
+    if not isinstance(value, str) or not value.strip():
+        raise _line_error(line_number, f"字段 {field} 必须是非空字符串")
+    return value
+
+
+def _validate_nonblank_string_list(
+    item: Mapping[str, Any],
+    field: str,
+    line_number: int,
+    *,
+    allow_empty: bool,
+) -> list[Any]:
+    value = item[field]
+    if not isinstance(value, list) or (not allow_empty and not value):
+        empty_requirement = "可为空" if allow_empty else "必须为非空列表"
+        raise _line_error(line_number, f"字段 {field} {empty_requirement}")
+    if not all(isinstance(entry, str) and entry.strip() for entry in value):
+        raise _line_error(line_number, f"字段 {field} 必须只包含非空字符串")
+    return value
+
+
+def _validate_source_url(source_url: str, line_number: int) -> None:
+    try:
+        parsed = urlsplit(source_url)
+        hostname = parsed.hostname
+        parsed.port
+    except ValueError as exc:
+        raise _line_error(line_number, "字段 source_url 不是有效的 HTTPS URL") from exc
+
+    if (
+        parsed.scheme.lower() != "https"
+        or not parsed.netloc
+        or not hostname
+        or "@" in parsed.netloc
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise _line_error(
+            line_number,
+            "字段 source_url 必须是不含用户信息、查询参数或片段的绝对 HTTPS URL",
+        )
+
+
+def _validate_approved_review(item: Mapping[str, Any], line_number: int) -> None:
+    reviewed_at = item["reviewed_at"]
+    try:
+        parsed = datetime.fromisoformat(reviewed_at)
+    except ValueError as exc:
+        raise _line_error(line_number, "字段 reviewed_at 必须是含时区的 ISO-8601 时间") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise _line_error(line_number, "字段 reviewed_at 必须是含时区的 ISO-8601 时间")
+
+    source_and_review_fields = (
+        "source_url",
+        "source_version",
+        "source_locator",
+        "reviewer",
+        "reviewed_at",
+        "review_note",
+    )
+    if any(_PENDING_REVIEW_MARKER in item[field] for field in source_and_review_fields):
+        raise _line_error(line_number, "approved 样本的来源或审核记录仍包含“待人工核验”")
+
+
+def validate_stage8_record(
+    record: Mapping[str, Any],
+    *,
+    line_number: int,
+    require_approved: bool = False,
+) -> None:
+    """Validate one Stage 8 record without altering it."""
+    missing = REQUIRED_STAGE8_FIELDS - record.keys()
+    if missing:
+        raise _line_error(line_number, f"缺少字段: {', '.join(sorted(missing))}")
+
+    for field in _STRING_FIELDS:
+        _require_nonblank_string(record, field, line_number)
+
+    _validate_nonblank_string_list(
+        record,
+        "expected_knowledge_base_slugs",
+        line_number,
+        allow_empty=False,
+    )
+    should_abstain = record["should_abstain"]
+    if type(should_abstain) is not bool:
+        raise _line_error(line_number, "字段 should_abstain 必须是布尔值")
+
+    article_ids = _validate_nonblank_string_list(
+        record,
+        "relevant_article_ids",
+        line_number,
+        allow_empty=True,
+    )
+    if should_abstain and article_ids:
+        raise _line_error(line_number, "弃答样本的相关法条必须为空")
+    if not should_abstain and not article_ids:
+        raise _line_error(line_number, "非弃答样本必须提供非空相关法条列表")
+
+    _validate_source_url(record["source_url"], line_number)
+    is_approved = record["review_status"] == "approved"
+    if require_approved and not is_approved:
+        raise _line_error(line_number, "正式评测样本的 review_status 必须为 approved")
+    if is_approved:
+        _validate_approved_review(record, line_number)
+
+
+def load_stage8_dataset(
+    path: Path,
+    *,
+    require_approved: bool = False,
+) -> list[dict[str, Any]]:
+    """Load and validate a Stage 8 JSONL dataset without rewriting its records."""
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeError) as exc:
+        raise Stage8DatasetError(f"无法读取 Stage 8 数据集: {path}") from exc
+
+    records: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    for line_number, line in enumerate(lines, start=1):
+        if not line.strip():
+            continue
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise _line_error(line_number, "不是合法 JSON") from exc
+        if not isinstance(record, dict):
+            raise _line_error(line_number, "必须是 JSON 对象")
+
+        validate_stage8_record(
+            record,
+            line_number=line_number,
+            require_approved=require_approved,
+        )
+        identifier = record["id"].strip()
+        if identifier in seen_ids:
+            raise _line_error(line_number, "字段 id 为空或重复")
+        seen_ids.add(identifier)
+        records.append(record)
+
+    if not records:
+        raise Stage8DatasetError("Stage 8 数据集没有有效样本")
+    return records
