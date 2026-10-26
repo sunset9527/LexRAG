@@ -94,6 +94,22 @@ def test_audit_reports_approved_pending_evidence_in_legacy_row(tmp_path: Path) -
     ]
 
 
+def test_audit_reports_approved_pending_evidence_in_legacy_source_field(tmp_path: Path) -> None:
+    legacy_source = "旧版来源说明：待人工核验"
+    report = audit_stage8_intake(
+        _write_jsonl(tmp_path, _json_line(_ready_record(source=legacy_source)))
+    )
+
+    assert report["summary"]["issue_counts"] == {"approved_pending_evidence": 1}
+    assert report["rows"][0]["issues"] == [
+        {
+            "code": "approved_pending_evidence",
+            "message": "approved 样本的来源或审核记录包含待人工核验标记",
+        }
+    ]
+    assert legacy_source not in json.dumps(report, ensure_ascii=False)
+
+
 def test_audit_marks_invalid_contract_fields_as_not_ready(tmp_path: Path) -> None:
     record = _ready_record(
         source_url="http://example.test/not-https",

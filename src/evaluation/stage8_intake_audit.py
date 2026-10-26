@@ -34,6 +34,7 @@ _RFC3339_TIMESTAMP = re.compile(
     r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})"
 )
 _EVIDENCE_FIELDS = (
+    "source",
     "source_url",
     "source_version",
     "source_locator",
