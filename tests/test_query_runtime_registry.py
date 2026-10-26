@@ -1,9 +1,10 @@
 """阶段 6 只读检索运行时复用契约。"""
 
-import asyncio
 from types import SimpleNamespace
 
-import api
+from app.api.knowledge_bases import rebuild_knowledge_base
+from app.runtime import RuntimeContainer
+from app.schemas.knowledge_bases import KnowledgeBaseRebuildRequest
 from app.services.query_runtime_registry import QueryRuntimeRegistry
 
 
@@ -36,21 +37,16 @@ def test_rebuild_invalidates_only_its_collection_runtime(monkeypatch):
             assert (slug, content) == ("civil-code", "第一条")
             return {"collection_name": "kb_civil_code"}
 
-    monkeypatch.setattr(
-        api,
-        "components",
-        {
-            "knowledge_base_service": KnowledgeBaseService(),
-            "query_runtime_registry": SimpleNamespace(invalidate=invalidated.append),
-        },
+    runtime = RuntimeContainer(
+        knowledge_base_service=KnowledgeBaseService(),
+        query_runtime_registry=SimpleNamespace(invalidate=invalidated.append),
     )
 
-    result = asyncio.run(
-        api.rebuild_knowledge_base(
-            "civil-code",
-            api.KnowledgeBaseRebuildRequest(content="第一条"),
-            SimpleNamespace(organization_id=9, can=lambda permission: permission == "knowledge_bases:manage"),
-        )
+    result = rebuild_knowledge_base(
+        "civil-code",
+        KnowledgeBaseRebuildRequest(content="第一条"),
+        SimpleNamespace(organization_id=9, can=lambda permission: permission == "knowledge_bases:manage"),
+        runtime,
     )
 
     assert result == {"collection_name": "kb_civil_code"}

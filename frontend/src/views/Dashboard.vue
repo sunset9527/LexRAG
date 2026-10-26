@@ -15,53 +15,7 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stats-row">
-      <el-col :span="6">
-        <div class="stat-card">
-          <div class="stat-icon info">
-            <el-icon :size="22"><Document /></el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.lawCount }}</div>
-            <div class="stat-label">收录法条</div>
-          </div>
-        </div>
-      </el-col>
-      <el-col :span="6">
-        <div class="stat-card">
-          <div class="stat-icon success">
-            <el-icon :size="22"><Files /></el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.caseCount }}</div>
-            <div class="stat-label">参考案例</div>
-          </div>
-        </div>
-      </el-col>
-      <el-col :span="6">
-        <div class="stat-card">
-          <div class="stat-icon info">
-            <el-icon :size="22"><Checked /></el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.verifyRate }}%</div>
-            <div class="stat-label">法条校验率</div>
-          </div>
-        </div>
-      </el-col>
-      <el-col :span="6">
-        <div class="stat-card">
-          <div class="stat-icon neutral">
-            <el-icon :size="22"><Star /></el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.queryCount }}</div>
-            <div class="stat-label">今日咨询</div>
-          </div>
-        </div>
-      </el-col>
-    </el-row>
+    <DashboardStats :stats="stats" />
 
     <!-- 双栏布局 -->
     <el-row :gutter="20" class="content-row">
@@ -117,6 +71,7 @@ import { useRouter } from 'vue-router'
 import { knowledgeBaseApi, type KnowledgeBase } from '@/api/knowledgeBases'
 import { getQuestionPresets } from '@/utils/lawPresentation'
 import { dashboardApi } from '@/api/dashboard'
+import DashboardStats from '@/components/dashboard/DashboardStats.vue'
 
 const router = useRouter()
 
@@ -185,37 +140,6 @@ function goToChat(question: string, knowledgeBaseSlug: string) {
   gap: 12px;
   justify-content: center;
 }
-
-.stats-row { margin-bottom: 20px; }
-
-.stat-card {
-  background: #fff;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 18px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: none;
-  cursor: default;
-  transition: box-shadow 0.2s;
-}
-.stat-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-panel); }
-
-.stat-icon {
-  width: 40px; height: 40px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.stat-icon.info { color: var(--brand-primary); background: var(--surface-selected); }
-.stat-icon.success { color: var(--status-success); background: #f0fdf4; }
-.stat-icon.neutral { color: var(--text-secondary); background: var(--surface-subtle); }
-.stat-value { font-size: 22px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-.stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
 
 .content-row { margin-bottom: 24px; }
 

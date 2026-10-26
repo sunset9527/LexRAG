@@ -2,10 +2,10 @@
 
 > 面向中文法律信息检索的 RAG 工程项目：将法规、案例和用户文档分库检索，要求每一条法律引用都能回到本轮证据与原文位置。
 
-![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.139-009688?logo=fastapi&logoColor=white)
 ![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white)
-![Tests](https://img.shields.io/badge/Backend%20tests-300%20passed-2ea44f)
+![Quality](https://img.shields.io/badge/Quality%20gate-reproducible-2ea44f)
 
 > **法律信息免责声明**：项目用于法律信息检索与学习展示，不构成法律意见。具体案件需要结合完整事实、法律时效并咨询专业人士。
 
@@ -69,6 +69,40 @@ LexRAG 建立一条可检查的证据链，而不是把所有材料混进一个�
 
 ## 技术架构
 
+```mermaid
+flowchart LR
+    UI[Vue 3 + TypeScript] --> API[FastAPI application factory]
+    API --> Q[证据驱动 LangGraph StateGraph]
+    API --> R[认证 / RBAC / 审计]
+    Q --> L[法规、案例、文档检索]
+    L --> C[(Chroma：独立 collection)]
+    API --> M[(MySQL)]
+    API --> Redis[(Redis)]
+    Redis --> Worker[Celery Worker]
+```
+
+证据边界：会话历史只用于理解指代；法规、案例、用户文档只有进入本轮 Evidence Ledger 后，才可支撑回答中的引用。引用校验失败时最多基于同一批证据修复一次，仍失败则明确返回证据不足。
+
+```mermaid
+flowchart LR
+    Start --> Planning --> Routing --> Statute[法规检索]
+    Statute --> Optional[按路由补充案例 / 图谱]
+    Optional --> Ledger[Evidence Ledger] --> Answer --> Verify[引用校验]
+    Verify -- 通过 --> Finalize
+    Verify -- 首次失败 --> Repair[受控修复一次] --> Verify
+    Verify -- 二次失败 --> Insufficient[证据不足]
+```
+
+```mermaid
+flowchart TB
+    History[会话历史：仅理解上下文] -. 不可作为证据 .-> Ledger
+    Statutes[法规证据] --> Ledger
+    Cases[案例证据] --> Ledger
+    Documents[组织隔离的用户文档] --> Ledger
+    Ledger --> Verifier[引用校验]
+    Verifier --> Response[回答与原文定位]
+```
+
 ```text
 Vue 3 + TypeScript
   └─ 咨询工作台 / 引用原文 / 法规浏览 / 知识库 / 文档与案例管理
@@ -92,8 +126,8 @@ git clone https://github.com/sunset9527/LexRAG.git
 cd LexRAG
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-cd frontend; npm install; cd ..
+pip install -c constraints-py313.txt -r requirements.txt
+cd frontend; npm ci; cd ..
 ```
 
 ```powershell
@@ -128,7 +162,7 @@ python scripts\bootstrap_admin.py
 ## 可复现验证
 
 ```powershell
-# Ruff → 后端测试与覆盖率 → 前端契约测试 → 前端生产构建
+# Ruff → 后端测试与覆盖率 → Node 契约 → Vitest → 前端生产构建
 .\.venv\Scripts\python.exe scripts\quality_gate.py
 ```
 
@@ -165,8 +199,12 @@ docker compose --env-file .env.docker --project-name lexrag-stage3-acceptance co
 
 ```text
 LexRAG/
-├─ api.py                 # FastAPI 入口与主要路由
-├─ app/                   # 认证、权限、数据模型、业务服务、Celery 任务
+├─ api.py                 # 兼容入口：保留 api:app
+├─ app/
+│  ├─ main.py             # 应用工厂、中间件与 router 注册
+│  ├─ api/                # HTTP 协议、授权依赖与领域 router
+│  ├─ schemas/            # Pydantic 请求/响应契约
+│  └─ services/           # 业务服务、Celery 任务
 ├─ src/
 │  ├─ workflow/           # 证据账本、引用校验、LangGraph StateGraph 主链
 │  ├─ retrieval/          # 法规/案例检索、BM25、RRF、改写与重排
@@ -174,7 +212,7 @@ LexRAG/
 │  └─ evaluation/         # 可复现检索评测
 ├─ frontend/              # Vue 3 + TypeScript
 ├─ scripts/               # 质量门禁、处理与评测脚本
-├─ tests/                 # 当前 Stage 2 质量基线收集 300 项后端自动化测试
+├─ tests/                 # 后端行为、契约与工程治理测试
 ├─ infra/                 # Prometheus / Grafana 配置
 └─ compose.yaml           # 唯一的 Docker 运行编排（迁移、bootstrap、API、Worker、Web）
 ```
@@ -190,4 +228,4 @@ LexRAG/
 
 ## License
 
-本项目仅用于学习、研究与个人作品展示。请遵守法律文本、案例资料及第三方模型服务的适用条款。
+当前仓库尚未授予开源代码许可证，仅用于学习、研究与个人作品展示。法律文本、案例资料、本地模型和第三方服务并不随代码授权；其来源和适用边界见 [数据来源与授权说明](docs/data-sources-and-licenses.md)。漏洞报告流程见 [SECURITY.md](SECURITY.md)，工程与法律效果指标的边界见 [评测方法](docs/evaluation-methodology.md)。

@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from ..reasoning.self_verify import VerificationStatus
 from ..retrieval.intent_router import QueryIntent
@@ -102,6 +102,8 @@ class QueryResult:
 class WorkflowState(BaseModel):
     """LangGraph工作流状态"""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     # 基础信息
     query_id: str = Field(default="")
     query: str = Field(default="")
@@ -138,9 +140,6 @@ class WorkflowState(BaseModel):
     next_action: str | None = Field(default=None)
     should_correct: bool = Field(default=False)
     should_retry: bool = Field(default=False)
-
-    class Config:
-        arbitrary_types_allowed = True
 
     def add_reasoning_step(
         self, step_type: str, description: str, input_data: Any, output_data: Any

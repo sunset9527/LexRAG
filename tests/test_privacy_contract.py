@@ -16,8 +16,11 @@ ACTIVE_FILES = [
     ROOT / "src/retrieval/context_compressor.py",
     ROOT / "src/retrieval/law_retriever.py",
     ROOT / "src/retrieval/case_retriever.py",
-    ROOT / "src/agent/workflow.py",
-    ROOT / "src/agent/nodes.py",
+    ROOT / "src/workflow/legal_evidence_workflow.py",
+    ROOT / "app/api/queries.py",
+    ROOT / "app/services/query_route_service.py",
+    ROOT / "app/services/query_run_service.py",
+    ROOT / "app/services/query_execution_service.py",
     ROOT / "app/tasks/document_tasks.py",
 ]
 
@@ -61,8 +64,14 @@ def test_persisted_job_errors_store_codes_not_exception_text():
     assert findings == []
 
 
-def test_legacy_agent_logs_do_not_include_raw_queries():
-    paths = [ROOT / "src/agent/workflow.py", ROOT / "src/agent/nodes.py"]
+def test_active_query_workflow_logs_do_not_include_raw_queries():
+    paths = [
+        ROOT / "src/workflow/legal_evidence_workflow.py",
+        ROOT / "app/api/queries.py",
+        ROOT / "app/services/query_route_service.py",
+        ROOT / "app/services/query_run_service.py",
+        ROOT / "app/services/query_execution_service.py",
+    ]
     unsafe_fragments = ("{question}", "{enhanced_query}", "{state.query}")
 
     findings = []

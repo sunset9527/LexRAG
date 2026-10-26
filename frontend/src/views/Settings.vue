@@ -14,22 +14,11 @@
         </div>
       </template>
 
-      <el-row :gutter="12">
-        <el-col
-          v-for="p in LLM_PROVIDERS"
-          :key="p.key"
-          :span="8"
-          style="margin-bottom: 12px;"
-        >
-          <div
-            :class="['provider-card', { active: draftProvider === p.key }]"
-            @click="selectProvider(p.key)"
-          >
-            <div class="provider-name">{{ p.label }}</div>
-            <div class="provider-models">{{ p.models.length }} 个模型</div>
-          </div>
-        </el-col>
-      </el-row>
+      <ProviderSelector
+        :model-value="draftProvider"
+        :providers="LLM_PROVIDERS"
+        @update:model-value="selectProvider"
+      />
 
       <el-form label-width="100px" style="margin-top: 20px;">
         <el-form-item label="Base URL">
@@ -129,6 +118,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useSettingsStore, LLM_PROVIDERS } from '@/stores/settings'
 import { promptsApi, type PromptData } from '@/api/prompts'
+import ProviderSelector from '@/components/settings/ProviderSelector.vue'
 
 const settingsStore = useSettingsStore()
 
@@ -238,16 +228,6 @@ onMounted(loadPrompts)
 .settings-page h2 { font-size: 20px; color: #0f1f3d; margin: 0 0 20px; }
 
 .settings-card { border-radius: 12px; }
-
-.provider-card {
-  padding: 16px; border: 2px solid #ebeef5; border-radius: 10px;
-  cursor: pointer; transition: all 0.15s; text-align: center;
-}
-.provider-card:hover { border-color: #2d5cc5; background: #e8f0fe; }
-.provider-card.active { border-color: #2d5cc5; background: #e8f0fe; }
-
-.provider-name { font-weight: 600; color: #303133; margin-bottom: 4px; }
-.provider-models { font-size: 12px; color: #909399; }
 
 .form-hint { font-size: 12px; color: #c0c4cc; margin-top: 4px; }
 </style>

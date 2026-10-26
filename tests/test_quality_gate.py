@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from scripts.quality_gate import (
     CommandResult,
     build_quality_commands,
@@ -21,6 +23,31 @@ def test_quality_gate_includes_ruff_for_maintained_python_code(tmp_path):
 
     pytest_command = next(command for name, command, _ in commands if name == "backend pytest")
     assert pytest_command[pytest_command.index("--basetemp") + 1] == str(tmp_path / "pytest-tmp")
+
+
+def test_quality_gate_runs_every_tracked_frontend_contract(tmp_path):
+    commands = build_quality_commands(output_dir=tmp_path, skip_build=True)
+
+    frontend_command = next(
+        command for name, command, _ in commands if name == "frontend node tests"
+    )
+
+    assert frontend_command == [
+        "node",
+        "--test",
+        "tests/credentialStorage.test.mjs",
+        "tests/lawPresentation.test.mjs",
+        "tests/visualSystem.test.mjs",
+        "test/sseProtocol.test.mjs",
+    ]
+
+
+def test_quality_gate_runs_vitest_unit_suite(tmp_path):
+    commands = build_quality_commands(output_dir=tmp_path, skip_build=True)
+
+    unit_command = next(command for name, command, _ in commands if name == "frontend unit tests")
+
+    assert unit_command == [package_manager_command(), "run", "test:unit"]
 
 
 def test_quality_report_counts_commands_and_keeps_real_execution_metadata():
@@ -65,3 +92,14 @@ def test_quality_report_fails_when_any_gate_fails():
 
     assert report["status"] == "failed"
     assert report["summary"]["failed_commands"] == 1
+
+
+def test_ci_has_one_python_313_node_22_quality_entrypoint():
+    root = Path(__file__).parent.parent
+    workflow = (root / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8")
+
+    assert not (root / ".github" / "workflows" / "ci.yml").exists()
+    assert "python-version: '3.13'" in workflow
+    assert "node-version: '22'" in workflow
+    assert "-c constraints-py313.txt -r requirements.txt" in workflow
+    assert "npm ci --prefix frontend" in workflow

@@ -1,4 +1,4 @@
-# Exact direct-package constraints observed in the local Python 3.13 environment.
+# Exact direct-package constraints for the current deployment declaration.
 # This is intentionally not a complete transitive lock or a Linux-image
 # verification record. Regenerate it from a clean resolved Python 3.13
 # environment before claiming a fully reproducible runtime lock.
@@ -38,5 +38,6 @@ redis==6.4.0
 sentence-transformers==5.6.0
 SQLAlchemy==2.0.51
 sse-starlette==3.4.5
+torch==2.14.1
 uvicorn==0.49.0
 zhipuai==2.1.5.20250825

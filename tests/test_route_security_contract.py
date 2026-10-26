@@ -3,15 +3,19 @@
 import inspect
 
 import api
+from app.api import documents as document_api
+from app.api import knowledge_bases as knowledge_base_api
 from app.api import prompts as prompt_api
 
 
 def _route(path: str, method: str):
-    return next(
-        route
-        for route in api.app.routes
-        if getattr(route, "path", None) == path and method in getattr(route, "methods", set())
-    )
+    for route in api.app.routes:
+        nested_router = getattr(route, "original_router", None)
+        candidates = nested_router.routes if nested_router is not None else [route]
+        for candidate in candidates:
+            if getattr(candidate, "path", None) == path and method in getattr(candidate, "methods", set()):
+                return candidate
+    raise LookupError(f"route not found: {method} {path}")
 
 
 def _dependency_calls(route) -> set[object]:
@@ -44,13 +48,13 @@ def test_statute_upload_requires_owned_target_knowledge_base():
 
 def test_sensitive_document_mutations_append_redacted_audit_events():
     for endpoint in (
-        api.upload_document,
-        api.upload_documents,
-        api.retry_document,
-        api.upload_law,
+        document_api.upload_document,
+        document_api.upload_documents,
+        document_api.retry_document,
     ):
         source = inspect.getsource(endpoint)
         assert "_append_audit_event(" in source
+    assert "_append_rebuild_audit(" in inspect.getsource(knowledge_base_api.upload_law)
 
 
 def test_prompt_mutations_append_organization_scoped_audit_events():

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEVELOPMENT_JWT_SECRET = "lexrag-dev-secret-change-in-production"
 DEMONSTRATION_DATABASE_PASSWORD = "123456"
@@ -20,6 +20,8 @@ class SecurityConfigurationError(RuntimeError):
 
 class Settings(BaseSettings):
     """应用配置类"""
+
+    model_config = SettingsConfigDict(extra="ignore")
 
     # ==================== 运行模式与安全边界 ====================
     app_mode: Literal["development", "demo", "production"] = "development"
@@ -173,12 +175,6 @@ class Settings(BaseSettings):
     # ==================== 向量库集合名称 ====================
     law_collection_name: str = "law_articles"
     case_collection_name: str = "legal_cases"
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        extra = "ignore"
-
 
 # 全局配置实例
 settings = Settings()

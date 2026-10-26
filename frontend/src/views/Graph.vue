@@ -5,14 +5,12 @@
         <h2><el-icon><Connection /></el-icon>法条引用知识图谱</h2>
         <p class="graph-desc">可视化法条间的引用关系，点击节点查看详情，拖动探索法律知识网络</p>
       </div>
-      <div class="graph-actions">
-        <el-select v-model="lawFilter" placeholder="选择法律" size="default" style="width: 180px">
-          <el-option label="全部法规" value="" />
-          <el-option v-for="law in graphLaws" :key="law" :label="law" :value="law" />
-        </el-select>
-        <el-button type="primary" @click="loadGraph">加载图谱</el-button>
-        <el-button @click="resetGraph">重置</el-button>
-      </div>
+      <GraphToolbar
+        v-model="lawFilter"
+        :laws="graphLaws"
+        @load="loadGraph"
+        @reset="resetGraph"
+      />
     </div>
 
     <div class="graph-container">
@@ -56,6 +54,7 @@ import { GraphChart } from 'echarts/charts'
 import { TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import { queryApi } from '@/api/query'
+import GraphToolbar from '@/components/graph/GraphToolbar.vue'
 
 use([GraphChart, TooltipComponent, CanvasRenderer])
 

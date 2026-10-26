@@ -13,6 +13,9 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 import api
+from app.api.knowledge_bases import list_knowledge_base_laws, rebuild_knowledge_base
+from app.runtime import RuntimeContainer
+from app.schemas.knowledge_bases import KnowledgeBaseRebuildRequest
 from app.services.knowledge_base_service import KnowledgeBaseBusyError
 from src.ingestion.index_identity import (
     IndexIdentityError,
@@ -227,15 +230,15 @@ def test_rebuild_returns_a_structured_conflict_when_existing_index_identity_is_l
         def rebuild_knowledge_base(self, slug, *, content):
             raise LegacyCollectionIdentityError()
 
-    api.components["knowledge_base_service"] = IdentityFailureService()
+    runtime = RuntimeContainer(knowledge_base_service=IdentityFailureService())
 
     with pytest.raises(HTTPException) as error:
-        handler = api.rebuild_knowledge_base(
+        rebuild_knowledge_base(
             slug="civil-code",
-            request=api.KnowledgeBaseRebuildRequest(content="民法典原文"),
+            request=KnowledgeBaseRebuildRequest(content="民法典原文"),
             authorization_context=SimpleNamespace(organization_id=1, can=lambda _permission: True),
+            runtime=runtime,
         )
-        handler.send(None)
 
     assert error.value.status_code == 409
     assert error.value.detail == {
@@ -298,16 +301,16 @@ def test_list_laws_returns_a_safe_conflict_for_an_incompatible_collection(
         def list_law_articles(self, _slug, start_article=None, end_article=None):
             raise identity_error
 
-    api.components["knowledge_base_service"] = IdentityFailureService()
+    runtime = RuntimeContainer(knowledge_base_service=IdentityFailureService())
 
     with pytest.raises(HTTPException) as error:
-        handler = api.list_knowledge_base_laws(
+        list_knowledge_base_laws(
             slug="civil-code",
             authorization_context=SimpleNamespace(
                 organization_id=1, can=lambda _permission: True
-            )
+            ),
+            runtime=runtime,
         )
-        handler.send(None)
 
     assert error.value.status_code == 409
     assert error.value.detail == {

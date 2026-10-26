@@ -12,10 +12,7 @@ from .tools import (
     search_case,
     search_statute,
 )
-from .workflow import LegalRAGWorkflow
-
 __all__ = [
-    "LegalRAGWorkflow",
     "WorkflowNodes",
     "WorkflowState",
     "WorkflowStatus",

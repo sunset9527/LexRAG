@@ -3,6 +3,8 @@
 from collections.abc import Callable
 from typing import Any
 
+from src.retrieval.chroma_collection import ChromaCollectionGateway
+
 
 def build_collection_law_lookup(
     collection: Any,
@@ -43,7 +45,7 @@ def build_lazy_law_lookup(
         nonlocal lookup
         if lookup is None:
             indexer = indexer_factory()
-            lookup = build_collection_law_lookup(indexer.vectorstore._collection)
+            lookup = build_collection_law_lookup(ChromaCollectionGateway(indexer.vectorstore))
         return lookup(law_name, article_number)
 
     return lazy_lookup

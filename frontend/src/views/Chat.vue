@@ -122,25 +122,7 @@
           </div>
         </div>
 
-        <div class="input-area">
-          <el-input
-            v-model="inputText"
-            placeholder="请输入您的法律问题…"
-            :disabled="store.isLoading"
-            @keyup.enter="handleSend"
-            size="large"
-          >
-            <template #append>
-              <el-button
-                :loading="store.isLoading"
-                @click="handleSend"
-                type="primary"
-              >
-                发送
-              </el-button>
-            </template>
-          </el-input>
-        </div>
+        <ChatComposer v-model="inputText" :disabled="store.isLoading" @submit="handleSend" />
       </div>
 
       <!-- 右栏：法条溯源 -->
@@ -211,6 +193,7 @@ import { favoritesApi } from '@/api/favorites'
 import { ElMessage } from 'element-plus'
 import MarkdownIt from 'markdown-it'
 import { formatElapsedSeconds } from '@/utils/queryRunProgress'
+import ChatComposer from '@/components/chat/ChatComposer.vue'
 
 const route = useRoute()
 const router = useRouter()

@@ -1,8 +1,8 @@
 """Stage 3 readiness contracts independent from FastAPI startup."""
 
-from pathlib import Path
 import ast
 import time
+from pathlib import Path
 
 from app.services.readiness_service import ReadinessProbe, ReadinessService
 
@@ -46,9 +46,7 @@ def test_readiness_marks_only_the_timed_out_probe_not_ready() -> None:
     service = ReadinessService(
         {
             "database": ReadinessProbe(lambda: None, timeout_seconds=0.1),
-            "embedding": ReadinessProbe(
-                lambda: time.sleep(0.2), timeout_seconds=0.01
-            ),
+            "embedding": ReadinessProbe(lambda: time.sleep(0.2), timeout_seconds=0.01),
         }
     )
 
@@ -149,9 +147,7 @@ def test_graph_readiness_reports_safe_not_ready_when_persisted_artifact_is_missi
     from app.services.readiness_probes import check_persisted_law_graph
 
     missing_graph = tmp_path / "law_graph.json"
-    report = ReadinessService(
-        {"graph": lambda: check_persisted_law_graph(missing_graph)}
-    ).check()
+    report = ReadinessService({"graph": lambda: check_persisted_law_graph(missing_graph)}).check()
 
     assert report.ready is False
     assert report.components == {"graph": "not_ready"}
@@ -167,9 +163,7 @@ def test_graph_readiness_reports_safe_not_ready_when_persisted_artifact_is_empty
 
     graph_path = tmp_path / "law_graph.json"
     graph_path.write_text('{"metadata": {}, "nodes": [], "edges": []}', encoding="utf-8")
-    report = ReadinessService(
-        {"graph": lambda: check_persisted_law_graph(graph_path)}
-    ).check()
+    report = ReadinessService({"graph": lambda: check_persisted_law_graph(graph_path)}).check()
 
     assert report.ready is False
     assert report.components == {"graph": "not_ready"}
@@ -185,14 +179,18 @@ def test_api_graph_readiness_checker_reads_the_persisted_artifact() -> None:
 
 
 def test_api_declares_separate_live_and_readiness_routes() -> None:
-    """Avoid importing the heavyweight API graph in this unit-level contract."""
+    """The extracted router must retain liveness/readiness separation."""
 
-    source = (Path(__file__).parent.parent / "api.py").read_text(encoding="utf-8")
+    root = Path(__file__).parent.parent
+    source = (root / "app" / "main.py").read_text(encoding="utf-8")
+    router_source = (root / "app" / "api" / "health.py").read_text(encoding="utf-8")
 
-    assert '@app.get("/health/live")' in source
-    assert '@app.get("/health/ready")' in source
-    assert 'return {"status": "alive"}' in source
-    assert 'status_code=503' in source
+    assert "health_router" in source
+    assert "app.include_router(router)" in source
+    assert '@router.get("/health/live"' in router_source
+    assert '@router.get(\n    "/health/ready"' in router_source
+    assert 'return {"status": "alive"}' in router_source
+    assert "status.HTTP_503_SERVICE_UNAVAILABLE" in router_source
 
 
 def test_api_lifespan_does_not_seed_or_open_the_legacy_law_collection() -> None:

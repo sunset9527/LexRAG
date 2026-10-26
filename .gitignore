@@ -10,6 +10,8 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+.stage7-audit-venv/
+.stage7-temp/
 dist/
 .stage3-wheel-cache/
 
@@ -41,10 +43,13 @@ faiss_index/
 htmlcov/
 .coverage
 reports/quality/
+reports/security/
 
 # 前端
 frontend/node_modules/
 frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
 
 # 系统
 

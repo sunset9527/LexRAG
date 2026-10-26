@@ -21,6 +21,7 @@ from app.services.langfuse_helper import create_llm
 
 from . import retrieval_optimizer as ropt
 from .bm25_retriever import BM25Retriever
+from .chroma_collection import ChromaCollectionGateway
 from .intent_router import IntentType, QueryIntent
 
 logger = logging.getLogger(__name__)
@@ -108,8 +109,9 @@ class LawRetriever:
         if self._bm25 is not None:
             return
         try:
-            coll = self.vectorstore._collection
-            all_data = coll.get(include=["documents", "metadatas"])
+            all_data = ChromaCollectionGateway(self.vectorstore).get(
+                include=["documents", "metadatas"]
+            )
             metadatas = all_data["metadatas"]
             docs_bm25 = [
                 {

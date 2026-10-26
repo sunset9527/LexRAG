@@ -13,6 +13,7 @@ from langchain_core.documents import Document
 
 from config import settings
 
+from ..retrieval.chroma_collection import ChromaCollectionGateway
 from ..utils.embedding_factory import create_embeddings
 from .chunker import LawChunk
 from .index_identity import collection_identity_from_settings, get_or_create_identity_collection
@@ -82,7 +83,9 @@ class LawIndexer:
 
         client = PersistentClient(path=self.persist_directory)
         extra_metadata = (
-            {"lexrag_statute_source_sha256": self.source_hash} if self.source_hash is not None else None
+            {"lexrag_statute_source_sha256": self.source_hash}
+            if self.source_hash is not None
+            else None
         )
         get_or_create_identity_collection(
             client,
@@ -377,8 +380,7 @@ class LawIndexer:
             return {"error": "向量存储未初始化"}
 
         try:
-            collection = self.vectorstore._collection
-            count = collection.count()
+            count = ChromaCollectionGateway(self.vectorstore).count()
             return {
                 "name": self.collection_name,
                 "document_count": count,

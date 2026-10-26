@@ -114,7 +114,19 @@ def build_quality_commands(
         ),
         (
             "frontend node tests",
-            ["node", "--test", "tests/lawPresentation.test.mjs", "tests/visualSystem.test.mjs"],
+            [
+                "node",
+                "--test",
+                "tests/credentialStorage.test.mjs",
+                "tests/lawPresentation.test.mjs",
+                "tests/visualSystem.test.mjs",
+                "test/sseProtocol.test.mjs",
+            ],
+            FRONTEND_ROOT,
+        ),
+        (
+            "frontend unit tests",
+            [package_manager_command(), "run", "test:unit"],
             FRONTEND_ROOT,
         ),
     ]

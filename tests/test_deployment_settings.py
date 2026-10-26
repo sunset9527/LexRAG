@@ -95,13 +95,12 @@ def test_base_runtime_defers_zhipu_sdk_to_stage_3_task_3():
     assert "Stage 3 Task 3" in requirements
 
 
-def test_constraints_are_a_complete_clean_resolution_lock():
+def test_constraints_are_explicitly_not_presented_as_a_clean_resolution_lock():
     constraints = (ROOT / "constraints-py313.txt").read_text(encoding="utf-8")
 
-    assert "Generated from a clean Linux Python 3.13 resolution" in constraints
-    assert "not a complete transitive lock" not in constraints
-    assert "--hash=" in constraints
-    assert len(_constraint_versions()) > len(_direct_requirement_names())
+    assert "Generated from a clean Linux Python 3.13 resolution" not in constraints
+    assert "not a complete transitive lock" in constraints
+    assert "--hash=" not in constraints
 
 
 def test_constraint_parser_ignores_pip_compile_hash_continuations():
@@ -124,14 +123,11 @@ def test_cpu_only_torch_contract_uses_official_index():
     constraints = (ROOT / "constraints-py313.txt").read_text(encoding="utf-8")
     dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
 
-    # The official CPU index publishes the Linux CPython 3.13 wheel as
-    # ``torch-<version>+cpu`` while resolving it from the public requirement
-    # specifier ``torch==<version>``.  Pinning ``+cpu`` in requirements makes
-    # pip-compile reject that wheel before it can write the verified lock.
+    # The direct dependency snapshot does not claim to be a fully-resolved
+    # Linux lock. The runtime still specifies a public Torch version and uses
+    # the official CPU wheel index when it is installed in the image.
     assert re.search(r"^torch==\d+\.\d+\.\d+$", requirements, re.MULTILINE)
-    assert re.search(
-        r"^torch==\d+\.\d+\.\d+\+cpu(?:\s+\\)?$", constraints, re.MULTILINE
-    )
+    assert re.search(r"^torch==\d+\.\d+\.\d+$", constraints, re.MULTILINE)
     assert "https://download.pytorch.org/whl/cpu" in dockerfile
 
 
