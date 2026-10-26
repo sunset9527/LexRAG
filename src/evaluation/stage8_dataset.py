@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping
 from datetime import datetime
 from pathlib import Path
@@ -42,10 +43,17 @@ _STRING_FIELDS = (
     "review_status",
 )
 _PENDING_REVIEW_MARKER = "待人工核验"
+_RFC3339_TIMESTAMP = re.compile(
+    r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})"
+)
 
 
 class Stage8DatasetError(ValueError):
     """Stage 8 frozen-evaluation dataset violates its auditable contract."""
+
+
+class _DuplicateJsonKeyError(ValueError):
+    """A JSON object contains a duplicate key."""
 
 
 def _line_error(line_number: int, message: str) -> Stage8DatasetError:
@@ -76,6 +84,8 @@ def _validate_nonblank_string_list(
 
 
 def _validate_source_url(source_url: str, line_number: int) -> None:
+    if any(character.isspace() or ord(character) < 32 or ord(character) == 127 for character in source_url) or "\\" in source_url:
+        raise _line_error(line_number, "字段 source_url 不能包含空白、控制字符或反斜杠")
     try:
         parsed = urlsplit(source_url)
         hostname = parsed.hostname
@@ -99,8 +109,10 @@ def _validate_source_url(source_url: str, line_number: int) -> None:
 
 def _validate_approved_review(item: Mapping[str, Any], line_number: int) -> None:
     reviewed_at = item["reviewed_at"]
+    if not _RFC3339_TIMESTAMP.fullmatch(reviewed_at):
+        raise _line_error(line_number, "字段 reviewed_at 必须是规范的 RFC-3339 含时区时间")
     try:
-        parsed = datetime.fromisoformat(reviewed_at)
+        parsed = datetime.fromisoformat(reviewed_at.replace("Z", "+00:00"))
     except ValueError as exc:
         raise _line_error(line_number, "字段 reviewed_at 必须是含时区的 ISO-8601 时间") from exc
     if parsed.tzinfo is None or parsed.utcoffset() is None:
@@ -154,11 +166,22 @@ def validate_stage8_record(
         raise _line_error(line_number, "非弃答样本必须提供非空相关法条列表")
 
     _validate_source_url(record["source_url"], line_number)
+    if record["review_status"] not in {"pending", "approved"}:
+        raise _line_error(line_number, "字段 review_status 必须为 pending 或 approved")
     is_approved = record["review_status"] == "approved"
     if require_approved and not is_approved:
         raise _line_error(line_number, "正式评测样本的 review_status 必须为 approved")
     if is_approved:
         _validate_approved_review(record, line_number)
+
+
+def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    record: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in record:
+            raise _DuplicateJsonKeyError(key)
+        record[key] = value
+    return record
 
 
 def load_stage8_dataset(
@@ -178,7 +201,9 @@ def load_stage8_dataset(
         if not line.strip():
             continue
         try:
-            record = json.loads(line)
+            record = json.loads(line, object_pairs_hook=_reject_duplicate_json_keys)
+        except _DuplicateJsonKeyError as exc:
+            raise _line_error(line_number, f"包含重复 JSON 键: {exc}") from exc
         except json.JSONDecodeError as exc:
             raise _line_error(line_number, "不是合法 JSON") from exc
         if not isinstance(record, dict):

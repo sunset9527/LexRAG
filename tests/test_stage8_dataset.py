@@ -160,6 +160,24 @@ def test_load_stage8_dataset_rejects_invalid_source_url(tmp_path, source_url):
         load_stage8_dataset(dataset, require_approved=True)
 
 
+@pytest.mark.parametrize(
+    "source_url",
+    [
+        " https://flk.npc.gov.cn/detail2.html",
+        "https://flk.npc.gov.cn/detail 2.html",
+        "https://flk.npc.gov.cn/detail2.html\n",
+        "https://flk.npc.gov.cn\\evil.example/detail2.html",
+    ],
+)
+def test_load_stage8_dataset_rejects_control_whitespace_and_backslash_source_urls(
+    tmp_path, source_url
+):
+    dataset = _write_jsonl(tmp_path, _reviewed_item(source_url=source_url))
+
+    with pytest.raises(Stage8DatasetError, match="source_url"):
+        load_stage8_dataset(dataset, require_approved=True)
+
+
 def test_load_stage8_dataset_rejects_pending_item_in_formal_mode(tmp_path):
     dataset = _write_jsonl(tmp_path, _reviewed_item(review_status="pending"))
 
@@ -167,11 +185,28 @@ def test_load_stage8_dataset_rejects_pending_item_in_formal_mode(tmp_path):
         load_stage8_dataset(dataset, require_approved=True)
 
 
+@pytest.mark.parametrize("review_status", ["anything", " approved", "approved ", "APPROVED"])
+def test_load_stage8_dataset_rejects_unknown_or_noncanonical_review_status(
+    tmp_path, review_status
+):
+    dataset = _write_jsonl(tmp_path, _reviewed_item(review_status=review_status))
+
+    with pytest.raises(Stage8DatasetError, match="review_status"):
+        load_stage8_dataset(dataset)
+
+
+def test_load_stage8_dataset_accepts_pending_status_in_draft_mode(tmp_path):
+    dataset = _write_jsonl(tmp_path, _reviewed_item(review_status="pending"))
+
+    assert load_stage8_dataset(dataset)[0]["review_status"] == "pending"
+
+
 @pytest.mark.parametrize(
     "field, value, error",
     [
         ("reviewer", "", "reviewer"),
         ("reviewed_at", "2026-10-26T10:30:00", "reviewed_at"),
+        ("reviewed_at", "2026-10-26X10:30:00+08:00", "reviewed_at"),
         ("reviewed_at", "not-a-timestamp", "reviewed_at"),
     ],
 )
@@ -190,6 +225,19 @@ def test_load_stage8_dataset_rejects_malformed_json(tmp_path):
 
     with pytest.raises(Stage8DatasetError, match="合法 JSON"):
         load_stage8_dataset(dataset)
+
+
+def test_load_stage8_dataset_rejects_duplicate_json_object_keys(tmp_path):
+    item = _reviewed_item()
+    serialized = json.dumps(item, ensure_ascii=False)
+    dataset = tmp_path / "stage8.jsonl"
+    dataset.write_text(
+        f'{serialized[:-1]}, "id": "stage8-civil-duplicate"}}',
+        encoding="utf-8",
+    )
+
+    with pytest.raises(Stage8DatasetError, match="重复.*键"):
+        load_stage8_dataset(dataset, require_approved=True)
 
 
 def test_load_stage8_dataset_reports_unreadable_input(tmp_path):
