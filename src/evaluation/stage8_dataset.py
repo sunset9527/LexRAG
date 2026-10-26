@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
-
 REQUIRED_STAGE8_FIELDS = frozenset(
     {
         "id",
@@ -80,7 +79,7 @@ def _validate_source_url(source_url: str, line_number: int) -> None:
     try:
         parsed = urlsplit(source_url)
         hostname = parsed.hostname
-        parsed.port
+        _ = parsed.port
     except ValueError as exc:
         raise _line_error(line_number, "字段 source_url 不是有效的 HTTPS URL") from exc
 

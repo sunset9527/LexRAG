@@ -86,6 +86,41 @@ def test_load_stage8_dataset_rejects_missing_or_duplicate_id(tmp_path, items, er
         load_stage8_dataset(dataset, require_approved=True)
 
 
+def test_load_stage8_dataset_rejects_blank_id(tmp_path):
+    dataset = _write_jsonl(tmp_path, _reviewed_item(id=" "))
+
+    with pytest.raises(Stage8DatasetError, match="id"):
+        load_stage8_dataset(dataset, require_approved=True)
+
+
+@pytest.mark.parametrize(
+    "expected_knowledge_base_slugs",
+    [
+        None,
+        [],
+        [""],
+    ],
+)
+def test_load_stage8_dataset_validates_expected_knowledge_base_slugs(
+    tmp_path, expected_knowledge_base_slugs
+):
+    dataset = _write_jsonl(
+        tmp_path,
+        _reviewed_item(expected_knowledge_base_slugs=expected_knowledge_base_slugs),
+    )
+
+    with pytest.raises(Stage8DatasetError, match="expected_knowledge_base_slugs"):
+        load_stage8_dataset(dataset, require_approved=True)
+
+
+@pytest.mark.parametrize("should_abstain", [0, 1, "false", None])
+def test_load_stage8_dataset_rejects_non_boolean_should_abstain(tmp_path, should_abstain):
+    dataset = _write_jsonl(tmp_path, _reviewed_item(should_abstain=should_abstain))
+
+    with pytest.raises(Stage8DatasetError, match="should_abstain"):
+        load_stage8_dataset(dataset, require_approved=True)
+
+
 @pytest.mark.parametrize(
     "should_abstain, relevant_article_ids",
     [
@@ -155,3 +190,21 @@ def test_load_stage8_dataset_rejects_malformed_json(tmp_path):
 
     with pytest.raises(Stage8DatasetError, match="合法 JSON"):
         load_stage8_dataset(dataset)
+
+
+def test_load_stage8_dataset_reports_unreadable_input(tmp_path):
+    missing_dataset = tmp_path / "missing-stage8.jsonl"
+
+    with pytest.raises(Stage8DatasetError, match="无法读取"):
+        load_stage8_dataset(missing_dataset)
+
+
+def test_load_stage8_dataset_ignores_blank_lines(tmp_path):
+    item = _reviewed_item()
+    dataset = tmp_path / "stage8.jsonl"
+    dataset.write_text(
+        f"\n  \n{json.dumps(item, ensure_ascii=False)}\n\t\n",
+        encoding="utf-8",
+    )
+
+    assert load_stage8_dataset(dataset, require_approved=True) == [item]
