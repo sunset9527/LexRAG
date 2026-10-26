@@ -10,6 +10,7 @@ from collections.abc import Callable, Iterable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 __all__ = ["build_run_manifest", "write_run_manifest"]
 
@@ -107,8 +108,19 @@ def _validated_runtime_identity(runtime_identity: Mapping[str, str]) -> dict[str
             )
         if not isinstance(value, str):
             raise TypeError(f"Runtime identity value for {key} must be a string")
+        if normalized_key == "baseurl":
+            _validate_base_url(value)
         validated[key] = value
     return validated
+
+
+def _validate_base_url(value: str) -> None:
+    try:
+        parsed = urlsplit(value)
+    except ValueError as error:
+        raise ValueError("Runtime base URL is invalid") from error
+    if "@" in parsed.netloc or parsed.query or parsed.fragment:
+        raise ValueError("Runtime base URL must not contain userinfo, a query, or a fragment")
 
 
 def _utc_now() -> datetime:
@@ -117,11 +129,14 @@ def _utc_now() -> datetime:
 
 def _format_timestamp(value: datetime | str) -> str:
     if isinstance(value, str):
-        return value
+        try:
+            value = datetime.fromisoformat(value)
+        except ValueError as error:
+            raise ValueError("clock_provider must return an aware ISO-8601 timestamp") from error
     if not isinstance(value, datetime):
         raise TypeError("clock_provider must return a datetime or ISO-8601 timestamp string")
     if value.tzinfo is None:
-        value = value.replace(tzinfo=UTC)
+        raise ValueError("clock_provider must return an aware ISO-8601 timestamp")
     return value.astimezone(UTC).isoformat().replace("+00:00", "Z")
 
 

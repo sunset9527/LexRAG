@@ -102,3 +102,66 @@ def test_build_run_manifest_rejects_missing_declared_artifact(tmp_path):
             commit_provider=lambda: "abc123",
             clock_provider=lambda: "2026-10-26T08:30:00Z",
         )
+
+
+def test_write_run_manifest_rejects_credential_bearing_base_url_without_writing(tmp_path):
+    dataset = tmp_path / "evaluation.jsonl"
+    dataset.write_text("[]", encoding="utf-8")
+    output = tmp_path / "unsafe-url-manifest.json"
+
+    with pytest.raises(ValueError, match="base URL"):
+        write_run_manifest(
+            output,
+            run_name="unsafe-url",
+            dataset_paths=[dataset],
+            legal_source_manifest_paths=[],
+            collection_names=[],
+            embedding_version="embedding-v1",
+            chunker_version="chunker-v1",
+            runtime_identity={
+                "provider": "remote",
+                "base_url": "https://user:super-secret@api.example/v1?api_key=still-secret",
+            },
+            commit_provider=lambda: "abc123",
+            clock_provider=lambda: "2026-10-26T08:30:00Z",
+        )
+
+    assert not output.exists()
+
+
+def test_build_run_manifest_normalizes_injected_offset_timestamp_to_utc(tmp_path):
+    dataset = tmp_path / "evaluation.jsonl"
+    dataset.write_text("[]", encoding="utf-8")
+
+    manifest = build_run_manifest(
+        run_name="offset-clock",
+        dataset_paths=[dataset],
+        legal_source_manifest_paths=[],
+        collection_names=[],
+        embedding_version="embedding-v1",
+        chunker_version="chunker-v1",
+        runtime_identity={"provider": "local"},
+        commit_provider=lambda: "abc123",
+        clock_provider=lambda: "2026-10-26T16:30:00+08:00",
+    )
+
+    assert manifest["generated_at"] == "2026-10-26T08:30:00Z"
+
+
+@pytest.mark.parametrize("timestamp", ["not-a-timestamp", "2026-10-26T08:30:00"])
+def test_build_run_manifest_rejects_invalid_or_naive_injected_timestamp(tmp_path, timestamp):
+    dataset = tmp_path / "evaluation.jsonl"
+    dataset.write_text("[]", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="aware ISO-8601"):
+        build_run_manifest(
+            run_name="invalid-clock",
+            dataset_paths=[dataset],
+            legal_source_manifest_paths=[],
+            collection_names=[],
+            embedding_version="embedding-v1",
+            chunker_version="chunker-v1",
+            runtime_identity={"provider": "local"},
+            commit_provider=lambda: "abc123",
+            clock_provider=lambda: timestamp,
+        )
