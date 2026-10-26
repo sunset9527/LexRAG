@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 
+from scripts import audit_stage8_evaluation_intake as intake_cli
 from src.evaluation.stage8_intake_audit import audit_stage8_intake
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -57,6 +59,25 @@ def test_audit_accepts_a_ready_stage8_shaped_record(tmp_path: Path) -> None:
         "issue_counts": {},
     }
     assert report["rows"] == [{"line_number": 1, "id": "stage8-civil-001", "issues": []}]
+
+
+def test_audit_reports_duplicate_trimmed_ids_on_later_rows(tmp_path: Path) -> None:
+    report = audit_stage8_intake(
+        _write_jsonl(
+            tmp_path,
+            _json_line(_ready_record(id="stage8-civil-001")),
+            _json_line(_ready_record(id=" stage8-civil-001 ")),
+        )
+    )
+
+    assert report["summary"]["ready_rows"] == 1
+    assert report["summary"]["not_ready_rows"] == 1
+    assert report["summary"]["issue_counts"] == {"duplicate_id": 1}
+    assert report["rows"][1] == {
+        "line_number": 2,
+        "id": " stage8-civil-001 ",
+        "issues": [{"code": "duplicate_id", "message": "字段 id 去除空白后与前序样本重复"}],
+    }
 
 
 def test_audit_reports_approved_pending_evidence_in_legacy_row(tmp_path: Path) -> None:
@@ -196,3 +217,42 @@ def test_audit_cli_returns_nonzero_and_does_not_create_output_for_unreadable_inp
 
     assert result.returncode != 0
     assert not output.exists()
+
+
+def test_audit_cli_preserves_existing_output_when_temporary_write_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    dataset = _write_jsonl(tmp_path, _json_line(_ready_record()))
+    output = tmp_path / "audit.json"
+    original_output = "existing report\n"
+    output.write_text(original_output, encoding="utf-8")
+    attempted_paths: list[Path] = []
+
+    def fail_write(path: Path, *args: object, **kwargs: object) -> int:
+        attempted_paths.append(path)
+        raise OSError("simulated write failure")
+
+    monkeypatch.setattr(Path, "write_text", fail_write)
+
+    assert intake_cli.main(["--dataset", str(dataset), "--output", str(output)]) == 1
+    assert output.read_text(encoding="utf-8") == original_output
+    assert attempted_paths[0] != output
+    assert not list(tmp_path.glob(".audit.json.*.tmp"))
+
+
+def test_audit_cli_preserves_existing_output_when_replace_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    dataset = _write_jsonl(tmp_path, _json_line(_ready_record()))
+    output = tmp_path / "audit.json"
+    original_output = "existing report\n"
+    output.write_text(original_output, encoding="utf-8")
+
+    def fail_replace(source: object, destination: object) -> None:
+        raise OSError("simulated replace failure")
+
+    monkeypatch.setattr(os, "replace", fail_replace)
+
+    assert intake_cli.main(["--dataset", str(dataset), "--output", str(output)]) == 1
+    assert output.read_text(encoding="utf-8") == original_output
+    assert not list(tmp_path.glob(".audit.json.*.tmp"))

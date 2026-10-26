@@ -218,6 +218,7 @@ def audit_stage8_intake(path: Path | str) -> dict[str, Any]:
 
     rows: list[dict[str, Any]] = []
     issue_counts: Counter[str] = Counter()
+    seen_ids: set[str] = set()
     input_rows = readable_rows = ready_rows = malformed_rows = 0
     for line_number, line in enumerate(lines, start=1):
         if not line.strip():
@@ -245,6 +246,18 @@ def audit_stage8_intake(path: Path | str) -> dict[str, Any]:
             else:
                 readable_rows += 1
                 issues = _record_issues(decoded)
+                identifier = decoded.get("id")
+                if _nonblank_string(identifier):
+                    normalized_identifier = identifier.strip()
+                    if normalized_identifier in seen_ids:
+                        issues.append(
+                            _issue(
+                                "duplicate_id",
+                                "字段 id 去除空白后与前序样本重复",
+                            )
+                        )
+                    else:
+                        seen_ids.add(normalized_identifier)
                 rows.append(_row(line_number, decoded, issues))
                 if not issues:
                     ready_rows += 1
