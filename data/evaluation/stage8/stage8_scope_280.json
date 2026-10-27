@@ -1,0 +1,205 @@
+{
+  "kind": "reviewed_candidate_baseline",
+  "not_stage8_dataset": true,
+  "target_count": 280,
+  "retired_count": 20,
+  "scope_reason": "当前语料库/版本适用规则不足；这些项目在本次评估范围内永久排除。",
+  "limitations": "This is a non-formal reviewed candidate baseline, not a stage8_dataset; it makes no present-law validity claim and supplies no source_url defaults.",
+  "retired_source_ids": [
+    {
+      "source_queue_id": "hard-version-001",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-002",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-003",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-004",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-005",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-006",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-007",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-008",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-009",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-010",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-011",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-012",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-013",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-014",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-015",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-016",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-017",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-018",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-019",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    },
+    {
+      "source_queue_id": "hard-version-020",
+      "status": "retired_by_scope_decision",
+      "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"
+    }
+  ],
+  "sources": {
+    "first_reviewed": "review_queue_300.jsonl",
+    "second_reviewed": "round2_candidates_171.jsonl",
+    "remediation_manifest": "round2_remediation_manifest.json",
+    "first_pending_backup": "review_queue_300.pending.bak.jsonl",
+    "second_pending_backup": "round2_candidates_171.pending.bak.jsonl"
+  },
+  "sha256": {
+    "baseline_jsonl": "01c5a93b9bdf74f2bd49941a3a078159ada817900ecd22cdf29230834591eb00",
+    "first_reviewed": "0576c3d1d39b6a7bfcc96f454118305eed79d805eb016136b4d239d04e465db5",
+    "second_reviewed": "4d58f442474f1f6dc7b0a75542e6d695ecfa9af7547c60639c5858c64839c03c"
+  },
+  "human_evidence_supported_corrections": {
+    "count": 11,
+    "records": [
+      {
+        "queue_id": "round2-oral-039",
+        "changed_non_review_fields": [
+          "local_source_locator",
+          "proposed_relevant_article_ids"
+        ],
+        "review_note": "候选法条已按审核意见修正为刑法第75条；第75条规定被宣告缓刑的犯罪分子应当遵守的四项规定（遵守法律法规并服从监督、报告活动情况、遵守会客规定、离开居住地或迁居需批准），与题干一致；原候选第72条规范的是可以宣告缓刑的适用条件，与题干不符。"
+      },
+      {
+        "queue_id": "round2-abstain-001",
+        "changed_non_review_fields": [
+          "local_source_locator"
+        ],
+        "review_note": "已核对弃答标注：本题涉及劳动合同法调整范围，缺少关键事实要素，不能直接给出确定结论，弃答判定成立；知识库范围 labor-contract-law 与所填来源定位一致。"
+      },
+      {
+        "queue_id": "round2-abstain-002",
+        "changed_non_review_fields": [
+          "local_source_locator"
+        ],
+        "review_note": "已核对弃答标注：本题涉及劳动法调整范围，缺少关键事实要素，不能直接给出确定结论，弃答判定成立；知识库范围 labor-law 与所填来源定位一致。"
+      },
+      {
+        "queue_id": "round2-abstain-003",
+        "changed_non_review_fields": [
+          "local_source_locator"
+        ],
+        "review_note": "已核对弃答标注：本题涉及商标法调整范围，缺少关键事实要素，不能直接给出确定结论，弃答判定成立；知识库范围 trademark-law 与所填来源定位一致。"
+      },
+      {
+        "queue_id": "round2-abstain-004",
+        "changed_non_review_fields": [
+          "local_source_locator"
+        ],
+        "review_note": "已核对弃答标注：本题涉及专利法调整范围，缺少关键事实要素，不能直接给出确定结论，弃答判定成立；知识库范围 patent-law 与所填来源定位一致。"
+      },
+      {
+        "queue_id": "round2-abstain-005",
+        "changed_non_review_fields": [
+          "local_source_locator"
+        ],
+        "review_note": "已核对弃答标注：本题涉及著作权法调整范围，缺少关键事实要素，不能直接给出确定结论，弃答判定成立；知识库范围 copyright-law 与所填来源定位一致。"
+      },
+      {
+        "queue_id": "round2-abstain-006",
+        "changed_non_review_fields": [
+          "local_source_locator"
+        ],
+        "review_note": "已核对弃答标注：本题涉及劳动合同法调整范围，缺少关键事实要素，不能直接给出确定结论，弃答判定成立；知识库范围 labor-contract-law 与所填来源定位一致。"
+      },
+      {
+        "queue_id": "round2-abstain-007",
+        "changed_non_review_fields": [
+          "local_source_locator"
+        ],
+        "review_note": "已核对弃答标注：本题涉及劳动合同法调整范围，缺少关键事实要素，不能直接给出确定结论，弃答判定成立；知识库范围 labor-contract-law 与所填来源定位一致。"
+      },
+      {
+        "queue_id": "round2-abstain-008",
+        "changed_non_review_fields": [
+          "local_source_locator"
+        ],
+        "review_note": "已核对弃答标注：本题涉及公司法调整范围，缺少关键事实要素，不能直接给出确定结论，弃答判定成立；知识库范围 company-law 与所填来源定位一致。"
+      },
+      {
+        "queue_id": "round2-abstain-009",
+        "changed_non_review_fields": [
+          "local_source_locator"
+        ],
+        "review_note": "已核对弃答标注：本题涉及刑法调整范围，缺少关键事实要素，不能直接给出确定结论，弃答判定成立；知识库范围 criminal-law 与所填来源定位一致。"
+      },
+      {
+        "queue_id": "round2-abstain-010",
+        "changed_non_review_fields": [
+          "local_source_locator"
+        ],
+        "review_note": "已核对弃答标注：本题涉及著作权法调整范围，缺少关键事实要素，不能直接给出确定结论，弃答判定成立；知识库范围 copyright-law 与所填来源定位一致。"
+      }
+    ]
+  }
+}
