@@ -101,6 +101,18 @@ def test_cli_rejects_equal_output_paths(tmp_path: Path) -> None:
     assert not output.exists()
 
 
+@pytest.mark.parametrize("overlap", ["first", "second", "manifest", "first_pending", "second_pending"])
+def test_cli_rejects_output_overlapping_any_resolved_input(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, overlap: str) -> None:
+    inputs = {name: tmp_path / f"{name}.jsonl" for name in ["first", "second", "manifest", "first_pending", "second_pending"]}
+    for name, path in inputs.items(): path.write_bytes(f"original-{name}".encode("utf-8"))
+    before = {name: path.read_bytes() for name, path in inputs.items()}
+    monkeypatch.setattr(baseline_cli, "build_reviewed_baseline", lambda *args: ([], {"kind": "test", "retired_count": 0, "sha256": {"baseline_jsonl": "x"}}))
+    argv = ["--baseline-output", str(inputs[overlap]), "--scope-output", str(tmp_path / "scope.json")]
+    for name, path in inputs.items(): argv.extend([f"--{name.replace('_', '-')}", str(path)])
+    assert baseline_cli.main(argv) == 1
+    assert {name: path.read_bytes() for name, path in inputs.items()} == before
+
+
 def test_cli_restores_both_outputs_when_second_replacement_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     baseline = tmp_path / "baseline.jsonl"; scope = tmp_path / "scope.json"
     baseline.write_text("old baseline\n", encoding="utf-8"); scope.write_text("old scope\n", encoding="utf-8")

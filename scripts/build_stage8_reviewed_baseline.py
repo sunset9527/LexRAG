@@ -65,8 +65,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--scope-output", type=Path)
     args = parser.parse_args(argv)
     try:
+        if bool(args.baseline_output) != bool(args.scope_output):
+            raise Stage8ReviewedBaselineError("必须同时提供两个输出路径，或均不提供")
+        if args.baseline_output:
+            input_paths = {
+                path.resolve()
+                for path in (args.first, args.second, args.manifest, args.first_pending, args.second_pending)
+            }
+            output_paths = {args.baseline_output.resolve(), args.scope_output.resolve()}
+            if input_paths & output_paths:
+                raise Stage8ReviewedBaselineError("输出路径不得覆盖任何审核输入或 remediation manifest")
         baseline, scope = build_reviewed_baseline(args.first,args.second,args.manifest,args.first_pending,args.second_pending)
-        if bool(args.baseline_output) != bool(args.scope_output): raise Stage8ReviewedBaselineError("必须同时提供两个输出路径，或均不提供")
         if args.baseline_output:
             _write_pair(args.baseline_output, baseline_jsonl(baseline), args.scope_output, json.dumps(scope, ensure_ascii=False, indent=2)+"\n")
         print(json.dumps({"kind": scope["kind"], "count":len(baseline), "retired_count":scope["retired_count"], "sha256":scope["sha256"]["baseline_jsonl"]}, ensure_ascii=False))
