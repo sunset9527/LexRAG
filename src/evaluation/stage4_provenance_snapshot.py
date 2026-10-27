@@ -101,12 +101,17 @@ def _collection_article_ids(
     if not isinstance(metadata, Mapping):
         raise Stage4ProvenanceSnapshotError(f"{slug} collection identity metadata is missing")
     expected_identity = {
-        SOURCE_HASH_KEY: provenance["content_hash"],
         EMBEDDING_FINGERPRINT_KEY: registry.get("embedding_fingerprint"),
         INDEX_SCHEMA_VERSION_KEY: registry.get("index_schema_version"),
     }
     if any(metadata.get(key) != value for key, value in expected_identity.items()):
         raise Stage4ProvenanceSnapshotError(f"{slug} collection identity/provenance disagrees with DB")
+    collection_source_hash = metadata.get(SOURCE_HASH_KEY)
+    if (
+        collection_source_hash is not None
+        and collection_source_hash != provenance["content_hash"]
+    ):
+        raise Stage4ProvenanceSnapshotError(f"{slug} collection provenance disagrees with DB")
 
     metadatas = collection.get("metadatas")
     if not isinstance(metadatas, list) or not metadatas:

@@ -185,6 +185,17 @@ def test_snapshot_accepts_legacy_ready_pointer_with_null_source_hash():
     assert snapshot["laws"][0]["collection_name"] == "kb_civil_code_v_aaaaaaaaaaaa"
 
 
+def test_snapshot_accepts_legacy_collection_without_collection_level_source_hash():
+    legacy_metadata = {
+        "lexrag_embedding_fingerprint": "f" * 64,
+        "lexrag_index_schema_version": 1,
+    }
+
+    snapshot = _build(collection=_collection(metadata=legacy_metadata))
+
+    assert snapshot["laws"][0]["content_hash"] == "a" * 64
+
+
 def test_snapshot_rejects_active_collection_name_not_derived_from_verified_chain_hash():
     wrong_name = "kb_civil_code_v_wronghash"
 
