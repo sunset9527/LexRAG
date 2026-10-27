@@ -172,6 +172,36 @@ def test_snapshot_rejects_non_ready_active_registry_pointer():
         _build(knowledge_bases=NotReady())
 
 
+def test_snapshot_accepts_legacy_ready_pointer_with_null_source_hash():
+    class LegacyReady(_KnowledgeBases):
+        def list_knowledge_bases(self):
+            rows = super().list_knowledge_bases()
+            rows[0]["source_hash"] = None
+            return rows
+
+    snapshot = _build(knowledge_bases=LegacyReady())
+
+    assert snapshot["laws"][0]["content_hash"] == "a" * 64
+    assert snapshot["laws"][0]["collection_name"] == "kb_civil_code_v_aaaaaaaaaaaa"
+
+
+def test_snapshot_rejects_active_collection_name_not_derived_from_verified_chain_hash():
+    wrong_name = "kb_civil_code_v_wronghash"
+
+    class WrongCollection(_KnowledgeBases):
+        def list_knowledge_bases(self):
+            rows = super().list_knowledge_bases()
+            rows[0]["source_hash"] = None
+            rows[0]["collection_name"] = wrong_name
+            return rows
+
+    with pytest.raises(Stage4ProvenanceSnapshotError, match="collection name"):
+        _build(
+            knowledge_bases=WrongCollection(),
+            collection=_collection(name=wrong_name),
+        )
+
+
 def test_snapshot_rejects_duplicate_requested_slug():
     with pytest.raises(Stage4ProvenanceSnapshotError, match="duplicate"):
         build_stage4_provenance_snapshot(

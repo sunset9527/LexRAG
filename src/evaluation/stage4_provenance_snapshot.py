@@ -149,8 +149,6 @@ def build_stage4_provenance_snapshot(
             raise Stage4ProvenanceSnapshotError(f"{slug} is missing from the KB registry")
         if registry.get("status") != "READY":
             raise Stage4ProvenanceSnapshotError(f"{slug} active KB pointer is not READY")
-        if registry.get("source_hash") is None:
-            raise Stage4ProvenanceSnapshotError(f"{slug} READY pointer has no source hash")
 
         try:
             chain = chain_service.get_indexable_chain_for_law(slug, as_of=as_of)
@@ -164,12 +162,23 @@ def build_stage4_provenance_snapshot(
         provenance = _expected_document_provenance(raw_provenance)
         if not _SHA256.fullmatch(provenance["content_hash"]):
             raise Stage4ProvenanceSnapshotError(f"{slug} content_hash is not lowercase SHA-256")
-        if registry.get("source_hash") != provenance["content_hash"]:
+        registry_source_hash = registry.get("source_hash")
+        if (
+            registry_source_hash is not None
+            and registry_source_hash != provenance["content_hash"]
+        ):
             raise Stage4ProvenanceSnapshotError(f"{slug} registry provenance disagrees with DB")
         if chain.get("target_version_id") != provenance["version_id"]:
             raise Stage4ProvenanceSnapshotError(f"{slug} chain version disagrees with provenance")
 
         collection_name = _nonblank(registry.get("collection_name"), "collection_name")
+        expected_collection_name = (
+            f"kb_{slug.replace('-', '_')}_v_{provenance['content_hash'][:12]}"
+        )
+        if collection_name != expected_collection_name:
+            raise Stage4ProvenanceSnapshotError(
+                f"{slug} active collection name disagrees with verified chain content hash"
+            )
         try:
             collection = collection_reader(collection_name)
         except Exception as exc:
