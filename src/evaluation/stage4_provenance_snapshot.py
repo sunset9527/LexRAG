@@ -93,18 +93,33 @@ def _collection_article_ids(
     collection: Mapping[str, Any],
     registry: Mapping[str, Any],
     provenance: Mapping[str, str],
-) -> list[str]:
+) -> dict[str, Any]:
     expected_name = registry.get("collection_name")
     if collection.get("name") != expected_name:
         raise Stage4ProvenanceSnapshotError(f"{slug} collection identity disagrees with DB")
     metadata = collection.get("metadata")
     if not isinstance(metadata, Mapping):
         raise Stage4ProvenanceSnapshotError(f"{slug} collection identity metadata is missing")
-    expected_identity = {
-        EMBEDDING_FINGERPRINT_KEY: registry.get("embedding_fingerprint"),
-        INDEX_SCHEMA_VERSION_KEY: registry.get("index_schema_version"),
-    }
-    if any(metadata.get(key) != value for key, value in expected_identity.items()):
+    embedding_fingerprint = metadata.get(EMBEDDING_FINGERPRINT_KEY)
+    if not isinstance(embedding_fingerprint, str) or not _SHA256.fullmatch(
+        embedding_fingerprint
+    ):
+        raise Stage4ProvenanceSnapshotError(
+            f"{slug} collection embedding fingerprint is invalid"
+        )
+    registry_fingerprint = registry.get("embedding_fingerprint")
+    if registry_fingerprint is not None and registry_fingerprint != embedding_fingerprint:
+        raise Stage4ProvenanceSnapshotError(f"{slug} collection identity/provenance disagrees with DB")
+    index_schema_version = metadata.get(INDEX_SCHEMA_VERSION_KEY)
+    if type(index_schema_version) is not int or index_schema_version <= 0:
+        raise Stage4ProvenanceSnapshotError(
+            f"{slug} collection index schema version is invalid"
+        )
+    registry_schema_version = registry.get("index_schema_version")
+    if (
+        registry_schema_version is not None
+        and registry_schema_version != index_schema_version
+    ):
         raise Stage4ProvenanceSnapshotError(f"{slug} collection identity/provenance disagrees with DB")
     collection_source_hash = metadata.get(SOURCE_HASH_KEY)
     if (
@@ -116,6 +131,10 @@ def _collection_article_ids(
     metadatas = collection.get("metadatas")
     if not isinstance(metadatas, list) or not metadatas:
         raise Stage4ProvenanceSnapshotError(f"{slug} collection has no article labels")
+    chunk_count = len(metadatas)
+    registry_chunk_count = registry.get("chunk_count")
+    if registry_chunk_count is not None and registry_chunk_count != chunk_count:
+        raise Stage4ProvenanceSnapshotError(f"{slug} registry chunk count disagrees with Chroma")
     article_ids: list[str] = []
     for document_metadata in metadatas:
         if not isinstance(document_metadata, Mapping):
@@ -126,9 +145,21 @@ def _collection_article_ids(
                 f"{slug} document provenance disagrees with DB provenance"
             )
         article_ids.append(article_id)
-    if len(article_ids) != len(set(article_ids)):
-        raise Stage4ProvenanceSnapshotError(f"{slug} collection has duplicated article labels")
-    return sorted(article_ids)
+    unique_article_ids = sorted(set(article_ids))
+    registry_document_count = registry.get("document_count")
+    if (
+        registry_document_count is not None
+        and registry_document_count != len(unique_article_ids)
+    ):
+        raise Stage4ProvenanceSnapshotError(
+            f"{slug} registry document count disagrees with Chroma"
+        )
+    return {
+        "article_ids": unique_article_ids,
+        "embedding_fingerprint": embedding_fingerprint,
+        "index_schema_version": index_schema_version,
+        "chunk_count": chunk_count,
+    }
 
 
 def build_stage4_provenance_snapshot(
@@ -190,7 +221,8 @@ def build_stage4_provenance_snapshot(
             raise Stage4ProvenanceSnapshotError(f"{slug} active collection cannot be read") from exc
         if not isinstance(collection, Mapping):
             raise Stage4ProvenanceSnapshotError(f"{slug} collection reader returned a non-object")
-        article_ids = _collection_article_ids(slug, collection, registry, provenance)
+        collection_facts = _collection_article_ids(slug, collection, registry, provenance)
+        article_ids = collection_facts["article_ids"]
         laws.append(
             {
                 "knowledge_base_slug": slug,
@@ -200,6 +232,9 @@ def build_stage4_provenance_snapshot(
                 "source_url": provenance["source_url"],
                 "content_hash": provenance["content_hash"],
                 "collection_name": collection_name,
+                "embedding_fingerprint": collection_facts["embedding_fingerprint"],
+                "index_schema_version": collection_facts["index_schema_version"],
+                "chunk_count": collection_facts["chunk_count"],
                 "article_ids": article_ids,
                 "article_ids_sha256": canonical_json_sha256(article_ids),
                 "article_count": len(article_ids),

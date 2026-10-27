@@ -51,6 +51,9 @@ def _law(slug: str, article_ids: list[str], marker: str) -> dict[str, object]:
         "source_url": f"https://flk.npc.gov.cn/{slug}",
         "content_hash": marker * 64,
         "collection_name": f"kb_{slug.replace('-', '_')}_v_{marker * 12}",
+        "embedding_fingerprint": "f" * 64,
+        "index_schema_version": 1,
+        "chunk_count": len(article_ids),
         "article_ids": article_ids,
         "article_ids_sha256": hashlib.sha256(
             json.dumps(
@@ -203,3 +206,23 @@ def test_manifest_binds_inputs_output_and_counts_without_quality_claim():
 def test_formal_freeze_counts_require_280_rows_320_evidence_and_460_labels():
     with pytest.raises(Stage8MaterializationError, match="280"):
         validate_formal_freeze_counts([{"source_evidence": [], "relevant_article_ids": []}])
+
+
+@pytest.mark.parametrize(
+    "field,value,error",
+    [
+        ("embedding_fingerprint", "not-a-hash", "fingerprint"),
+        ("index_schema_version", 0, "schema version"),
+        ("chunk_count", 0, "chunk count"),
+    ],
+)
+def test_materializer_rejects_invalid_captured_collection_identity(field, value, error):
+    law = _law("civil-code", [CIVIL_ARTICLE], "a")
+    law[field] = value
+    row = _baseline(
+        proposed_knowledge_base_slugs=["civil-code"],
+        proposed_relevant_article_ids=[CIVIL_ARTICLE],
+    )
+
+    with pytest.raises(Stage8MaterializationError, match=error):
+        materialize_stage8_records([row], _snapshot(law))

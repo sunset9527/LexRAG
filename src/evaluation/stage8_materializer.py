@@ -25,6 +25,9 @@ _LAW_FIELDS = frozenset(
         "source_url",
         "content_hash",
         "collection_name",
+        "embedding_fingerprint",
+        "index_schema_version",
+        "chunk_count",
         "article_ids",
         "article_ids_sha256",
         "article_count",
@@ -147,6 +150,14 @@ def _snapshot_laws(snapshot: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
             raise Stage8MaterializationError(f"{slug} snapshot article hash disagrees")
         if not _SHA256.fullmatch(str(law.get("content_hash", ""))):
             raise Stage8MaterializationError(f"{slug} snapshot content hash is invalid")
+        if not _SHA256.fullmatch(str(law.get("embedding_fingerprint", ""))):
+            raise Stage8MaterializationError(
+                f"{slug} snapshot embedding fingerprint is invalid"
+            )
+        if type(law.get("index_schema_version")) is not int or law["index_schema_version"] <= 0:
+            raise Stage8MaterializationError(f"{slug} snapshot index schema version is invalid")
+        if type(law.get("chunk_count")) is not int or law["chunk_count"] < len(article_ids):
+            raise Stage8MaterializationError(f"{slug} snapshot chunk count is invalid")
         result[slug] = law
     return result
 
