@@ -1,0 +1,1140 @@
+{
+  "batch": "stage8_round2_remediation",
+  "status": "pending_only",
+  "scope_note": "Candidate proposals for another human review only. They do not assert current-law correctness, source authority, or formal-dataset eligibility.",
+  "source_review": "review_queue_300_reviewed.jsonl / REVIEW_REPORT_20261027.md",
+  "counts": {
+    "original_nonapproved": 191,
+    "replacement_candidates": 171,
+    "blocked_version_or_time": 20
+  },
+  "blocker": "Version/time items remain blocked until the local corpus is replaced or verified against authoritative current text and version-applicability rules are added.",
+  "lineage": [
+    {
+      "source_queue_id": "hard-oral-001",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-001",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-002",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-002",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-003",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-003",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-004",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-004",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-005",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-005",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-006",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-006",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-007",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-007",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-008",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-008",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-009",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-009",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-010",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-010",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-011",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-011",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-012",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-012",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-013",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-013",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-014",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-014",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-015",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-015",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-016",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-016",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-017",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-017",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-018",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-018",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-019",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-019",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-020",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-020",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-021",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-021",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-022",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-022",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-023",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-023",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-024",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-024",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-025",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-025",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-026",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-026",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-027",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-027",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-028",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-028",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-029",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-029",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-030",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-030",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-031",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-031",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-032",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-032",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-033",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-033",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-034",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-034",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-035",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-035",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-036",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-036",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-037",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-037",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-038",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-038",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-039",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-039",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-040",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-040",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-041",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-041",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-042",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-042",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-043",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-043",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-044",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-044",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-045",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-045",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-046",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-046",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-047",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-047",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-048",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-048",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-049",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-049",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-oral-050",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-oral-050",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-abstain-002",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-abstain-001",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-abstain-006",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-abstain-002",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-abstain-007",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-abstain-003",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-abstain-008",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-abstain-004",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-abstain-009",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-abstain-005",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-abstain-011",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-abstain-006",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-abstain-012",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-abstain-007",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-abstain-013",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-abstain-008",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-abstain-016",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-abstain-009",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-abstain-018",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-abstain-010",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "civil-027",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-civil-correction-001",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-001",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-001",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-002",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-002",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-003",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-003",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-004",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-004",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-005",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-005",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-006",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-006",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-007",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-007",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-008",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-008",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-009",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-009",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-010",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-010",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-011",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-011",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-012",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-012",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-013",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-013",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-014",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-014",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-015",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-015",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-016",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-016",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-017",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-017",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-018",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-018",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-019",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-019",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-020",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-020",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-021",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-021",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-022",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-022",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-023",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-023",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-024",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-024",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-025",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-025",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-026",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-026",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-027",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-027",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-028",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-028",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-029",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-029",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-030",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-030",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-031",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-031",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-032",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-032",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-033",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-033",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-034",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-034",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-035",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-035",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-036",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-036",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-037",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-037",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-038",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-038",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-039",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-039",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-adjacent-040",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-adjacent-040",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-001",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-001",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-002",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-002",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-003",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-003",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-004",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-004",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-005",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-005",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-006",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-006",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-007",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-007",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-008",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-008",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-009",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-009",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-010",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-010",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-011",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-011",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-012",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-012",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-013",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-013",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-014",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-014",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-015",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-015",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-016",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-016",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-017",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-017",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-018",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-018",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-019",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-019",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-020",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-020",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-021",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-021",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-022",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-022",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-023",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-023",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-024",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-024",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-025",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-025",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-026",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-026",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-027",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-027",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-028",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-028",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-029",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-029",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-030",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-030",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-031",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-031",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-032",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-032",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-033",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-033",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-034",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-034",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-035",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-035",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-036",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-036",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-037",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-037",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-038",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-038",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-039",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-039",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-cross-040",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-cross-040",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-001",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-001",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-002",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-002",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-003",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-003",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-004",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-004",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-005",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-005",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-006",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-006",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-007",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-007",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-008",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-008",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-009",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-009",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-010",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-010",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-011",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-011",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-012",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-012",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-013",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-013",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-014",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-014",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-015",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-015",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-016",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-016",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-017",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-017",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-018",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-018",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-019",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-019",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-020",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-020",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-021",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-021",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-022",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-022",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-023",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-023",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-024",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-024",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-025",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-025",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-026",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-026",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-027",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-027",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-028",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-028",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-029",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-029",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-multihop-030",
+      "status": "replacement_candidate",
+      "replacement_candidate_id": "round2-multihop-030",
+      "reason": "Pending remediation candidate; not an approved record and not a formal source assertion."
+    },
+    {
+      "source_queue_id": "hard-version-001",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-002",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-003",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-004",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-005",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-006",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-007",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-008",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-009",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-010",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-011",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-012",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-013",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-014",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-015",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-016",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-017",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-018",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-019",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    },
+    {
+      "source_queue_id": "hard-version-020",
+      "status": "blocked",
+      "reason": "Blocked by corpus/version rule gate: local corpus includes stale versions and no version-applicability rules or current authoritative texts; do not create a candidate."
+    }
+  ]
+}
