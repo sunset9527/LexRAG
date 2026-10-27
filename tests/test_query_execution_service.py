@@ -2,12 +2,45 @@ from __future__ import annotations
 
 from app.services.query_execution_service import (
     build_cache_scope,
+    build_evidence_answer_generator,
     is_cacheable_query_result,
     load_or_create_session,
     record_query_observability,
     resolve_collections,
     route_evidence_workflow,
 )
+
+
+def test_evidence_answer_generator_uses_repair_llm_only_for_verifier_issues() -> None:
+    class FakeLLM:
+        def __init__(self, answer: str) -> None:
+            self.answer = answer
+            self.calls = []
+
+        def invoke(self, prompt: str):
+            self.calls.append(prompt)
+            return type("Response", (), {"content": self.answer})()
+
+    answer_llm = FakeLLM("initial answer")
+    repair_llm = FakeLLM("repaired answer")
+    generator = build_evidence_answer_generator(answer_llm, repair_llm=repair_llm)
+    evidence = [
+        type(
+            "Evidence",
+            (),
+            {
+                "source_type": "statute",
+                "law_name": "中华人民共和国民法典",
+                "normalized_article_id": "17",
+                "content": "十八周岁以上的自然人为成年人。",
+            },
+        )()
+    ]
+
+    assert generator("成年人多大？", evidence) == "initial answer"
+    assert generator("成年人多大？", evidence, ["citation missing"]) == "repaired answer"
+    assert len(answer_llm.calls) == 1
+    assert len(repair_llm.calls) == 1
 
 
 def test_query_execution_service_routes_comparative_questions_to_graph_evidence() -> None:
@@ -18,8 +51,12 @@ def test_query_execution_service_routes_comparative_questions_to_graph_evidence(
 
 
 def test_query_execution_service_only_caches_verified_cacheable_results() -> None:
-    assert is_cacheable_query_result({"verification_status": "pass", "metadata": {"cacheable": True}})
-    assert not is_cacheable_query_result({"verification_status": "fail", "metadata": {"cacheable": True}})
+    assert is_cacheable_query_result(
+        {"verification_status": "pass", "metadata": {"cacheable": True}}
+    )
+    assert not is_cacheable_query_result(
+        {"verification_status": "fail", "metadata": {"cacheable": True}}
+    )
 
 
 def test_query_execution_service_records_metrics_without_persistence_services() -> None:

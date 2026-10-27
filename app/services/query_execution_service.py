@@ -160,22 +160,32 @@ def build_cache_scope(
 
 
 def build_evidence_answer_generator(
-    llm: Any, *, memory_turns: list[ConversationTurn] | None = None
+    llm: Any,
+    *,
+    memory_turns: list[ConversationTurn] | None = None,
+    repair_llm: Any | None = None,
 ):
     memory_sections = []
     for turn in memory_turns or []:
         citations = "、".join(turn.verified_citations) or "（无已验证引用）"
-        memory_sections.append(f"用户：{turn.question}\n助手：{turn.answer}\n已验证历史引用：{citations}")
+        memory_sections.append(
+            f"用户：{turn.question}\n助手：{turn.answer}\n已验证历史引用：{citations}"
+        )
     memory_text = "\n\n".join(memory_sections) or "（本会话尚无历史）"
 
     def generate(question: str, evidence: list[Any], issues: list[str] | None = None) -> str:
         statutes = [item for item in evidence if item.source_type == "statute"]
         evidence_text = "\n\n".join(
-            f"【{item.law_name}第{item.normalized_article_id}条】\n{item.content}" for item in statutes
+            f"【{item.law_name}第{item.normalized_article_id}条】\n{item.content}"
+            for item in statutes
         )
         repair_instruction = ""
         if issues:
-            repair_instruction = "\n上一次回答未通过引用校验，问题如下：\n- " + "\n- ".join(issues) + "\n请只使用下列证据重写回答。"
+            repair_instruction = (
+                "\n上一次回答未通过引用校验，问题如下：\n- "
+                + "\n- ".join(issues)
+                + "\n请只使用下列证据重写回答。"
+            )
         prompt = f"""你是法律信息助手。请仅依据下面的本次检索证据回答用户问题。
 
 用户问题：{question}
@@ -192,7 +202,8 @@ def build_evidence_answer_generator(
 3. 新法律结论和引用只能来自本轮检索证据，历史中的法条不得作为本轮引用。
 4. 不构成法律建议，提示用户在需要时咨询专业律师。{repair_instruction}
 """
-        return llm.invoke(prompt).content.strip()
+        selected_llm = repair_llm if issues and repair_llm is not None else llm
+        return selected_llm.invoke(prompt).content.strip()
 
     return generate
 
@@ -217,5 +228,13 @@ def route_evidence_workflow(question: str) -> RouteDecision:
     procedural = any(word in normalized for word in ("怎么办", "流程", "仲裁", "起诉", "维权"))
     include_case = any(word in normalized for word in ("案例", "判例", "法院怎么判"))
     include_graph = comparative or any(word in normalized for word in ("依据", "关联", "适用"))
-    intent = "comparative" if comparative else "procedural" if procedural else "analytical" if include_case else "factual"
+    intent = (
+        "comparative"
+        if comparative
+        else "procedural"
+        if procedural
+        else "analytical"
+        if include_case
+        else "factual"
+    )
     return RouteDecision(intent=intent, include_case=include_case, include_graph=include_graph)

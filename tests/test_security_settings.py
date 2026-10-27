@@ -15,6 +15,17 @@ def test_security_defaults_are_explicit_and_bounded():
     assert 0 < settings.runtime_llm_timeout_seconds <= 120
     assert 0 <= settings.runtime_llm_max_retries <= 3
     assert 0 < settings.runtime_llm_max_concurrency <= 32
+    for operation in ("query_rewrite", "planning", "answer", "repair"):
+        assert (
+            0
+            < getattr(settings, f"runtime_llm_{operation}_timeout_seconds")
+            <= (settings.runtime_llm_timeout_seconds)
+        )
+        assert (
+            0
+            <= getattr(settings, f"runtime_llm_{operation}_max_retries")
+            <= (settings.runtime_llm_max_retries)
+        )
 
 
 def test_production_rejects_demonstration_secrets():
@@ -72,6 +83,13 @@ def test_production_validates_the_active_database_url_password():
         ({"runtime_llm_timeout_seconds": 0}, "runtime_llm_timeout_seconds"),
         ({"runtime_llm_max_retries": 9}, "runtime_llm_max_retries"),
         ({"runtime_llm_max_concurrency": 0}, "runtime_llm_max_concurrency"),
+        (
+            {"runtime_llm_query_rewrite_timeout_seconds": 0},
+            "runtime_llm_query_rewrite_timeout_seconds",
+        ),
+        ({"runtime_llm_planning_timeout_seconds": 91}, "runtime_llm_planning_timeout_seconds"),
+        ({"runtime_llm_answer_max_retries": 3}, "runtime_llm_answer_max_retries"),
+        ({"runtime_llm_repair_max_retries": -1}, "runtime_llm_repair_max_retries"),
         ({"upload_max_bytes": 0}, "upload_max_bytes"),
     ],
 )

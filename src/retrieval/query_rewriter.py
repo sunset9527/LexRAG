@@ -68,12 +68,16 @@ class QueryRewriter:
         api_key: str | None = None,
         base_url: str = "https://api.deepseek.com/v1",
         model: str = "deepseek-chat",
+        request_timeout: int | None = None,
+        max_retries: int | None = None,
     ):
         self.llm = create_llm(
             api_key=api_key,
             base_url=base_url,
             model=model,
             temperature=0.1,
+            request_timeout=request_timeout,
+            max_retries=max_retries,
         )
 
     def rewrite(self, query: str) -> RewrittenQuery:

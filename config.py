@@ -142,6 +142,15 @@ class Settings(BaseSettings):
     runtime_llm_max_output_tokens: int = 4096
     runtime_llm_max_retries: int = 2
     runtime_llm_max_concurrency: int = 8
+    # Per-operation budgets keep a single query's LLM work bounded below global caps.
+    runtime_llm_query_rewrite_timeout_seconds: int = 15
+    runtime_llm_query_rewrite_max_retries: int = 0
+    runtime_llm_planning_timeout_seconds: int = 20
+    runtime_llm_planning_max_retries: int = 0
+    runtime_llm_answer_timeout_seconds: int = 45
+    runtime_llm_answer_max_retries: int = 1
+    runtime_llm_repair_timeout_seconds: int = 30
+    runtime_llm_repair_max_retries: int = 0
     runtime_llm_trusted_base_urls: str = (
         "https://api.deepseek.com,"
         "https://dashscope.aliyuncs.com/compatible-mode/v1,"
@@ -176,6 +185,7 @@ class Settings(BaseSettings):
     law_collection_name: str = "law_articles"
     case_collection_name: str = "legal_cases"
 
+
 # 全局配置实例
 settings = Settings()
 
@@ -198,7 +208,8 @@ def validate_security_settings(candidate: Settings) -> None:
     if not 0 < candidate.upload_max_extracted_characters <= 10_000_000:
         invalid.append("upload_max_extracted_characters")
     if not (
-        0 < candidate.document_task_soft_time_limit_seconds
+        0
+        < candidate.document_task_soft_time_limit_seconds
         < candidate.document_task_time_limit_seconds
         <= 3600
     ):
@@ -211,6 +222,13 @@ def validate_security_settings(candidate: Settings) -> None:
         invalid.append("runtime_llm_max_retries")
     if not 0 < candidate.runtime_llm_max_concurrency <= 32:
         invalid.append("runtime_llm_max_concurrency")
+    for operation in ("query_rewrite", "planning", "answer", "repair"):
+        timeout_name = f"runtime_llm_{operation}_timeout_seconds"
+        retries_name = f"runtime_llm_{operation}_max_retries"
+        if not 0 < getattr(candidate, timeout_name) <= candidate.runtime_llm_timeout_seconds:
+            invalid.append(timeout_name)
+        if not 0 <= getattr(candidate, retries_name) <= candidate.runtime_llm_max_retries:
+            invalid.append(retries_name)
     if not 1 <= candidate.rate_limit_window_seconds <= 3600:
         invalid.append("rate_limit_window_seconds")
     for name in (

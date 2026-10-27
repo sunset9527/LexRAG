@@ -131,9 +131,7 @@ def test_query_returns_exact_cache_before_constructing_a_retriever(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["metadata"]["cache_hit"] == "exact"
-    assert response.json()["metadata"]["knowledge_base_routing"]["selected_slugs"] == [
-        "civil-code"
-    ]
+    assert response.json()["metadata"]["knowledge_base_routing"]["selected_slugs"] == ["civil-code"]
     assert cache.scope["knowledge_base_slug"] == "civil-code"
     assert cache.scope["user_scope"] != "Bearer a-user-token"
 
@@ -144,7 +142,9 @@ def test_query_case_date_selects_version_and_keeps_it_in_cache_scope(monkeypatch
 
     class FakeVersionService:
         def resolve(self, slug, *, organization_id, case_date):
-            observed.update({"slug": slug, "organization_id": organization_id, "case_date": case_date})
+            observed.update(
+                {"slug": slug, "organization_id": organization_id, "case_date": case_date}
+            )
             return SimpleNamespace(
                 collection_name="kb_civil_code_v_abcdef123456",
                 provenance={
@@ -383,6 +383,32 @@ def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypa
         "is_cancel_requested": None,
     }
     assert runtime_registry.collections == ["kb_civil_code"]
+
+
+def test_api_constructs_operation_llms_with_stage_budgets(monkeypatch):
+    created = []
+    monkeypatch.setattr(api, "create_llm", lambda **kwargs: created.append(kwargs) or object())
+
+    api.build_runtime_operation_llms(
+        api_key="test-key",
+        base_url="https://api.example.test/v1",
+        model="test-model",
+    )
+
+    assert {(item["request_timeout"], item["max_retries"]) for item in created} == {
+        (
+            api.settings.runtime_llm_planning_timeout_seconds,
+            api.settings.runtime_llm_planning_max_retries,
+        ),
+        (
+            api.settings.runtime_llm_answer_timeout_seconds,
+            api.settings.runtime_llm_answer_max_retries,
+        ),
+        (
+            api.settings.runtime_llm_repair_timeout_seconds,
+            api.settings.runtime_llm_repair_max_retries,
+        ),
+    }
 
 
 def test_only_verified_evidence_workflow_results_are_cacheable():

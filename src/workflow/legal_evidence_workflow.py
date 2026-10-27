@@ -22,6 +22,7 @@ EVIDENCE_INSUFFICIENT_ANSWER = (
 class QueryCancelled(RuntimeError):
     """调用方已离开或显式取消，工作流应在节点边界停止。"""
 
+
 WORKFLOW_NODE_NAMES = frozenset(
     {
         "planning",
@@ -117,12 +118,31 @@ class QueryEnhancedLawRetriever:
         self.enable_hyde = enable_hyde
 
     def retrieve(self, question: str, *, top_k: int = 5) -> Any:
+        return self.retrieve_prepared(question, self.prepare_query(question), top_k=top_k)
+
+    def prepare_query(self, question: str) -> tuple[list[str], str | None] | None:
+        """Prepare one enhanced query for reuse by request-scoped retrievers."""
         if self.query_rewriter is None:
-            return self._retrieve_original(question, top_k=top_k)
+            return None
         try:
             rewritten = self.query_rewriter.rewrite_candidates(question)
             search_queries = getattr(rewritten, "search_queries", None) or [question]
             hyde_query = self.query_rewriter.generate_hyde(question) if self.enable_hyde else None
+        except Exception:
+            return None
+        return search_queries, hyde_query
+
+    def retrieve_prepared(
+        self,
+        question: str,
+        prepared_query: tuple[list[str], str | None] | None,
+        *,
+        top_k: int = 5,
+    ) -> Any:
+        if prepared_query is None:
+            return self._retrieve_original(question, top_k=top_k)
+        search_queries, hyde_query = prepared_query
+        try:
             return self.law_retriever.retrieve_multi_query(
                 search_queries,
                 hyde_query=hyde_query,
@@ -134,7 +154,9 @@ class QueryEnhancedLawRetriever:
     def _retrieve_original(self, question: str, *, top_k: int) -> Any:
         """主检索入口优先走已启用的 BM25 + 向量 RRF，不能静默退回单路。"""
         retrieve_optimized = getattr(self.law_retriever, "retrieve_optimized", None)
-        if getattr(self.law_retriever, "enable_optimization", False) and callable(retrieve_optimized):
+        if getattr(self.law_retriever, "enable_optimization", False) and callable(
+            retrieve_optimized
+        ):
             results, _, _ = retrieve_optimized(question, top_k=top_k)
             return results
         return self.law_retriever.retrieve(question, top_k=top_k)
@@ -376,9 +398,7 @@ def _statute_retrieval_once(
             "statute_evidence": [],
             "degraded": True,
             "degradation_reasons": reasons,
-            "trace": _append_trace(
-                state, "statute_retrieval", "degraded", started, reason=reason
-            ),
+            "trace": _append_trace(state, "statute_retrieval", "degraded", started, reason=reason),
         }
 
 
@@ -426,9 +446,7 @@ def _case_retrieval_node(
     try:
         results = runtime.context.case_retriever.retrieve(state["question"], top_k=3)
         evidence = [
-            item
-            for result in results or []
-            if (item := _to_case_evidence(result)) is not None
+            item for result in results or [] if (item := _to_case_evidence(result)) is not None
         ]
         return {
             "case_evidence": evidence,
@@ -442,9 +460,7 @@ def _case_retrieval_node(
             "case_evidence": [],
             "degraded": True,
             "degradation_reasons": reasons,
-            "trace": _append_trace(
-                state, "case_retrieval", "degraded", started, reason=reason
-            ),
+            "trace": _append_trace(state, "case_retrieval", "degraded", started, reason=reason),
         }
 
 
@@ -460,17 +476,13 @@ def _graph_retrieval_node(
                 "trace": _append_trace(state, "graph_retrieval", "skipped", started),
             }
         seed = statute_evidence[0]
-        graph = runtime.context.graph_retriever.retrieve(
-            seed.normalized_article_id, max_hops=1
-        )
+        graph = runtime.context.graph_retriever.retrieve(seed.normalized_article_id, max_hops=1)
         results = getattr(graph, "retrieved_articles", []) if graph else []
         evidence = [
             item
             for result in results
             if _graph_result_law_name(result) == seed.law_name
-            and (
-                item := _to_graph_evidence(result, seed.knowledge_base_slug)
-            ) is not None
+            and (item := _to_graph_evidence(result, seed.knowledge_base_slug)) is not None
         ]
         return {
             "graph_evidence": evidence,
@@ -484,9 +496,7 @@ def _graph_retrieval_node(
             "graph_evidence": [],
             "degraded": True,
             "degradation_reasons": reasons,
-            "trace": _append_trace(
-                state, "graph_retrieval", "degraded", started, reason=reason
-            ),
+            "trace": _append_trace(state, "graph_retrieval", "degraded", started, reason=reason),
         }
 
 
@@ -572,9 +582,7 @@ def _repair_node(
 ) -> dict[str, Any]:
     started = perf_counter()
     issues = state.get("verification_issues", [])
-    answer = runtime.context.answer_generator(
-        state["question"], state.get("evidence", []), issues
-    )
+    answer = runtime.context.answer_generator(state["question"], state.get("evidence", []), issues)
     return {
         "answer": answer,
         "verification_attempts": state.get("verification_attempts", 0) + 1,
@@ -773,7 +781,9 @@ class LegalEvidenceWorkflow:
             return self._result_from_state(final_state)
 
         final_state = dict(initial_state)
-        for update in self.graph.stream(initial_state, context=runtime_context, stream_mode="updates"):
+        for update in self.graph.stream(
+            initial_state, context=runtime_context, stream_mode="updates"
+        ):
             for node_update in update.values():
                 if not isinstance(node_update, Mapping):
                     continue

@@ -196,12 +196,51 @@ def record_query_observability(
     )
 
 
-def build_evidence_answer_generator(llm, *, memory_turns: list[ConversationTurn] | None = None):
-    return query_execution_service.build_evidence_answer_generator(llm, memory_turns=memory_turns)
+def build_evidence_answer_generator(
+    llm,
+    *,
+    memory_turns: list[ConversationTurn] | None = None,
+    repair_llm=None,
+):
+    return query_execution_service.build_evidence_answer_generator(
+        llm,
+        memory_turns=memory_turns,
+        repair_llm=repair_llm,
+    )
 
 
 def build_evidence_planner(llm):
     return query_execution_service.build_evidence_planner(llm)
+
+
+def build_runtime_operation_llms(
+    *, api_key: str | None, base_url: str, model: str
+) -> dict[str, Any]:
+    """Create separately bounded LLM clients for one query's workflow stages."""
+
+    common = {
+        "api_key": api_key,
+        "base_url": base_url,
+        "model": model,
+        "temperature": 0.1,
+    }
+    return {
+        "answer": create_llm(
+            **common,
+            request_timeout=settings.runtime_llm_answer_timeout_seconds,
+            max_retries=settings.runtime_llm_answer_max_retries,
+        ),
+        "planning": create_llm(
+            **common,
+            request_timeout=settings.runtime_llm_planning_timeout_seconds,
+            max_retries=settings.runtime_llm_planning_max_retries,
+        ),
+        "repair": create_llm(
+            **common,
+            request_timeout=settings.runtime_llm_repair_timeout_seconds,
+            max_retries=settings.runtime_llm_repair_max_retries,
+        ),
+    }
 
 
 def route_evidence_workflow(question: str) -> RouteDecision:
@@ -355,6 +394,8 @@ def initialize_components():
                     api_key=settings.deepseek_api_key,
                     base_url=settings.deepseek_base_url,
                     model=settings.deepseek_model,
+                    request_timeout=settings.runtime_llm_query_rewrite_timeout_seconds,
+                    max_retries=settings.runtime_llm_query_rewrite_max_retries,
                 )
             except Exception as exc:
                 logger.warning("Query Rewriter初始化失败 error_type=%s", type(exc).__name__)
@@ -1002,11 +1043,10 @@ async def query(
             effective_api_key = x_api_key or settings.deepseek_api_key
             effective_base_url = x_base_url or settings.deepseek_base_url
             effective_model = x_model or settings.deepseek_model
-            runtime_llm = create_llm(
+            runtime_llms = build_runtime_operation_llms(
                 api_key=effective_api_key,
                 base_url=effective_base_url,
                 model=effective_model,
-                temperature=0.1,
             )
             runtime_rewriter = None
             if components.get("query_rewriter") is not None:
@@ -1014,6 +1054,8 @@ async def query(
                     api_key=effective_api_key,
                     base_url=effective_base_url,
                     model=effective_model,
+                    request_timeout=settings.runtime_llm_query_rewrite_timeout_seconds,
+                    max_retries=settings.runtime_llm_query_rewrite_max_retries,
                 )
             workflow = LegalEvidenceWorkflow(
                 law_retriever=MultiKnowledgeBaseLawRetriever(
@@ -1025,9 +1067,11 @@ async def query(
                     }
                 ),
                 answer_generator=build_evidence_answer_generator(
-                    runtime_llm, memory_turns=memory_turns
+                    runtime_llms["answer"],
+                    memory_turns=memory_turns,
+                    repair_llm=runtime_llms["repair"],
                 ),
-                planner=build_evidence_planner(runtime_llm),
+                planner=build_evidence_planner(runtime_llms["planning"]),
                 router=route_evidence_workflow,
                 case_retriever=components.get("case_retriever"),
                 graph_retriever=components.get("graph_retriever"),
