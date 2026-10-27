@@ -108,16 +108,19 @@
     }
   ],
   "sources": {
-    "first_reviewed": "review_queue_300.jsonl",
-    "second_reviewed": "round2_candidates_171.jsonl",
-    "remediation_manifest": "round2_remediation_manifest.json",
-    "first_pending_backup": "review_queue_300.pending.bak.jsonl",
-    "second_pending_backup": "round2_candidates_171.pending.bak.jsonl"
+    "first_reviewed": "data/evaluation/stage8/snapshots/review_queue_300.reviewed.jsonl",
+    "second_reviewed": "data/evaluation/stage8/snapshots/round2_candidates_171.reviewed.jsonl",
+    "remediation_manifest": "data/evaluation/stage8/round2_remediation_manifest.json",
+    "first_pending_backup": "data/evaluation/stage8/snapshots/review_queue_300.pending.jsonl",
+    "second_pending_backup": "data/evaluation/stage8/snapshots/round2_candidates_171.pending.jsonl"
   },
   "sha256": {
     "baseline_jsonl": "01c5a93b9bdf74f2bd49941a3a078159ada817900ecd22cdf29230834591eb00",
     "first_reviewed": "0576c3d1d39b6a7bfcc96f454118305eed79d805eb016136b4d239d04e465db5",
-    "second_reviewed": "4d58f442474f1f6dc7b0a75542e6d695ecfa9af7547c60639c5858c64839c03c"
+    "first_pending": "079e90a1bc11dad8c876fcc6efd2749f7a957cc83176e3e4777a4c05fc4e70ed",
+    "second_reviewed": "4d58f442474f1f6dc7b0a75542e6d695ecfa9af7547c60639c5858c64839c03c",
+    "second_pending": "b5e7e2a5d0660dcea028e12b9dcdf42b10e9a7e364d5fe7e0a4c4940798fb5b2",
+    "remediation_manifest": "61f9e47ffac07e409bdbbde3e8d42d33ed8e2125f10ad4aca917ff16a20da1da"
   },
   "human_evidence_supported_corrections": {
     "count": 11,

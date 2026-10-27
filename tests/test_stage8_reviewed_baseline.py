@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from scripts import build_stage8_reviewed_baseline as baseline_cli
 from src.evaluation.stage8_reviewed_baseline import (
     Stage8ReviewedBaselineError,
     build_reviewed_baseline,
@@ -16,21 +17,22 @@ from src.evaluation.stage8_reviewed_baseline import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "evaluation" / "stage8"
+SNAPSHOTS = DATA / "snapshots"
 
 
 def test_actual_reviewed_inputs_build_a_280_candidate_baseline() -> None:
     baseline, scope = build_reviewed_baseline(
-        DATA / "review_queue_300.jsonl",
-        DATA / "round2_candidates_171.jsonl",
+        SNAPSHOTS / "review_queue_300.reviewed.jsonl",
+        SNAPSHOTS / "round2_candidates_171.reviewed.jsonl",
         DATA / "round2_remediation_manifest.json",
-        DATA / "review_queue_300.pending.bak.jsonl",
-        DATA / "round2_candidates_171.pending.bak.jsonl",
+        SNAPSHOTS / "review_queue_300.pending.jsonl",
+        SNAPSHOTS / "round2_candidates_171.pending.jsonl",
     )
 
     assert len(baseline) == 280
     assert [row["queue_id"] for row in baseline[:109]] == [
         row["queue_id"]
-        for row in map(json.loads, (DATA / "review_queue_300.jsonl").read_text(encoding="utf-8").splitlines())
+        for row in map(json.loads, (SNAPSHOTS / "review_queue_300.reviewed.jsonl").read_text(encoding="utf-8").splitlines())
         if row["review_state"] == "approved"
     ]
     assert scope["kind"] == "reviewed_candidate_baseline"
@@ -55,6 +57,10 @@ def test_committed_artifacts_match_the_actual_reviewed_build() -> None:
     assert not any(row["queue_id"].startswith("hard-version-") for row in rows)
     assert scope["target_count"] == 280 and scope["retired_count"] == 20
     assert scope["sha256"]["baseline_jsonl"] == hashlib.sha256(baseline_path.read_bytes()).hexdigest()
+    assert scope["sources"]["first_reviewed"].startswith("data/evaluation/stage8/snapshots/")
+    assert set(scope["sha256"]) == {
+        "baseline_jsonl", "first_reviewed", "first_pending", "second_reviewed", "second_pending", "remediation_manifest"
+    }
 
 
 def test_loader_rejects_duplicate_keys_and_unsupported_queue_fields(tmp_path: Path) -> None:
@@ -66,4 +72,35 @@ def test_loader_rejects_duplicate_keys_and_unsupported_queue_fields(tmp_path: Pa
     manifest.write_text('{"lineage": []}', encoding="utf-8")
     with pytest.raises(Stage8ReviewedBaselineError, match="重复 JSON 键"):
         build_reviewed_baseline(first, second, manifest, first, second)
+
+
+def test_builder_rejects_queue_id_collision_across_review_rounds(tmp_path: Path) -> None:
+    second = tmp_path / "second.jsonl"
+    rows = (SNAPSHOTS / "round2_candidates_171.reviewed.jsonl").read_text(encoding="utf-8").splitlines()
+    changed = json.loads(rows[0]); changed["queue_id"] = "civil-001"
+    second.write_text("\n".join([json.dumps(changed, ensure_ascii=False), *rows[1:]]) + "\n", encoding="utf-8")
+    with pytest.raises(Stage8ReviewedBaselineError, match="跨轮.*queue_id"):
+        build_reviewed_baseline(
+            SNAPSHOTS / "review_queue_300.reviewed.jsonl", second, DATA / "round2_remediation_manifest.json",
+            SNAPSHOTS / "review_queue_300.pending.jsonl", SNAPSHOTS / "round2_candidates_171.pending.jsonl",
+        )
+
+
+def test_cli_rejects_equal_output_paths(tmp_path: Path) -> None:
+    output = tmp_path / "same.json"
+    assert baseline_cli.main(["--baseline-output", str(output), "--scope-output", str(output)]) == 1
+    assert not output.exists()
+
+
+def test_cli_restores_both_outputs_when_second_replacement_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    baseline = tmp_path / "baseline.jsonl"; scope = tmp_path / "scope.json"
+    baseline.write_text("old baseline\n", encoding="utf-8"); scope.write_text("old scope\n", encoding="utf-8")
+    original_replace = baseline_cli.os.replace
+    def fail_scope_replace(source: str, destination: str) -> None:
+        if Path(destination) == scope: raise OSError("simulated scope replacement failure")
+        original_replace(source, destination)
+    monkeypatch.setattr(baseline_cli.os, "replace", fail_scope_replace)
+    assert baseline_cli.main(["--baseline-output", str(baseline), "--scope-output", str(scope)]) == 1
+    assert baseline.read_text(encoding="utf-8") == "old baseline\n"
+    assert scope.read_text(encoding="utf-8") == "old scope\n"
 

@@ -10,6 +10,8 @@ from typing import Any
 
 from src.evaluation.stage8_review_queue import QUEUE_RECORD_FIELDS
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
 
 class Stage8ReviewedBaselineError(ValueError):
     """Reviewed candidate inputs do not meet the Stage 8 baseline contract."""
@@ -104,6 +106,13 @@ def build_reviewed_baseline(
     second = _load_jsonl(second_reviewed_path)
     first_pending = _load_jsonl(first_pending_path)
     second_pending = _load_jsonl(second_pending_path)
+    first_ids = {row["queue_id"] for row in first}
+    second_ids = {row["queue_id"] for row in second}
+    collision = first_ids & second_ids
+    if collision:
+        raise Stage8ReviewedBaselineError(
+            f"跨轮 queue_id 不得重复: {', '.join(sorted(collision))}"
+        )
     approved_first = [row for row in first if row["review_state"] == "approved"]
     approved_second = [row for row in second if row["review_state"] == "approved"]
     if len(approved_first) != 109 or len(approved_second) != 171:
@@ -129,7 +138,11 @@ def build_reviewed_baseline(
         raise Stage8ReviewedBaselineError("retired source ids 必须均为第一轮 rejected 旧 version/time 项")
     corrections = _corrections(first, first_pending) + _corrections(second, second_pending)
     records = "".join(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n" for row in baseline)
-    relative = lambda path: Path(path).as_posix().split("data/evaluation/stage8/", 1)[-1]
+    def relative(path: Path) -> str:
+        try:
+            return Path(path).resolve().relative_to(PROJECT_ROOT).as_posix()
+        except ValueError:
+            return Path(path).as_posix()
     scope = {
         "kind": "reviewed_candidate_baseline", "not_stage8_dataset": True,
         "target_count": 280, "retired_count": 20,
@@ -137,7 +150,7 @@ def build_reviewed_baseline(
         "limitations": "This is a non-formal reviewed candidate baseline, not a stage8_dataset; it makes no present-law validity claim and supplies no source_url defaults.",
         "retired_source_ids": [{"source_queue_id": source_id, "status": "retired_by_scope_decision", "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"} for source_id in retired_ids],
         "sources": {"first_reviewed": relative(first_reviewed_path), "second_reviewed": relative(second_reviewed_path), "remediation_manifest": relative(manifest_path), "first_pending_backup": relative(first_pending_path), "second_pending_backup": relative(second_pending_path)},
-        "sha256": {"baseline_jsonl": hashlib.sha256(records.encode("utf-8")).hexdigest(), "first_reviewed": _sha256(first_reviewed_path), "second_reviewed": _sha256(second_reviewed_path)},
+        "sha256": {"baseline_jsonl": hashlib.sha256(records.encode("utf-8")).hexdigest(), "first_reviewed": _sha256(first_reviewed_path), "first_pending": _sha256(first_pending_path), "second_reviewed": _sha256(second_reviewed_path), "second_pending": _sha256(second_pending_path), "remediation_manifest": _sha256(manifest_path)},
         "human_evidence_supported_corrections": {"count": len(corrections), "records": corrections},
     }
     return baseline, scope
