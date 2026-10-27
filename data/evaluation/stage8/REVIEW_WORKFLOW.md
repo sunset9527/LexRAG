@@ -1,14 +1,22 @@
 # Stage 8 review workflow
 
-Stage 8 starts with a 300-row candidate review queue: 100 existing legacy seed
-rows plus 200 newly proposed hard candidates. This queue is pending-only and is
-not a frozen or formal evaluation dataset.
+Stage 8 started with a 300-row candidate review queue: 100 existing legacy seed
+rows plus 200 newly proposed hard candidates. After the documented scope
+decision, 280 approved rows remain in the reviewed candidate baseline. Neither
+the queue nor that baseline is a frozen or formal evaluation dataset.
 
 For each row, a human reviewer checks the question, proposed question type and
 difficulty, knowledge-base scope, relevant article IDs, abstention decision, and
 local source locator. The reviewer records their name, timestamp, and review
 note, then materializes a separately verified/approved row.
 
-Only those separately materialized approved rows, with complete human review
-evidence, may become the formal frozen Stage 8 dataset. Candidate queue rows
-must not be used as formal evaluation evidence or to make performance claims.
+Formal materialization joins the read-only reviewed baseline to an immutable
+Stage 4 provenance snapshot. Each formal row contains a `source_evidence` list
+with exactly one evidence object per expected knowledge-base slug; article IDs
+must form an exact, duplicate-free partition across those objects. The
+materializer must fail if a label matches zero or multiple source catalogs.
+
+Only separately materialized approved rows that pass the formal validator may
+become the frozen Stage 8 dataset. This freezes legal-label provenance only.
+Candidate/baseline rows and provenance freezing must not be presented as
+retrieval or answer-quality metrics.

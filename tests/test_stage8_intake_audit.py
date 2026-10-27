@@ -25,9 +25,18 @@ def _ready_record(**overrides: object) -> dict[str, object]:
         "expected_knowledge_base_slugs": ["civil-code"],
         "relevant_article_ids": ["中华人民共和国民法典第17条"],
         "should_abstain": False,
-        "source_url": "https://flk.npc.gov.cn/detail2.html",
-        "source_version": "2026-10-01",
-        "source_locator": "中华人民共和国民法典第17条",
+        "source_evidence": [
+            {
+                "knowledge_base_slug": "civil-code",
+                "version_id": "civil-code@2020-05-28",
+                "effective_from": "2021-01-01",
+                "effective_to": None,
+                "source_url": "https://flk.npc.gov.cn/detail2.html",
+                "content_hash": "a" * 64,
+                "article_ids": ["中华人民共和国民法典第17条"],
+                "source_locator": "中华人民共和国民法典第17条",
+            }
+        ],
         "reviewer": "reviewer-a",
         "reviewed_at": "2026-10-26T10:30:00+08:00",
         "review_note": "逐条核对问题、来源和相关法条。",
@@ -81,7 +90,8 @@ def test_audit_reports_duplicate_trimmed_ids_on_later_rows(tmp_path: Path) -> No
 
 
 def test_audit_reports_approved_pending_evidence_in_legacy_row(tmp_path: Path) -> None:
-    record = _ready_record(source_locator="待人工核验")
+    record = _ready_record()
+    record["source_evidence"][0]["source_locator"] = "待人工核验"
 
     report = audit_stage8_intake(_write_jsonl(tmp_path, _json_line(record)))
 
@@ -94,33 +104,31 @@ def test_audit_reports_approved_pending_evidence_in_legacy_row(tmp_path: Path) -
     ]
 
 
-def test_audit_reports_approved_pending_evidence_in_legacy_source_field(tmp_path: Path) -> None:
+def test_audit_reports_unexpected_legacy_source_field_without_leaking(tmp_path: Path) -> None:
     legacy_source = "旧版来源说明：待人工核验"
     report = audit_stage8_intake(
         _write_jsonl(tmp_path, _json_line(_ready_record(source=legacy_source)))
     )
 
-    assert report["summary"]["issue_counts"] == {"approved_pending_evidence": 1}
+    assert report["summary"]["issue_counts"] == {"unexpected_fields": 1}
     assert report["rows"][0]["issues"] == [
         {
-            "code": "approved_pending_evidence",
-            "message": "approved 样本的来源或审核记录包含待人工核验标记",
+            "code": "unexpected_fields",
+            "message": "记录包含正式 Stage 8 Schema 之外的字段",
         }
     ]
     assert legacy_source not in json.dumps(report, ensure_ascii=False)
 
 
 def test_audit_marks_invalid_contract_fields_as_not_ready(tmp_path: Path) -> None:
-    record = _ready_record(
-        source_url="http://example.test/not-https",
-        reviewed_at="not-a-rfc3339-timestamp",
-    )
+    record = _ready_record(reviewed_at="not-a-rfc3339-timestamp")
+    record["source_evidence"][0]["source_url"] = "http://example.test/not-https"
 
     report = audit_stage8_intake(_write_jsonl(tmp_path, _json_line(record)))
 
     assert report["summary"]["ready_rows"] == 0
     assert {issue["code"] for issue in report["rows"][0]["issues"]} == {
-        "invalid_source_url",
+        "invalid_source_evidence",
         "invalid_reviewed_at",
     }
 
@@ -138,9 +146,7 @@ def test_audit_reports_every_missing_contract_field_without_question_content(tmp
         "missing_expected_knowledge_base_slugs",
         "missing_relevant_article_ids",
         "missing_should_abstain",
-        "missing_source_url",
-        "missing_source_version",
-        "missing_source_locator",
+        "missing_source_evidence",
         "missing_reviewer",
         "missing_reviewed_at",
         "missing_review_note",
@@ -181,7 +187,8 @@ def test_audit_reports_nonstandard_json_constants_as_malformed_rows(
 
 def test_audit_ignores_blank_lines_and_never_emits_source_text(tmp_path: Path) -> None:
     source_text = "https://example.test/private-source-token"
-    record = _ready_record(source_url=source_text)
+    record = _ready_record()
+    record["source_evidence"][0]["source_url"] = source_text
     report = audit_stage8_intake(_write_jsonl(tmp_path, "", "  ", _json_line(record), "\t"))
 
     assert report["summary"]["input_rows"] == 1

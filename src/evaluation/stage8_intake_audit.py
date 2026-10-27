@@ -11,7 +11,11 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
-from src.evaluation.stage8_dataset import REQUIRED_STAGE8_FIELDS
+from src.evaluation.stage8_dataset import (
+    REQUIRED_STAGE8_FIELDS,
+    Stage8DatasetError,
+    validate_stage8_record,
+)
 
 _STRING_FIELDS = frozenset(
     {
@@ -19,25 +23,18 @@ _STRING_FIELDS = frozenset(
         "question",
         "question_type",
         "difficulty",
-        "source_url",
-        "source_version",
-        "source_locator",
         "reviewer",
         "reviewed_at",
         "review_note",
         "review_status",
     }
 )
-_SIMPLE_STRING_FIELDS = _STRING_FIELDS - {"review_status", "reviewed_at", "source_url"}
+_SIMPLE_STRING_FIELDS = _STRING_FIELDS - {"review_status", "reviewed_at"}
 _PENDING_MARKER = "待人工核验"
 _RFC3339_TIMESTAMP = re.compile(
     r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})"
 )
 _EVIDENCE_FIELDS = (
-    "source",
-    "source_url",
-    "source_version",
-    "source_locator",
     "reviewer",
     "reviewed_at",
     "review_note",
@@ -122,6 +119,11 @@ def _record_issues(record: Mapping[str, Any]) -> list[dict[str, str]]:
         if field not in record:
             issues.append(_issue(f"missing_{field}", f"缺少 Stage 8 必填字段 {field}"))
 
+    if unexpected := set(record) - REQUIRED_STAGE8_FIELDS:
+        issues.append(
+            _issue("unexpected_fields", "记录包含正式 Stage 8 Schema 之外的字段")
+        )
+
     for field in sorted(_SIMPLE_STRING_FIELDS & record.keys()):
         if not _nonblank_string(record[field]):
             issues.append(_issue(f"invalid_{field}", f"字段 {field} 尚未满足 Stage 8 要求"))
@@ -148,8 +150,29 @@ def _record_issues(record: Mapping[str, Any]) -> list[dict[str, str]]:
         issues.append(
             _issue("invalid_should_abstain", "字段 should_abstain 尚未满足 Stage 8 要求")
         )
-    if "source_url" in record and not _looks_like_contract_url(record["source_url"]):
-        issues.append(_issue("invalid_source_url", "字段 source_url 尚未满足 Stage 8 要求"))
+    if (
+        "source_evidence" in record
+        and all(field in record for field in REQUIRED_STAGE8_FIELDS)
+        and not unexpected
+    ):
+        try:
+            validate_stage8_record(record, line_number=1)
+        except Stage8DatasetError as exc:
+            evidence_fields = (
+                "source_evidence",
+                "source_url",
+                "content_hash",
+                "effective_from",
+                "effective_to",
+                "partition",
+            )
+            if any(field in str(exc) for field in evidence_fields):
+                issues.append(
+                    _issue(
+                        "invalid_source_evidence",
+                        "字段 source_evidence 尚未满足 Stage 8 要求",
+                    )
+                )
     if "reviewed_at" in record and not _looks_like_rfc3339_timestamp(record["reviewed_at"]):
         issues.append(_issue("invalid_reviewed_at", "字段 reviewed_at 尚未满足 Stage 8 要求"))
 
@@ -182,10 +205,20 @@ def _record_issues(record: Mapping[str, Any]) -> list[dict[str, str]]:
                 )
             )
 
-    if status == "approved" and any(
-        _PENDING_MARKER in value
+    review_values = [
+        value
         for field in _EVIDENCE_FIELDS
         if _nonblank_string(value := record.get(field))
+    ]
+    evidence_values = [
+        value
+        for evidence in record.get("source_evidence", [])
+        if isinstance(evidence, Mapping)
+        for value in evidence.values()
+        if isinstance(value, str)
+    ]
+    if status == "approved" and any(
+        _PENDING_MARKER in value for value in (*review_values, *evidence_values)
     ):
         issues.append(
             _issue(

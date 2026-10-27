@@ -9,6 +9,21 @@ import pytest
 from src.evaluation.stage8_dataset import Stage8DatasetError, load_stage8_dataset
 
 
+def _evidence(**overrides: object) -> dict[str, object]:
+    evidence: dict[str, object] = {
+        "knowledge_base_slug": "civil-code",
+        "version_id": "civil-code@2020-05-28",
+        "effective_from": "2021-01-01",
+        "effective_to": None,
+        "source_url": "https://flk.npc.gov.cn/detail2.html",
+        "content_hash": "a" * 64,
+        "article_ids": ["中华人民共和国民法典第17条"],
+        "source_locator": "中华人民共和国民法典第17条",
+    }
+    evidence.update(overrides)
+    return evidence
+
+
 def _reviewed_item(**overrides: object) -> dict[str, object]:
     item: dict[str, object] = {
         "id": "stage8-civil-001",
@@ -18,9 +33,7 @@ def _reviewed_item(**overrides: object) -> dict[str, object]:
         "expected_knowledge_base_slugs": ["civil-code"],
         "relevant_article_ids": ["中华人民共和国民法典第17条"],
         "should_abstain": False,
-        "source_url": "https://flk.npc.gov.cn/detail2.html",
-        "source_version": "2026-10-01",
-        "source_locator": "中华人民共和国民法典第17条",
+        "source_evidence": [_evidence()],
         "reviewer": "reviewer-a",
         "reviewed_at": "2026-10-26T10:30:00+08:00",
         "review_note": "逐条核对问题、来源和相关法条。",
@@ -55,6 +68,7 @@ def test_load_stage8_dataset_accepts_reviewed_abstention_item(tmp_path):
             question="请根据未收录的地方政策回答。",
             relevant_article_ids=[],
             should_abstain=True,
+            source_evidence=[_evidence(article_ids=[], source_locator="民法典适用范围")],
         ),
     )
 
@@ -64,9 +78,12 @@ def test_load_stage8_dataset_accepts_reviewed_abstention_item(tmp_path):
     assert records[0]["relevant_article_ids"] == []
 
 
-@pytest.mark.parametrize("field", ["source_locator", "review_note"])
+@pytest.mark.parametrize("field", ["source_locator", "version_id"])
 def test_load_stage8_dataset_rejects_approved_item_with_pending_review_marker(tmp_path, field):
-    dataset = _write_jsonl(tmp_path, _reviewed_item(**{field: "待人工核验"}))
+    dataset = _write_jsonl(
+        tmp_path,
+        _reviewed_item(source_evidence=[_evidence(**{field: "待人工核验"})]),
+    )
 
     with pytest.raises(Stage8DatasetError, match="待人工核验"):
         load_stage8_dataset(dataset, require_approved=True)
@@ -99,6 +116,7 @@ def test_load_stage8_dataset_rejects_blank_id(tmp_path):
         None,
         [],
         [""],
+        ["civil-code", "civil-code"],
     ],
 )
 def test_load_stage8_dataset_validates_expected_knowledge_base_slugs(
@@ -131,11 +149,13 @@ def test_load_stage8_dataset_rejects_non_boolean_should_abstain(tmp_path, should
 def test_load_stage8_dataset_rejects_ambiguous_abstention_article_combinations(
     tmp_path, should_abstain, relevant_article_ids
 ):
+    evidence_articles = [] if should_abstain else relevant_article_ids
     dataset = _write_jsonl(
         tmp_path,
         _reviewed_item(
             should_abstain=should_abstain,
             relevant_article_ids=relevant_article_ids,
+            source_evidence=[_evidence(article_ids=evidence_articles)],
         ),
     )
 
@@ -154,7 +174,10 @@ def test_load_stage8_dataset_rejects_ambiguous_abstention_article_combinations(
     ],
 )
 def test_load_stage8_dataset_rejects_invalid_source_url(tmp_path, source_url):
-    dataset = _write_jsonl(tmp_path, _reviewed_item(source_url=source_url))
+    dataset = _write_jsonl(
+        tmp_path,
+        _reviewed_item(source_evidence=[_evidence(source_url=source_url)]),
+    )
 
     with pytest.raises(Stage8DatasetError, match="source_url"):
         load_stage8_dataset(dataset, require_approved=True)
@@ -172,7 +195,10 @@ def test_load_stage8_dataset_rejects_invalid_source_url(tmp_path, source_url):
 def test_load_stage8_dataset_rejects_control_whitespace_and_backslash_source_urls(
     tmp_path, source_url
 ):
-    dataset = _write_jsonl(tmp_path, _reviewed_item(source_url=source_url))
+    dataset = _write_jsonl(
+        tmp_path,
+        _reviewed_item(source_evidence=[_evidence(source_url=source_url)]),
+    )
 
     with pytest.raises(Stage8DatasetError, match="source_url"):
         load_stage8_dataset(dataset, require_approved=True)
@@ -256,3 +282,106 @@ def test_load_stage8_dataset_ignores_blank_lines(tmp_path):
     )
 
     assert load_stage8_dataset(dataset, require_approved=True) == [item]
+
+
+def test_load_stage8_dataset_accepts_cross_law_exact_partition(tmp_path):
+    company_article = "中华人民共和国公司法第23条"
+    item = _reviewed_item(
+        expected_knowledge_base_slugs=["civil-code", "company-law"],
+        relevant_article_ids=["中华人民共和国民法典第17条", company_article],
+        source_evidence=[
+            _evidence(),
+            _evidence(
+                knowledge_base_slug="company-law",
+                version_id="company-law@2023-12-29",
+                effective_from="2024-07-01",
+                content_hash="b" * 64,
+                article_ids=[company_article],
+                source_locator=company_article,
+            ),
+        ],
+    )
+
+    assert load_stage8_dataset(_write_jsonl(tmp_path, item), require_approved=True) == [item]
+
+
+def test_load_stage8_dataset_rejects_legacy_singular_source_metadata(tmp_path):
+    item = _reviewed_item(source_url="https://flk.npc.gov.cn/", source_version="legacy")
+
+    with pytest.raises(Stage8DatasetError, match="未知字段"):
+        load_stage8_dataset(_write_jsonl(tmp_path, item), require_approved=True)
+
+
+def test_load_stage8_dataset_rejects_pending_marker_in_review_note(tmp_path):
+    dataset = _write_jsonl(tmp_path, _reviewed_item(review_note="待人工核验"))
+
+    with pytest.raises(Stage8DatasetError, match="待人工核验"):
+        load_stage8_dataset(dataset, require_approved=True)
+
+
+def test_load_stage8_dataset_rejects_pending_marker_nested_in_evidence_article_ids(tmp_path):
+    marker = "待人工核验"
+    dataset = _write_jsonl(
+        tmp_path,
+        _reviewed_item(
+            relevant_article_ids=[marker],
+            source_evidence=[_evidence(article_ids=[marker])],
+        ),
+    )
+
+    with pytest.raises(Stage8DatasetError, match="待人工核验"):
+        load_stage8_dataset(dataset, require_approved=True)
+
+
+@pytest.mark.parametrize(
+    "override,error",
+    [
+        ({"content_hash": "A" * 64}, "content_hash"),
+        ({"content_hash": "a" * 63}, "content_hash"),
+        ({"effective_from": "2021-1-01"}, "effective_from"),
+        ({"effective_to": "not-a-date"}, "effective_to"),
+        ({"effective_from": "2024-01-02", "effective_to": "2024-01-01"}, "effective_to"),
+    ],
+)
+def test_load_stage8_dataset_validates_evidence_hash_and_dates(tmp_path, override, error):
+    dataset = _write_jsonl(
+        tmp_path,
+        _reviewed_item(source_evidence=[_evidence(**override)]),
+    )
+
+    with pytest.raises(Stage8DatasetError, match=error):
+        load_stage8_dataset(dataset, require_approved=True)
+
+
+@pytest.mark.parametrize(
+    "source_evidence,error",
+    [
+        ([], "source_evidence"),
+        ([_evidence(knowledge_base_slug="company-law")], "slug"),
+        ([_evidence(), _evidence()], "slug"),
+        ([_evidence(article_ids=[])], "partition"),
+        ([_evidence(article_ids=["中华人民共和国民法典第17条"] * 2)], "重复"),
+        ([_evidence(extra="ambiguous")], "未知字段"),
+    ],
+)
+def test_load_stage8_dataset_rejects_invalid_evidence_set_or_partition(
+    tmp_path, source_evidence, error
+):
+    dataset = _write_jsonl(tmp_path, _reviewed_item(source_evidence=source_evidence))
+
+    with pytest.raises(Stage8DatasetError, match=error):
+        load_stage8_dataset(dataset, require_approved=True)
+
+
+def test_load_stage8_dataset_rejects_duplicate_top_level_article_ids(tmp_path):
+    article = "中华人民共和国民法典第17条"
+    dataset = _write_jsonl(
+        tmp_path,
+        _reviewed_item(
+            relevant_article_ids=[article, article],
+            source_evidence=[_evidence(article_ids=[article, article])],
+        ),
+    )
+
+    with pytest.raises(Stage8DatasetError, match="重复"):
+        load_stage8_dataset(dataset, require_approved=True)
