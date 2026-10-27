@@ -12,6 +12,7 @@ from scripts import build_stage8_reviewed_baseline as baseline_cli
 from src.evaluation.stage8_reviewed_baseline import (
     Stage8ReviewedBaselineError,
     build_reviewed_baseline,
+    canonical_content_sha256,
 )
 
 
@@ -56,11 +57,12 @@ def test_committed_artifacts_match_the_actual_reviewed_build() -> None:
     assert len(rows) == 280
     assert not any(row["queue_id"].startswith("hard-version-") for row in rows)
     assert scope["target_count"] == 280 and scope["retired_count"] == 20
-    assert scope["sha256"]["baseline_jsonl"] == hashlib.sha256(baseline_path.read_bytes()).hexdigest()
+    assert scope["sha256"]["baseline_jsonl"] == canonical_content_sha256(baseline_path)
     assert scope["sources"]["first_reviewed"].startswith("data/evaluation/stage8/snapshots/")
     assert set(scope["sha256"]) == {
         "baseline_jsonl", "first_reviewed", "first_pending", "second_reviewed", "second_pending", "remediation_manifest"
     }
+    assert scope["sha256_method"] == "SHA-256 of UTF-8 text content after CRLF/CR-to-LF normalization"
 
 
 def test_loader_rejects_duplicate_keys_and_unsupported_queue_fields(tmp_path: Path) -> None:
@@ -72,6 +74,13 @@ def test_loader_rejects_duplicate_keys_and_unsupported_queue_fields(tmp_path: Pa
     manifest.write_text('{"lineage": []}', encoding="utf-8")
     with pytest.raises(Stage8ReviewedBaselineError, match="重复 JSON 键"):
         build_reviewed_baseline(first, second, manifest, first, second)
+
+
+def test_canonical_content_sha256_treats_lf_and_crlf_as_same_utf8_content(tmp_path: Path) -> None:
+    lf = tmp_path / "lf.jsonl"; crlf = tmp_path / "crlf.jsonl"
+    lf.write_bytes("{\"queue_id\":\"例\"}\nnext\n".encode("utf-8"))
+    crlf.write_bytes("{\"queue_id\":\"例\"}\r\nnext\r\n".encode("utf-8"))
+    assert canonical_content_sha256(lf) == canonical_content_sha256(crlf)
 
 
 def test_builder_rejects_queue_id_collision_across_review_rounds(tmp_path: Path) -> None:

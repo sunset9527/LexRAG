@@ -58,8 +58,17 @@ def _load_jsonl(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def _canonical_text_sha256(text: str) -> str:
+    """Hash UTF-8 text after canonicalizing all line endings to LF."""
+    return hashlib.sha256(text.replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")).hexdigest()
+
+
+def canonical_content_sha256(path: Path) -> str:
+    """Return a Git-line-ending-independent SHA-256 for a UTF-8 text file."""
+    try:
+        return _canonical_text_sha256(Path(path).read_bytes().decode("utf-8"))
+    except (OSError, UnicodeDecodeError) as exc:
+        raise Stage8ReviewedBaselineError(f"无法读取 UTF-8 文本以计算规范内容哈希: {path}") from exc
 
 
 def _validate_approved(row: dict[str, Any]) -> None:
@@ -150,7 +159,8 @@ def build_reviewed_baseline(
         "limitations": "This is a non-formal reviewed candidate baseline, not a stage8_dataset; it makes no present-law validity claim and supplies no source_url defaults.",
         "retired_source_ids": [{"source_queue_id": source_id, "status": "retired_by_scope_decision", "reason": "当前语料库/版本适用规则不足；本次评估范围内永久排除。"} for source_id in retired_ids],
         "sources": {"first_reviewed": relative(first_reviewed_path), "second_reviewed": relative(second_reviewed_path), "remediation_manifest": relative(manifest_path), "first_pending_backup": relative(first_pending_path), "second_pending_backup": relative(second_pending_path)},
-        "sha256": {"baseline_jsonl": hashlib.sha256(records.encode("utf-8")).hexdigest(), "first_reviewed": _sha256(first_reviewed_path), "first_pending": _sha256(first_pending_path), "second_reviewed": _sha256(second_reviewed_path), "second_pending": _sha256(second_pending_path), "remediation_manifest": _sha256(manifest_path)},
+        "sha256_method": "SHA-256 of UTF-8 text content after CRLF/CR-to-LF normalization",
+        "sha256": {"baseline_jsonl": _canonical_text_sha256(records), "first_reviewed": canonical_content_sha256(first_reviewed_path), "first_pending": canonical_content_sha256(first_pending_path), "second_reviewed": canonical_content_sha256(second_reviewed_path), "second_pending": canonical_content_sha256(second_pending_path), "remediation_manifest": canonical_content_sha256(manifest_path)},
         "human_evidence_supported_corrections": {"count": len(corrections), "records": corrections},
     }
     return baseline, scope
