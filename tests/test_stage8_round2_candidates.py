@@ -8,9 +8,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 STAGE8 = ROOT / "data" / "evaluation" / "stage8"
-CANDIDATES = STAGE8 / "round2_candidates_171.jsonl"
+# Pending remediation assertions use the committed pre-review audit snapshot.
+CANDIDATES = STAGE8 / "snapshots" / "round2_candidates_171.pending.jsonl"
 MANIFEST = STAGE8 / "round2_remediation_manifest.json"
-REVIEWED = STAGE8 / "review_queue_300_reviewed.jsonl"
+# The reviewed first-round queue is a committed audit snapshot, so this test
+# remains runnable from a clean checkout without private/untracked review data.
+REVIEWED = STAGE8 / "snapshots" / "review_queue_300.reviewed.jsonl"
 FIELDS = [
     "queue_id", "origin", "question", "proposed_question_type",
     "proposed_difficulty", "proposed_knowledge_base_slugs",
