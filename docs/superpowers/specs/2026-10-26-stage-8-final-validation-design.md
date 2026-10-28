@@ -10,9 +10,17 @@ The implementation is organised as a release train: first close the explicit Sta
 
 ## Data and evaluation contract
 
-The existing 100-row eight-law file is provisional because 85 rows claim `approved` status while their source records still say pending review. Stage 8 will preserve the historical files, restore those rows to an auditable review workflow, and publish a new frozen 300-row statute retrieval dataset. Each row records question, type, difficulty, expected knowledge bases, relevant articles, abstention expectation, source URL/version/location, reviewer, date, and review note. Development samples may inform fixes; frozen test labels cannot be altered to fit system output.
+The existing 100-row eight-law file is provisional because 85 rows claim `approved` status while their source records still say pending review. Stage 8 preserves the historical files, restores those rows to an auditable review workflow, and publishes a 280-row formal statute retrieval dataset. Twenty version-sensitive candidates are retired rather than guessed against incomplete version rules; they are not part of the 280-row denominator. Each formal row records question, type, difficulty, expected knowledge bases, relevant articles, abstention expectation, per-knowledge-base source URL/version/hash/location, reviewer, date, and review note. The formal set contains 260 answerable rows and 20 fact-insufficient/abstention rows. Development samples may inform fixes; frozen test labels cannot be altered to fit system output.
 
 Every evaluator emits the same per-item schema with retrieval contexts, response, citations, workflow trace, token usage, latency, run identity, and explicit execution errors. A run manifest binds those results to Git SHA, legal-source hashes, embedding and chunking versions, collection identifiers, model configuration, and dependency versions.
+
+### Formal retrieval and routing runner
+
+The legacy eight-law runner remains an engineering-regression tool and is not rewritten. A separate Stage 8 runner consumes only `stage8_frozen_280.jsonl` through the strict formal loader. It evaluates the 260 answerable rows with composite evidence identities `(knowledge_base_slug, article_id)`, so a same-numbered article from another law cannot count as a hit. For each row it records top-K ranked evidence per selected law, exact expected labels, first relevant rank, execution error (if any), and whether the result is included in the metric denominator.
+
+Oracle retrieval and automatic routing are reported separately. Oracle retrieval sends each expected law to its verified collection and reports Recall@1/3/5, MRR@5 and NDCG@5 overall and by law, type and difficulty; a cross-law row receives one top-K list per expected law and is scored against the complete composite-label set. Automatic routing invokes the existing `KnowledgeBaseRouter` with the released catalogue and reports single-law Top-1 accuracy, candidate recall, and cross-law candidate recall. It must not pretend that an oracle-retrieval result measures routing quality.
+
+The 20 abstention rows are retained in every run record but excluded from positive-label ranking and route-accuracy denominators because retrieval alone has no authoritative abstention decision. Their abstention accuracy is measured later from full-workflow outputs in the human-answer evaluation, not fabricated from an empty retrieval list. Reports expose these denominator decisions, skipped rows, and execution errors explicitly.
 
 ## Verification design
 
