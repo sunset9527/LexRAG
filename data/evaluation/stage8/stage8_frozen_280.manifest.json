@@ -1,0 +1,66 @@
+{
+  "schema": "lexrag.stage8-frozen-dataset-manifest",
+  "version": 1,
+  "generated_at": "2026-10-27T14:41:47+00:00",
+  "dataset": {
+    "row_count": 280,
+    "sha256": "de1ea5f227ef005dbf964555d837b54db549610a5c92b979c579882a5fef7a33"
+  },
+  "inputs": {
+    "reviewed_baseline_sha256": "13a0af5ff0a977f40276222b6f45df4fdf2e0b6e2a1a56b31258cb41430f4399",
+    "stage4_snapshot_sha256": "bce7126dbb249517ed4f32630203103fe4e7c04bdbdec97a1460304ede9d3df5"
+  },
+  "evidence_count": 320,
+  "label_count": 460,
+  "per_slug": {
+    "civil-code": {
+      "version_id": "civil-code@2020-05-28",
+      "content_hash": "853d1a8756b8b4c33ab15ec380de71dc9cb6438680bb8a98bbdcf08258a8c35e",
+      "evidence_count": 144,
+      "label_count": 235
+    },
+    "company-law": {
+      "version_id": "company-law@2023-12-29",
+      "content_hash": "2a469e6461d40c37ff786218cacee98fae70b1cd426d33cd63608fb8db798aba",
+      "evidence_count": 11,
+      "label_count": 10
+    },
+    "copyright-law": {
+      "version_id": "copyright-law@2020-11-11",
+      "content_hash": "2cd05cb08e2881af36f78b85d6587c524897bde0b25a283bbb22562c1332a203",
+      "evidence_count": 12,
+      "label_count": 10
+    },
+    "criminal-law": {
+      "version_id": "criminal-law@2024-03-01",
+      "content_hash": "b2b02ff24310ca477befd14333e315ebdf00eea68ff5f07d274ad91c2831b8ab",
+      "evidence_count": 31,
+      "label_count": 30
+    },
+    "labor-contract-law": {
+      "version_id": "labor-contract-law@2012-12-28",
+      "content_hash": "d32229a55ab961635ae01e7becf6f11cd22d98a61dfb35c2796ee2d8edaf37b9",
+      "evidence_count": 53,
+      "label_count": 102
+    },
+    "labor-law": {
+      "version_id": "labor-law@2018-12-29",
+      "content_hash": "5c94703bd8481fbe00f58eba49ac0c7d8d36e1c7133bc73eb6ba3231cc8c52c4",
+      "evidence_count": 52,
+      "label_count": 58
+    },
+    "patent-law": {
+      "version_id": "patent-law@2020-10-17",
+      "content_hash": "73ad59ae3213de95594319ee1d9fe8a79ceef4248273b9881a0d96a8960dca28",
+      "evidence_count": 6,
+      "label_count": 5
+    },
+    "trademark-law": {
+      "version_id": "trademark-law@2019-04-23",
+      "content_hash": "cba3cd94ade450129323857a36c83538dcf9fc974c785d23c9e6168f0ace339b",
+      "evidence_count": 11,
+      "label_count": 10
+    }
+  },
+  "provenance_statement": "Derived from the human-reviewed baseline and Stage4 verified sources; this manifest freezes legal-label provenance only."
+}

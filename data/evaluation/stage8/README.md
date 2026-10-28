@@ -5,3 +5,11 @@
 正式行使用 `source_evidence` 列表：每个预期知识库 slug 恰有一条来源证据，跨法问题因此保留多个真实版本、URL、内容哈希、法条分区和定位。只有 280 行全部为 `approved` 且通过 `src.evaluation.stage8_dataset` 校验后，输出才是正式冻结数据。
 
 冻结数据证明的是法律标签及其来源版本可追溯，不等于检索准确率、回答正确率或现行法效果结论。任何性能指标仍须在冻结数据上独立运行、记录并复现；不得编造或为提高指标而修改标签。
+
+## 2026-10-27 正式冻结产物
+
+- `stage4_provenance_2026-10-27.json`：8 部法律在 `as_of=2026-10-27` 的已核验版本、collection 身份及法条目录快照。
+- `stage8_frozen_280.jsonl`：280 条全部通过正式 Schema 的 approved 样本，含 320 条来源证据和 460 个法条标签；40 条跨法样本各保留两条来源证据，20 条为弃答样本。
+- `stage8_frozen_280.manifest.json`：绑定 baseline、Stage 4 快照和正式 JSONL 的原始字节 SHA-256；正式数据集 SHA-256 为 `de1ea5f227ef005dbf964555d837b54db549610a5c92b979c579882a5fef7a33`。
+
+这些事实由 `tests/test_stage8_frozen_artifacts.py` 持续校验。它们仍只代表冻结标签来源完整性，不构成任何检索或回答效果声明。

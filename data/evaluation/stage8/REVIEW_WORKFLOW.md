@@ -20,3 +20,9 @@ Only separately materialized approved rows that pass the formal validator may
 become the frozen Stage 8 dataset. This freezes legal-label provenance only.
 Candidate/baseline rows and provenance freezing must not be presented as
 retrieval or answer-quality metrics.
+
+The 2026-10-27 freeze completed this process as
+`stage8_frozen_280.jsonl`, bound to `stage4_provenance_2026-10-27.json`
+by `stage8_frozen_280.manifest.json`. Committed artifact-integrity tests enforce
+the row/evidence/label distributions, eight live version identities, and all
+three byte-level input/output hashes.
