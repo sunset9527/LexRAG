@@ -9,6 +9,27 @@ import pytest
 from src.evaluation.run_manifest import build_run_manifest, write_run_manifest
 
 
+def test_optional_dependency_versions_are_copied_without_changing_old_callers():
+    versions = {"python": "3.13.7", "chromadb": "unavailable"}
+    arguments = dict(
+        run_name="versioned-run",
+        dataset_paths=[],
+        legal_source_manifest_paths=[],
+        collection_names=[],
+        embedding_version="embedding-v1",
+        chunker_version="chunker-v1",
+        runtime_identity={"provider": "local"},
+        commit_provider=lambda: "abc123",
+        clock_provider=lambda: "2026-10-26T08:30:00Z",
+    )
+    old = build_run_manifest(**arguments)
+    assert "dependency_versions" not in old
+    manifest = build_run_manifest(**arguments, dependency_versions=versions)
+    assert manifest["dependency_versions"] == versions
+    versions["python"] = "changed"
+    assert manifest["dependency_versions"]["python"] == "3.13.7"
+
+
 def test_write_run_manifest_captures_declared_artifacts_and_injected_identity(tmp_path):
     dataset = tmp_path / "evaluation.jsonl"
     dataset.write_text('{"id": "case-001"}\n', encoding="utf-8")

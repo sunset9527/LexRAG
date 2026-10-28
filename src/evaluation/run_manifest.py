@@ -28,6 +28,7 @@ def build_run_manifest(
     embedding_version: str,
     chunker_version: str,
     runtime_identity: Mapping[str, str],
+    dependency_versions: Mapping[str, str] | None = None,
     commit_provider: Callable[[], str] | None = None,
     clock_provider: Callable[[], datetime | str] | None = None,
 ) -> dict[str, Any]:
@@ -36,8 +37,11 @@ def build_run_manifest(
     ``runtime_identity`` is deliberately limited to provider, base URL, and model
     identifiers so callers cannot accidentally capture runtime configuration or
     credentials in a formal report.
+
+    Optional ``dependency_versions`` records explicit package/runtime versions;
+    omitting it preserves the historical manifest shape for existing callers.
     """
-    return {
+    manifest = {
         "schema_version": _SCHEMA_VERSION,
         "generated_at": _format_timestamp((clock_provider or _utc_now)()),
         "git_commit": (commit_provider or _current_git_commit)(),
@@ -51,6 +55,9 @@ def build_run_manifest(
         "chunker_version": chunker_version,
         "runtime_identity": _validated_runtime_identity(runtime_identity),
     }
+    if dependency_versions is not None:
+        manifest["dependency_versions"] = dict(dependency_versions)
+    return manifest
 
 
 def write_run_manifest(

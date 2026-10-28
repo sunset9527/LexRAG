@@ -7,11 +7,16 @@ method is called. The legacy engineering-regression runners remain independent.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
+import platform
+import re
 import subprocess
 import sys
 import tempfile
+from datetime import datetime
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
 
@@ -21,7 +26,7 @@ if str(ROOT) not in sys.path:
 
 from src.evaluation.run_manifest import build_run_manifest
 from src.evaluation.stage8_dataset import load_stage8_dataset
-from src.evaluation.stage8_materializer import load_stage4_snapshot
+from src.evaluation.stage8_materializer import load_stage4_snapshot, validate_formal_freeze_counts
 from src.evaluation.stage8_retrieval_evaluation import (
     evaluate_oracle_retrieval,
     evaluate_routing,
@@ -32,6 +37,7 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", type=Path, required=True)
     parser.add_argument("--snapshot", type=Path, required=True)
+    parser.add_argument("--frozen-manifest", type=Path, required=True)
     parser.add_argument("--persist-directory", type=Path, required=True)
     parser.add_argument("--mode", choices=("vector", "bm25", "rrf"), required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -41,12 +47,150 @@ def _parser() -> argparse.ArgumentParser:
 def _validate_paths(args: argparse.Namespace) -> None:
     output = args.output.resolve()
     chroma = args.persist_directory.resolve()
-    if output in {args.dataset.resolve(), args.snapshot.resolve()}:
+    if output in {args.dataset.resolve(), args.snapshot.resolve(), args.frozen_manifest.resolve()}:
         raise ValueError("output overlaps a source artifact")
     if output == chroma or output.is_relative_to(chroma):
         raise ValueError("output overlaps the Chroma input directory")
     if not chroma.is_dir():
         raise ValueError("persist-directory must already exist")
+
+
+def _strict_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate manifest JSON key")
+        result[key] = value
+    return result
+
+
+def _reject_constant(value):
+    raise ValueError("nonfinite manifest JSON constant")
+
+
+def _shape(value, fields):
+    if not isinstance(value, dict) or set(value) != set(fields):
+        raise ValueError("unexpected frozen manifest schema")
+
+
+def _load_frozen_manifest(args: argparse.Namespace) -> dict:
+    manifest = json.loads(
+        args.frozen_manifest.read_bytes().decode("utf-8"),
+        object_pairs_hook=_strict_object,
+        parse_constant=_reject_constant,
+    )
+    _shape(
+        manifest,
+        {
+            "schema",
+            "version",
+            "generated_at",
+            "dataset",
+            "inputs",
+            "evidence_count",
+            "label_count",
+            "per_slug",
+            "provenance_statement",
+        },
+    )
+    if (
+        manifest["schema"] != "lexrag.stage8-frozen-dataset-manifest"
+        or type(manifest["version"]) is not int
+        or manifest["version"] != 1
+    ):
+        raise ValueError("unsupported frozen manifest schema/version")
+    generated_at = datetime.fromisoformat(manifest["generated_at"])
+    if generated_at.tzinfo is None or generated_at.utcoffset() is None:
+        raise ValueError("frozen manifest timestamp must include a timezone")
+    if (
+        not isinstance(manifest["provenance_statement"], str)
+        or not manifest["provenance_statement"].strip()
+    ):
+        raise ValueError("frozen manifest provenance statement is missing")
+    _shape(manifest["dataset"], {"row_count", "sha256"})
+    _shape(manifest["inputs"], {"reviewed_baseline_sha256", "stage4_snapshot_sha256"})
+    for container, key, expected in (
+        (manifest["dataset"], "row_count", 280),
+        (manifest, "evidence_count", 320),
+        (manifest, "label_count", 460),
+    ):
+        if type(container[key]) is not int or container[key] != expected:
+            raise ValueError("frozen manifest has incorrect formal counts")
+    digests = [manifest["dataset"]["sha256"], *manifest["inputs"].values()]
+    if any(
+        not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None
+        for digest in digests
+    ):
+        raise ValueError("frozen manifest hash is invalid")
+    for path, expected in (
+        (args.dataset, manifest["dataset"]["sha256"]),
+        (args.snapshot, manifest["inputs"]["stage4_snapshot_sha256"]),
+    ):
+        if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+            raise ValueError("formal input bytes differ from frozen manifest")
+    per_slug = manifest["per_slug"]
+    if not isinstance(per_slug, dict) or not per_slug:
+        raise ValueError("frozen manifest per-law identities are missing")
+    for slug, law in per_slug.items():
+        _shape(law, {"version_id", "content_hash", "evidence_count", "label_count"})
+        if (
+            not isinstance(slug, str)
+            or not slug.strip()
+            or not isinstance(law["version_id"], str)
+            or not law["version_id"].strip()
+        ):
+            raise ValueError("frozen manifest law identity is invalid")
+        if (
+            not isinstance(law["content_hash"], str)
+            or re.fullmatch(r"[0-9a-f]{64}", law["content_hash"]) is None
+        ):
+            raise ValueError("frozen manifest law hash is invalid")
+        if any(
+            type(law[key]) is not int or law[key] < 0 for key in ("evidence_count", "label_count")
+        ):
+            raise ValueError("frozen manifest law counts are invalid")
+    return manifest
+
+
+def _validate_frozen_records(records: list[dict], laws: dict[str, dict], frozen: dict) -> None:
+    validate_formal_freeze_counts(records)
+    if sum(row["should_abstain"] for row in records) != 20:
+        raise ValueError("formal run requires 260 answerable and 20 abstention rows")
+    actual = {
+        slug: {
+            "version_id": law["version_id"],
+            "content_hash": law["content_hash"],
+            "evidence_count": 0,
+            "label_count": 0,
+        }
+        for slug, law in laws.items()
+    }
+    for row in records:
+        for source in row["source_evidence"]:
+            law = actual[source["knowledge_base_slug"]]
+            law["evidence_count"] += 1
+            law["label_count"] += len(source["article_ids"])
+    if actual != frozen["per_slug"]:
+        raise ValueError("formal records disagree with frozen per-law manifest")
+
+
+def _dependency_versions() -> dict[str, str]:
+    versions = {"python": platform.python_version()}
+    for package in (
+        "chromadb",
+        "langchain-community",
+        "langchain-core",
+        "rank-bm25",
+        "jieba",
+        "sentence-transformers",
+        "torch",
+        "numpy",
+    ):
+        try:
+            versions[package] = version(package)
+        except PackageNotFoundError:
+            versions[package] = "unavailable"
+    return versions
 
 
 def _bind_snapshot(records: list[dict], snapshot: dict) -> dict[str, dict]:
@@ -258,13 +402,15 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
         _validate_paths(args)
+        frozen = _load_frozen_manifest(args)
         records = load_stage8_dataset(args.dataset, require_approved=True)
         snapshot, _ = load_stage4_snapshot(args.snapshot)
         laws = _bind_snapshot(records, snapshot)
+        _validate_frozen_records(records, laws, frozen)
         manifest = build_run_manifest(
             run_name=f"stage8-formal-retrieval-routing-{args.mode}",
             dataset_paths=[args.dataset],
-            legal_source_manifest_paths=[args.snapshot],
+            legal_source_manifest_paths=[args.snapshot, args.frozen_manifest],
             collection_names=[law["collection_name"] for law in laws.values()],
             embedding_version=json.dumps(
                 {slug: law["embedding_fingerprint"] for slug, law in laws.items()}, sort_keys=True
@@ -277,6 +423,7 @@ def main(argv: list[str] | None = None) -> int:
             ),
             runtime_identity={"provider": "local", "model": "no-model"},
             commit_provider=_runner_commit,
+            dependency_versions=_dependency_versions(),
         )
         retrievers = _build_retrievers(laws, args.persist_directory)
         report = {
@@ -285,6 +432,7 @@ def main(argv: list[str] | None = None) -> int:
             "mode": args.mode,
             "scope": "Stage 8 formal oracle retrieval and automatic routing only; does not measure answer quality or abstention accuracy.",
             "dataset": manifest["datasets"][0],
+            "frozen_manifest": manifest["legal_source_manifests"][1],
             "snapshot": {
                 **manifest["legal_source_manifests"][0],
                 "as_of": snapshot["as_of"],
