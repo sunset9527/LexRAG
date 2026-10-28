@@ -102,6 +102,28 @@ def runtime(cli, inputs, monkeypatch):
         def count(self):
             return self.law["chunk_count"]
 
+        def get(self, *, include):
+            assert include == ["metadatas"]
+            calls.append(("chunk_metadata", self.name))
+            provenance = {
+                field: self.law[field]
+                for field in (
+                    "version_id",
+                    "effective_from",
+                    "effective_to",
+                    "source_url",
+                    "content_hash",
+                )
+            }
+            provenance["effective_to"] = provenance["effective_to"] or ""
+            articles = self.law["article_ids"]
+            return {
+                "metadatas": [
+                    {**provenance, "article_id": articles[index % len(articles)]}
+                    for index in range(self.law["chunk_count"])
+                ]
+            }
+
     class Client:
         def __init__(self, **kwargs):
             calls.append(("client", kwargs))
@@ -325,6 +347,86 @@ def test_changed_collection_metadata_rejected(cli, inputs, runtime, monkeypatch)
 
     monkeypatch.setattr(runtime.Collection, "__init__", changed)
     assert cli.main(args(inputs)) == 1
+    assert not any(call[0] == "indexer" for call in runtime.calls)
+
+
+def legacy_collections(runtime, monkeypatch):
+    original = runtime.Collection.__init__
+
+    def initialize(self, name):
+        original(self, name)
+        self.metadata.pop("lexrag_statute_source_sha256")
+
+    monkeypatch.setattr(runtime.Collection, "__init__", initialize)
+
+
+def test_legacy_collection_is_accepted_only_after_complete_chunk_verification(
+    cli, inputs, runtime, monkeypatch
+):
+    legacy_collections(runtime, monkeypatch)
+    assert cli.main(args(inputs)) == 0
+    assert len([call for call in runtime.calls if call[0] == "chunk_metadata"]) == 8
+    indexer_calls = [call[1] for call in runtime.calls if call[0] == "indexer"]
+    assert len(indexer_calls) == 8
+    assert all(call.get("source_hash") is None for call in indexer_calls)
+    report = json.loads(inputs.output.read_text(encoding="utf-8"))
+    assert report["oracle_retrieval"]["overall"]["scored_count"] == 260
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "version_id",
+        "effective_from",
+        "effective_to",
+        "source_url",
+        "content_hash",
+        "missing_field",
+        "missing_metadatas",
+        "malformed_metadatas",
+        "malformed_chunk",
+        "blank_article",
+        "catalog_mismatch",
+        "chunk_count",
+    ],
+)
+def test_legacy_collection_rejects_incomplete_or_mismatched_chunks(
+    cli, inputs, runtime, monkeypatch, mutation
+):
+    legacy_collections(runtime, monkeypatch)
+    original = runtime.Collection.get
+
+    def corrupted(self, **kwargs):
+        result = original(self, **kwargs)
+        chunks = result["metadatas"]
+        if mutation in {
+            "version_id",
+            "effective_from",
+            "effective_to",
+            "source_url",
+            "content_hash",
+        }:
+            chunks[-1][mutation] = "mismatch"
+        elif mutation == "missing_field":
+            del chunks[-1]["effective_to"]
+        elif mutation == "missing_metadatas":
+            result = {}
+        elif mutation == "malformed_metadatas":
+            result["metadatas"] = None
+        elif mutation == "malformed_chunk":
+            chunks[-1] = None
+        elif mutation == "blank_article":
+            chunks[-1]["article_id"] = " "
+        elif mutation == "catalog_mismatch":
+            chunks[0]["article_id"] = "unknown article"
+        elif mutation == "chunk_count":
+            chunks.pop()
+        return result
+
+    monkeypatch.setattr(runtime.Collection, "get", corrupted)
+    inputs.output.write_bytes(b"existing")
+    assert cli.main(args(inputs)) == 1
+    assert inputs.output.read_bytes() == b"existing"
     assert not any(call[0] == "indexer" for call in runtime.calls)
 
 

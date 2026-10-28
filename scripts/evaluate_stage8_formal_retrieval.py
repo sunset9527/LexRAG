@@ -15,6 +15,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from collections.abc import Mapping
 from datetime import datetime
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
@@ -263,9 +264,37 @@ class _QueryFailureGuard:
         return observed
 
 
+def _verify_legacy_chunks(collection: Any, law: dict) -> None:
+    """Apply Stage 4's document-level proof when a collection has no source marker."""
+    result = collection.get(include=["metadatas"])
+    chunks = result.get("metadatas") if isinstance(result, Mapping) else None
+    if not isinstance(chunks, list) or len(chunks) != law["chunk_count"]:
+        raise ValueError("legacy collection chunk metadata count differs from snapshot")
+    provenance = {
+        field: law[field]
+        for field in ("version_id", "effective_from", "effective_to", "source_url", "content_hash")
+    }
+    # Stage 4 stores an open-ended effective_to as an empty Chroma scalar,
+    # while its JSON snapshot represents the same boundary as null.
+    provenance["effective_to"] = law["effective_to"] or ""
+    articles = set()
+    for chunk in chunks:
+        if not isinstance(chunk, Mapping):
+            raise ValueError("legacy collection contains malformed chunk metadata")
+        article = chunk.get("article_id")
+        if not isinstance(article, str) or not article.strip():
+            raise ValueError("legacy collection contains a blank article identity")
+        if any(chunk.get(field) != value for field, value in provenance.items()):
+            raise ValueError("legacy collection chunk provenance differs from snapshot")
+        articles.add(article)
+    if articles != set(law["article_ids"]):
+        raise ValueError("legacy collection article catalog differs from snapshot")
+
+
 def _build_retrievers(laws: dict[str, dict], directory: Path) -> dict[str, Any]:
     client_type, indexer_type, retriever_type, identity = _runtime_components()
     client = client_type(path=str(directory))
+    source_hashes = {}
     # Check every existing collection before LawIndexer can get-or-create any.
     for law in laws.values():
         if (
@@ -276,7 +305,6 @@ def _build_retrievers(laws: dict[str, dict], directory: Path) -> dict[str, Any]:
         collection = client.get_collection(name=law["collection_name"])
         metadata = collection.metadata or {}
         expected = {
-            "lexrag_statute_source_sha256": law["content_hash"],
             "lexrag_embedding_fingerprint": law["embedding_fingerprint"],
             "lexrag_index_schema_version": law["index_schema_version"],
         }
@@ -286,12 +314,20 @@ def _build_retrievers(laws: dict[str, dict], directory: Path) -> dict[str, Any]:
             raise ValueError("live collection provenance differs from snapshot")
         if collection.count() != law["chunk_count"]:
             raise ValueError("live collection chunk count differs from snapshot")
+        source_hash = metadata.get("lexrag_statute_source_sha256")
+        if source_hash is None:
+            _verify_legacy_chunks(collection, law)
+        elif source_hash != law["content_hash"]:
+            raise ValueError("live collection source hash differs from snapshot")
+        source_hashes[law["knowledge_base_slug"]] = source_hash
     retrievers = {}
     for slug, law in laws.items():
         indexer = indexer_type(
             persist_directory=str(directory),
             collection_name=law["collection_name"],
-            source_hash=law["content_hash"],
+            # LawIndexer must not demand or add a collection source marker for
+            # legacy collections just proven through every chunk's provenance.
+            source_hash=source_hashes[slug],
         )
         retriever = retriever_type(indexer.vectorstore)
         if hasattr(retriever, "vectorstore"):
