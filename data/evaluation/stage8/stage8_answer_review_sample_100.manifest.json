@@ -1,0 +1,32 @@
+{
+  "schema": "lexrag.stage8-answer-review-sample",
+  "version": 1,
+  "dataset": {
+    "path": "stage8_frozen_280.jsonl",
+    "sha256": "de1ea5f227ef005dbf964555d837b54db549610a5c92b979c579882a5fef7a33",
+    "row_count": 280
+  },
+  "sample": {
+    "path": "stage8_answer_review_sample_100.jsonl",
+    "sha256": "822c07f2d65b24f1e28bc35a4a885f638f772b90dbf8f908adc59d5c7afb3322",
+    "row_count": 100
+  },
+  "seed": "stage8-answer-review-v1",
+  "selection": {
+    "abstention_rows_included": 20,
+    "answerable_question_type_counts": {
+      "baseline_direct_lookup": 31,
+      "adjacent_or_confusable": 12,
+      "cross_law": 12,
+      "multi_hop": 10,
+      "oral_without_law_name": 15
+    }
+  },
+  "review_fields": [
+    "review_state",
+    "reviewer",
+    "reviewed_at",
+    "review_note",
+    "human_review"
+  ]
+}
