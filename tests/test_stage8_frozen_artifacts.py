@@ -21,7 +21,7 @@ MANIFEST = STAGE8 / "stage8_frozen_280.manifest.json"
 
 EXPECTED_DATASET_SHA256 = "de1ea5f227ef005dbf964555d837b54db549610a5c92b979c579882a5fef7a33"
 EXPECTED_SNAPSHOT_SHA256 = "bce7126dbb249517ed4f32630203103fe4e7c04bdbdec97a1460304ede9d3df5"
-EXPECTED_BASELINE_SHA256 = "13a0af5ff0a977f40276222b6f45df4fdf2e0b6e2a1a56b31258cb41430f4399"
+EXPECTED_BASELINE_SHA256 = "01c5a93b9bdf74f2bd49941a3a078159ada817900ecd22cdf29230834591eb00"
 EXPECTED_EMBEDDING_FINGERPRINT = (
     "a818074ac6bd73d5e29d061cf23ac1d08ab32f23eac49b627fd4e71818a9627c"
 )
@@ -79,6 +79,11 @@ EXPECTED_LAWS = {
 
 def _sha256(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
+
+
+def test_frozen_hash_inputs_and_outputs_use_platform_stable_lf_bytes():
+    for path in (BASELINE, SNAPSHOT, DATASET, MANIFEST):
+        assert b"\r\n" not in path.read_bytes(), f"{path.name} must use LF line endings"
 
 
 def test_committed_formal_dataset_has_the_reviewed_280_row_contract():

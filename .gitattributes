@@ -1,1 +1,5 @@
 *.pdf binary
+data/evaluation/stage8/stage8_reviewed_baseline_280.jsonl text eol=lf
+data/evaluation/stage8/stage4_provenance_2026-10-27.json text eol=lf
+data/evaluation/stage8/stage8_frozen_280.jsonl text eol=lf
+data/evaluation/stage8/stage8_frozen_280.manifest.json text eol=lf
