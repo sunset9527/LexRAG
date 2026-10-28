@@ -80,3 +80,35 @@ def test_retrieve_returns_empty_result_when_vector_store_fails():
     retriever.vectorstore = FailingVectorStore()
 
     assert retriever.retrieve("年龄规定") == []
+
+
+def test_optimized_retrieval_preserves_stored_article_id_for_inserted_article():
+    """RRF 不能把“第17条之一”重新拼成不存在的“第17-1条”。"""
+
+    special = "中华人民共和国刑法第17条之一"
+    metadata = {
+        "chunk_id": "criminal-17-1",
+        "article_id": special,
+        "article_number": "17-1",
+        "chapter": "第一章",
+    }
+
+    class FakeBM25:
+        def retrieve(self, *_args, **_kwargs):
+            return [SimpleNamespace(doc_id="criminal-17-1", content="条文", metadata=metadata)]
+
+    class FakeVectorStore:
+        def similarity_search(self, *_args, **_kwargs):
+            return [SimpleNamespace(page_content="条文", metadata=metadata)]
+
+    retriever = LawRetriever.__new__(LawRetriever)
+    retriever.vectorstore = FakeVectorStore()
+    retriever._bm25 = FakeBM25()
+    retriever.enable_optimization = True
+    retriever._chapter_map = None
+    retriever._article_lookup = None
+    retriever._references_map = None
+
+    results, _, _ = retriever.retrieve_optimized("刑事责任年龄", law_name="中华人民共和国刑法")
+
+    assert [item.article_id for item in results] == [special]

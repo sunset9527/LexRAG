@@ -347,6 +347,7 @@ class LawRetriever:
             if key not in info:
                 md = r.metadata or {}
                 info[key] = {
+                    "article_id": str(md.get("article_id", "")),
                     "article": str(md.get("article_number", "?")),
                     "chapter": str(md.get("chapter", "")),
                     "content": r.content or "",
@@ -358,6 +359,7 @@ class LawRetriever:
             score_map[key] = score_map.get(key, 0) + wv / (60 + rank)
             if key not in info:
                 info[key] = {
+                    "article_id": str(md.get("article_id", "")),
                     "article": str(md.get("article_number", "?")),
                     "chapter": str(md.get("chapter", "")),
                     "content": d.page_content or "",
@@ -383,7 +385,11 @@ class LawRetriever:
             results.append(
                 RetrievalResult(
                     chunk_id=key,
-                    article_id=f"{law_name or '中华人民共和国民法典'}第{art}条",
+                    # The stored article identity is authoritative.  Rebuilding
+                    # it from article_number corrupts inserted articles such as
+                    # “第17条之一” (stored number: ``17-1``).
+                    article_id=val["article_id"]
+                    or f"{law_name or '中华人民共和国民法典'}第{art}条",
                     article_number=art,
                     law_name=law_name or "",
                     content=val["content"],
