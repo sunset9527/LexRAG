@@ -1,0 +1,26 @@
+{
+  "counts": {
+    "completed": 100,
+    "total": 100
+  },
+  "result": {
+    "path": "stage8_answer_review_merged_100.jsonl",
+    "sha256": "881ab4f9f56170d4d46589fbf458063ebc65296f49302ea17e9387bd834c9511"
+  },
+  "schema": "lexrag.stage8-answer-review-merged",
+  "source": {
+    "initial_run": {
+      "path": "stage8_answer_review_run_20261029T072846Z.jsonl",
+      "sha256": "560f4772c13aceab642586c3e1f3a74b7d7643c59c0a41fff3b0bd4a71b87e71"
+    },
+    "resume_run": {
+      "path": "stage8_answer_review_run_20261029T090802Z.jsonl",
+      "sha256": "9bacdb3f7b3a2d7d00981f5bad38a26d9997d2d922049e1cd72174d16d26e29e"
+    },
+    "sample": {
+      "path": "stage8_answer_review_sample_100.jsonl",
+      "sha256": "822c07f2d65b24f1e28bc35a4a885f638f772b90dbf8f908adc59d5c7afb3322"
+    }
+  },
+  "version": 1
+}

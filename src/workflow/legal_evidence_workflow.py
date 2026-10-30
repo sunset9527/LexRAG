@@ -30,7 +30,6 @@ WORKFLOW_NODE_NAMES = frozenset(
         "routing",
         "statute_retrieval",
         "case_retrieval",
-        "graph_retrieval",
         "evidence_ledger",
         "answer",
         "citation_verifier",
@@ -47,7 +46,6 @@ class RouteDecision:
 
     intent: str = "factual"
     include_case: bool = False
-    include_graph: bool = False
 
 
 @dataclass
@@ -71,7 +69,6 @@ class WorkflowRuntimeContext:
     planner: Callable[[str], Any] | None = None
     router: Callable[[str], RouteDecision | dict[str, Any] | str] | None = None
     case_retriever: Any | None = None
-    graph_retriever: Any | None = None
     citation_verifier: CitationVerifier | None = None
     user_id: str | int | None = None
     organization_id: str | int | None = None
@@ -91,7 +88,6 @@ class LegalWorkflowState(TypedDict, total=False):
     route_decision: RouteDecision
     statute_evidence: list[EvidenceItem]
     case_evidence: list[EvidenceItem]
-    graph_evidence: list[EvidenceItem]
     evidence: list[EvidenceItem]
     answer: str
     citations: list[VerifiedCitation]
@@ -103,7 +99,6 @@ class LegalWorkflowState(TypedDict, total=False):
     trace: list[dict[str, Any]]
     cacheable: bool
     case_retriever_available: bool
-    graph_retriever_available: bool
     case_retrieval_completed: bool
 
 
@@ -252,26 +247,6 @@ def _to_case_evidence(result: Any) -> EvidenceItem | None:
         content=content,
         score=float(getattr(result, "relevance_score", 0.0) or 0.0),
         retrieval_path="case",
-    )
-
-
-def _to_graph_evidence(result: Any, knowledge_base_slug: str) -> EvidenceItem | None:
-    if isinstance(result, EvidenceItem):
-        return result
-    if not isinstance(result, dict):
-        return None
-    article_id = str(result.get("article_id", ""))
-    if not article_id:
-        return None
-    return EvidenceItem(
-        source_id=article_id,
-        source_type="graph",
-        knowledge_base_slug=knowledge_base_slug,
-        law_name=str(result.get("law_name", "")),
-        article_id=article_id,
-        content=str(result.get("content", "")),
-        score=1.0,
-        retrieval_path="graph",
     )
 
 
@@ -464,57 +439,12 @@ def _case_retrieval_node(
         }
 
 
-def _graph_retrieval_node(
-    state: LegalWorkflowState, runtime: Runtime[WorkflowRuntimeContext]
-) -> dict[str, Any]:
-    started = perf_counter()
-    statute_evidence = state.get("statute_evidence", [])
-    try:
-        if not statute_evidence:
-            return {
-                "graph_evidence": [],
-                "trace": _append_trace(state, "graph_retrieval", "skipped", started),
-            }
-        seed = statute_evidence[0]
-        graph = runtime.context.graph_retriever.retrieve(seed.normalized_article_id, max_hops=1)
-        results = getattr(graph, "retrieved_articles", []) if graph else []
-        evidence = [
-            item
-            for result in results
-            if _graph_result_law_name(result) == seed.law_name
-            and (item := _to_graph_evidence(result, seed.knowledge_base_slug)) is not None
-        ]
-        return {
-            "graph_evidence": evidence,
-            "trace": _append_trace(
-                state, "graph_retrieval", "completed", started, output_count=len(evidence)
-            ),
-        }
-    except Exception as exc:
-        reasons, reason = _degrade(state, "graph_retrieval", exc)
-        return {
-            "graph_evidence": [],
-            "degraded": True,
-            "degradation_reasons": reasons,
-            "trace": _append_trace(state, "graph_retrieval", "degraded", started, reason=reason),
-        }
-
-
-def _graph_result_law_name(result: Any) -> str:
-    if isinstance(result, EvidenceItem):
-        return result.law_name
-    if isinstance(result, dict):
-        return str(result.get("law_name", ""))
-    return str(getattr(result, "law_name", ""))
-
-
 def _evidence_ledger_node(state: LegalWorkflowState) -> dict[str, Any]:
     started = perf_counter()
     ledger = EvidenceLedger()
     for item in [
         *state.get("statute_evidence", []),
         *state.get("case_evidence", []),
-        *state.get("graph_evidence", []),
     ]:
         ledger.add(item)
     evidence = ledger.items
@@ -632,23 +562,10 @@ def _after_statute_retrieval(state: LegalWorkflowState) -> str:
         and not state.get("case_retrieval_completed", False)
     ):
         return "case_retrieval"
-    if (
-        decision.include_graph
-        and state.get("graph_retriever_available", False)
-        and state.get("statute_evidence")
-    ):
-        return "graph_retrieval"
     return "evidence_ledger"
 
 
 def _after_case_retrieval(state: LegalWorkflowState) -> str:
-    decision = state.get("route_decision", RouteDecision())
-    if (
-        decision.include_graph
-        and state.get("graph_retriever_available", False)
-        and state.get("statute_evidence")
-    ):
-        return "graph_retrieval"
     return "evidence_ledger"
 
 
@@ -676,7 +593,6 @@ def _build_legal_evidence_graph() -> CompiledStateGraph:
     builder.add_node("routing", _routing_node)
     builder.add_node("statute_retrieval", _statute_retrieval_node)
     builder.add_node("case_retrieval", _case_retrieval_node)
-    builder.add_node("graph_retrieval", _graph_retrieval_node)
     builder.add_node("evidence_ledger", _evidence_ledger_node)
     builder.add_node("answer", _answer_node)
     builder.add_node("citation_verifier", _citation_verifier_node)
@@ -693,7 +609,6 @@ def _build_legal_evidence_graph() -> CompiledStateGraph:
         _after_statute_retrieval,
         {
             "case_retrieval": "case_retrieval",
-            "graph_retrieval": "graph_retrieval",
             "evidence_ledger": "evidence_ledger",
         },
     )
@@ -701,11 +616,9 @@ def _build_legal_evidence_graph() -> CompiledStateGraph:
         "case_retrieval",
         _after_case_retrieval,
         {
-            "graph_retrieval": "graph_retrieval",
             "evidence_ledger": "evidence_ledger",
         },
     )
-    builder.add_edge("graph_retrieval", "evidence_ledger")
     builder.add_conditional_edges(
         "evidence_ledger",
         _after_evidence_ledger,
@@ -743,7 +656,6 @@ class LegalEvidenceWorkflow:
         planner: Callable[[str], Any] | None = None,
         router: Callable[[str], RouteDecision | dict[str, Any] | str] | None = None,
         case_retriever: Any | None = None,
-        graph_retriever: Any | None = None,
         citation_verifier: CitationVerifier | None = None,
     ) -> None:
         self.runtime_context = WorkflowRuntimeContext(
@@ -752,7 +664,6 @@ class LegalEvidenceWorkflow:
             planner=planner,
             router=router,
             case_retriever=case_retriever,
-            graph_retriever=graph_retriever,
             citation_verifier=citation_verifier or CitationVerifier(),
         )
 
@@ -921,7 +832,6 @@ class LegalEvidenceWorkflow:
             planner=self.runtime_context.planner,
             router=self.runtime_context.router,
             case_retriever=self.runtime_context.case_retriever,
-            graph_retriever=self.runtime_context.graph_retriever,
             citation_verifier=self.runtime_context.citation_verifier,
             user_id=request_context.get("user_id"),
             organization_id=request_context.get("organization_id"),
@@ -952,7 +862,6 @@ class LegalEvidenceWorkflow:
             "route_decision": RouteDecision(),
             "statute_evidence": [],
             "case_evidence": [],
-            "graph_evidence": [],
             "evidence": [],
             "answer": "",
             "citations": [],
@@ -964,7 +873,6 @@ class LegalEvidenceWorkflow:
             "trace": [],
             "cacheable": False,
             "case_retriever_available": self.runtime_context.case_retriever is not None,
-            "graph_retriever_available": self.runtime_context.graph_retriever is not None,
             "case_retrieval_completed": False,
         }
 

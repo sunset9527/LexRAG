@@ -43,11 +43,11 @@ def test_evidence_answer_generator_uses_repair_llm_only_for_verifier_issues() ->
     assert len(repair_llm.calls) == 1
 
 
-def test_query_execution_service_routes_comparative_questions_to_graph_evidence() -> None:
+def test_query_execution_service_routes_comparative_questions_without_graph_expansion() -> None:
     decision = route_evidence_workflow("定金和订金有什么区别？")
 
     assert decision.intent == "comparative"
-    assert decision.include_graph is True
+    assert decision.include_case is False
 
 
 def test_query_execution_service_only_caches_verified_cacheable_results() -> None:

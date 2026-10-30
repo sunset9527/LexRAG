@@ -84,10 +84,12 @@ class Settings(BaseSettings):
 
     # ==================== 向量数据库配置 ====================
     chroma_persist_directory: str = "./data/chroma_db"
+    # Optional immutable export used when local persistent HNSW cannot be
+    # reopened safely on Windows. Queries mirror this payload in process memory.
+    runtime_vector_payload_path: str | None = None
 
     # ==================== 检索配置 ====================
     retrieval_top_k: int = 5
-    graph_max_hops: int = 3
     verification_max_retries: int = 2
 
     # BM25 配置
@@ -108,9 +110,6 @@ class Settings(BaseSettings):
     context_max_tokens: int = 4000
     context_compress_enabled: bool = True
 
-    # ==================== 知识图谱配置 ====================
-    law_graph_path: str = "./data/law_graph.json"
-
     # ==================== 数据路径配置 ====================
     laws_data_path: str = "./data/laws"
     cases_data_path: str = "./data/cases"
@@ -124,7 +123,6 @@ class Settings(BaseSettings):
     readiness_migration_timeout_seconds: float = 3.0
     readiness_redis_timeout_seconds: float = 3.0
     readiness_embedding_timeout_seconds: float = 60.0
-    readiness_graph_timeout_seconds: float = 3.0
     readiness_statutes_timeout_seconds: float = 10.0
 
     # ==================== Stage 2 资源保护 ====================
@@ -236,7 +234,6 @@ def validate_security_settings(candidate: Settings) -> None:
         "readiness_migration_timeout_seconds",
         "readiness_redis_timeout_seconds",
         "readiness_embedding_timeout_seconds",
-        "readiness_graph_timeout_seconds",
         "readiness_statutes_timeout_seconds",
     ):
         if not 0 < getattr(candidate, name) <= 120:

@@ -22,7 +22,6 @@ def init_tools(
     law_retriever=None,
     case_retriever=None,
     bm25_retriever=None,
-    graph_retriever=None,
     reranker=None,
     query_rewriter=None,
     context_compressor=None,
@@ -38,7 +37,6 @@ def init_tools(
     _retriever_registry["law_retriever"] = law_retriever
     _retriever_registry["case_retriever"] = case_retriever
     _retriever_registry["bm25_retriever"] = bm25_retriever
-    _retriever_registry["graph_retriever"] = graph_retriever
     _retriever_registry["reranker"] = reranker
     _retriever_registry["query_rewriter"] = query_rewriter
     _retriever_registry["context_compressor"] = context_compressor

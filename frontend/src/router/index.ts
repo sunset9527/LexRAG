@@ -46,12 +46,6 @@ const router = createRouter({
           meta: { title: '法律检索' },
         },
         {
-          path: 'graph',
-          name: 'Graph',
-          component: () => import('@/views/Graph.vue'),
-          meta: { title: '知识图谱' },
-        },
-        {
           path: 'laws',
           name: 'Laws',
           component: () => import('@/views/Laws.vue'),

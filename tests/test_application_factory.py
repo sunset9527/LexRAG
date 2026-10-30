@@ -34,13 +34,14 @@ def test_application_factory_registers_platform_and_health_routers() -> None:
         "/admin/organization",
         "/dashboard/stats",
         "/document-libraries",
-        "/graph",
         "/knowledge-bases",
         "/query",
         "/query-runs",
         "/upload",
         "/sessions",
     } <= set(paths)
+    assert "/graph" not in paths
+    assert "/graph/query" not in paths
 
 
 def test_api_module_uses_the_application_factory() -> None:

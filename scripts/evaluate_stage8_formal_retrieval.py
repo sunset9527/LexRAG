@@ -40,6 +40,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--snapshot", type=Path, required=True)
     parser.add_argument("--frozen-manifest", type=Path, required=True)
     parser.add_argument("--persist-directory", type=Path, required=True)
+    parser.add_argument("--runtime-payload", type=Path)
     parser.add_argument("--mode", choices=("vector", "bm25", "rrf"), required=True)
     parser.add_argument("--output", type=Path, required=True)
     return parser
@@ -54,6 +55,8 @@ def _validate_paths(args: argparse.Namespace) -> None:
         raise ValueError("output overlaps the Chroma input directory")
     if not chroma.is_dir():
         raise ValueError("persist-directory must already exist")
+    if args.runtime_payload is not None and not args.runtime_payload.is_file():
+        raise ValueError("runtime-payload must be an existing file")
 
 
 def _strict_object(pairs):
@@ -291,8 +294,39 @@ def _verify_legacy_chunks(collection: Any, law: dict) -> None:
         raise ValueError("legacy collection article catalog differs from snapshot")
 
 
-def _build_retrievers(laws: dict[str, dict], directory: Path) -> dict[str, Any]:
+def _build_retrievers(
+    laws: dict[str, dict], directory: Path, runtime_payload: Path | None = None
+) -> dict[str, Any]:
     client_type, indexer_type, retriever_type, identity = _runtime_components()
+    if runtime_payload is not None:
+        from config import settings
+        from src.retrieval.ephemeral_vectorstore import build_ephemeral_vectorstore_from_artifact
+        from src.utils.embedding_factory import create_embeddings
+
+        retrievers = {}
+        for slug, law in laws.items():
+            if (
+                identity.fingerprint != law["embedding_fingerprint"]
+                or identity.schema_version != law["index_schema_version"]
+            ):
+                raise ValueError("configured embedding/index identity differs from snapshot")
+            vectorstore = build_ephemeral_vectorstore_from_artifact(
+                artifact_path=runtime_payload,
+                collection_name=law["collection_name"],
+                embeddings_factory=lambda: create_embeddings(
+                    provider=settings.embedding_provider,
+                    model_path=settings.local_embedding_model_path,
+                    local_model_id=settings.local_embedding_model_id,
+                    zhipuai_api_key=settings.zhipuai_api_key,
+                    zhipuai_model=settings.embedding_model,
+                    dimensions=settings.embedding_dimensions,
+                    normalize=settings.embedding_normalize,
+                    index_schema_version=settings.index_schema_version,
+                ),
+            )
+            retriever = retriever_type(vectorstore)
+            retrievers[slug] = retriever
+        return retrievers
     client = client_type(path=str(directory))
     source_hashes = {}
     # Check every existing collection before LawIndexer can get-or-create any.
@@ -425,6 +459,30 @@ def _write_atomically(output: Path, report: dict) -> None:
         temporary.unlink(missing_ok=True)
 
 
+def _validate_runtime_payload(payload_path: Path, snapshot_path: Path, laws: Mapping[str, Mapping[str, Any]]) -> dict:
+    manifest_path = payload_path.with_name(payload_path.name.removesuffix(".json.gz") + ".manifest.json")
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise ValueError("runtime payload manifest is unavailable") from exc
+    if manifest.get("schema") != "lexrag.stage8-runtime-payload" or manifest.get("version") != 1:
+        raise ValueError("runtime payload manifest schema is invalid")
+    if manifest.get("snapshot_sha256") != hashlib.sha256(snapshot_path.read_bytes()).hexdigest():
+        raise ValueError("runtime payload manifest snapshot differs from formal snapshot")
+    expected = {
+        law["collection_name"]: law["chunk_count"]
+        for law in laws.values()
+    }
+    actual = {
+        item.get("collection_name"): item.get("chunk_count")
+        for item in manifest.get("collections", [])
+        if isinstance(item, Mapping)
+    }
+    if actual != expected:
+        raise ValueError("runtime payload collection scope differs from snapshot")
+    return {"path": str(payload_path.resolve()), "sha256": hashlib.sha256(payload_path.read_bytes()).hexdigest(), "manifest": str(manifest_path.resolve())}
+
+
 def _runner_commit() -> str:
     return subprocess.run(
         ["git", "-C", str(ROOT), "rev-parse", "HEAD"],
@@ -443,6 +501,11 @@ def main(argv: list[str] | None = None) -> int:
         snapshot, _ = load_stage4_snapshot(args.snapshot)
         laws = _bind_snapshot(records, snapshot)
         _validate_frozen_records(records, laws, frozen)
+        runtime_payload = (
+            _validate_runtime_payload(args.runtime_payload, args.snapshot, laws)
+            if args.runtime_payload is not None
+            else None
+        )
         manifest = build_run_manifest(
             run_name=f"stage8-formal-retrieval-routing-{args.mode}",
             dataset_paths=[args.dataset],
@@ -461,7 +524,7 @@ def main(argv: list[str] | None = None) -> int:
             commit_provider=_runner_commit,
             dependency_versions=_dependency_versions(),
         )
-        retrievers = _build_retrievers(laws, args.persist_directory)
+        retrievers = _build_retrievers(laws, args.persist_directory, args.runtime_payload)
         report = {
             "schema": "lexrag.stage8-formal-retrieval-routing",
             "version": 1,
@@ -475,6 +538,7 @@ def main(argv: list[str] | None = None) -> int:
                 "laws": snapshot["laws"],
             },
             "persist_directory": str(args.persist_directory.resolve()),
+            **({"runtime_payload": runtime_payload} if runtime_payload else {}),
             "run_manifest": manifest,
             "oracle_retrieval": evaluate_oracle_retrieval(
                 records, _retrieval_callback(laws, retrievers, args.mode)

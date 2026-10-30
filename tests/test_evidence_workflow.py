@@ -1,6 +1,7 @@
 """证据驱动法律工作流与 LangGraph 主链契约。"""
 
 import asyncio
+import inspect
 import json
 from threading import Event
 
@@ -19,6 +20,13 @@ from src.workflow.legal_evidence_workflow import (
     QueryEnhancedLawRetriever,
     RouteDecision,
 )
+
+
+def test_evidence_workflow_exposes_no_knowledge_graph_runtime_contract():
+    """知识图谱移除后，问答工作流不再接收或暴露图谱节点。"""
+
+    assert "graph_retriever" not in inspect.signature(LegalEvidenceWorkflow).parameters
+    assert "graph_retrieval" not in workflow_module.WORKFLOW_NODE_NAMES
 
 
 def statute(
@@ -270,7 +278,6 @@ def test_workflow_exports_one_shared_compiled_langgraph_with_explicit_nodes():
         "routing",
         "statute_retrieval",
         "case_retrieval",
-        "graph_retrieval",
         "evidence_ledger",
         "answer",
         "citation_verifier",
@@ -379,15 +386,10 @@ def test_routing_and_optional_retrieval_failures_degrade_to_statute_evidence_wit
         def retrieve(self, query, top_k=3):
             raise RuntimeError("case backend unavailable")
 
-    class FailingGraphRetriever:
-        def retrieve(self, article_id, max_hops=1):
-            raise RuntimeError("graph backend unavailable")
-
     workflow = LegalEvidenceWorkflow(
         law_retriever=FakeLawRetriever(),
         router=lambda question: (_ for _ in ()).throw(RuntimeError("router unavailable")),
         case_retriever=FailingCaseRetriever(),
-        graph_retriever=FailingGraphRetriever(),
         answer_generator=lambda question, evidence, issues=None: (
             "依据【中华人民共和国民法典第1254条】，应当依法调查责任主体。"
         ),
@@ -581,7 +583,7 @@ def test_query_enhanced_retriever_uses_hybrid_route_without_a_rewriter():
     assert base.calls == [("高空抛物怎么办", 5)]
 
 
-def test_case_and_graph_results_are_recorded_in_evidence_ledger_when_routed():
+def test_case_results_are_recorded_in_evidence_ledger_when_routed():
     case_evidence = EvidenceItem(
         source_id="case-1",
         source_type="case",
@@ -592,32 +594,14 @@ def test_case_and_graph_results_are_recorded_in_evidence_ledger_when_routed():
         score=0.7,
         retrieval_path="case",
     )
-    graph_evidence = EvidenceItem(
-        source_id="graph-1255",
-        source_type="graph",
-        knowledge_base_slug="civil-code",
-        law_name="中华人民共和国民法典",
-        article_id="1255",
-        content="相邻法条关系",
-        score=1.0,
-        retrieval_path="graph",
-    )
-
     class CaseRetriever:
         def retrieve(self, query, top_k=3):
             return [case_evidence]
 
-    class GraphRetriever:
-        def retrieve(self, article_id, max_hops=1):
-            return type("Graph", (), {"retrieved_articles": [graph_evidence]})()
-
     workflow = LegalEvidenceWorkflow(
         law_retriever=FakeLawRetriever(),
-        router=lambda question: RouteDecision(
-            intent="comparative", include_case=True, include_graph=True
-        ),
+        router=lambda question: RouteDecision(intent="comparative", include_case=True),
         case_retriever=CaseRetriever(),
-        graph_retriever=GraphRetriever(),
         answer_generator=lambda question, evidence, issues=None: (
             "依据【中华人民共和国民法典第1254条】，应当依法调查责任主体。"
         ),
@@ -626,13 +610,9 @@ def test_case_and_graph_results_are_recorded_in_evidence_ledger_when_routed():
     result = workflow.query("高空抛物与坠物的区别", knowledge_base_slug="civil-code")
 
     assert result.verification_status == "pass"
-    assert result.metadata["evidence_count"] == 3
+    assert result.metadata["evidence_count"] == 2
     assert any(
         event["node"] == "case_retrieval" and event["output_count"] == 1
-        for event in result.metadata["workflow_trace"]
-    )
-    assert any(
-        event["node"] == "graph_retrieval" and event["output_count"] == 1
         for event in result.metadata["workflow_trace"]
     )
 
@@ -689,51 +669,6 @@ def test_statute_and_case_retrieval_start_concurrently_when_both_are_routed():
     assert [event["node"] for event in emitted_events] == [
         event["node"] for event in result.metadata["workflow_trace"]
     ]
-
-
-def test_graph_expansion_is_limited_to_one_hop_and_the_seed_law():
-    class GraphRetriever:
-        def __init__(self):
-            self.calls = []
-
-        def retrieve(self, article_id, max_hops=1):
-            self.calls.append((article_id, max_hops))
-            return type(
-                "Graph",
-                (),
-                {
-                    "retrieved_articles": [
-                        {
-                            "article_id": "1254",
-                            "law_name": "中华人民共和国民法典",
-                            "content": "禁止从建筑物中抛掷物品。",
-                        },
-                        {
-                            "article_id": "12",
-                            "law_name": "中华人民共和国公司法",
-                            "content": "不相关的公司法条文。",
-                        },
-                    ]
-                },
-            )()
-
-    graph_retriever = GraphRetriever()
-    captured_evidence = []
-    def answer_generator(question, evidence, issues=None):
-        captured_evidence.extend(evidence)
-        return "依据【中华人民共和国民法典第1254条】处理。"
-
-    workflow = LegalEvidenceWorkflow(
-        law_retriever=FakeLawRetriever(),
-        router=lambda question: RouteDecision(include_graph=True),
-        graph_retriever=graph_retriever,
-        answer_generator=answer_generator,
-    )
-
-    workflow.query("高空抛物责任", knowledge_base_slug="civil-code")
-
-    assert graph_retriever.calls == [("1254", 1)]
-    assert [item.article_id for item in captured_evidence if item.source_type == "graph"] == ["1254"]
 
 
 def test_ainvoke_returns_the_graph_backed_result_contract():
@@ -795,7 +730,6 @@ def test_astream_events_exposes_only_safe_structural_node_events():
         "routing",
         "statute_retrieval",
         "case_retrieval",
-        "graph_retrieval",
         "evidence_ledger",
         "answer",
         "citation_verifier",

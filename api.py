@@ -20,6 +20,7 @@ from contextlib import asynccontextmanager, nullcontext
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
+from types import SimpleNamespace
 
 from fastapi import (
     Depends,
@@ -58,7 +59,7 @@ from app.services.knowledge_base_service import KnowledgeBaseService
 from app.services.langfuse_helper import create_llm, flush_langfuse
 from app.services.metrics import record_query_metrics
 from app.services.query_cache_service import QueryCacheService
-from app.services.query_event_store import QueryEvent, RedisQueryEventStore
+from app.services.query_event_store import QueryEvent, RedisQueryEventStore, create_query_event_store
 from app.services.query_route_service import QueryRouteService
 from app.services.query_run_service import QueryRunService
 from app.services.query_runtime_registry import QueryRuntimeRegistry
@@ -67,7 +68,6 @@ from app.services.readiness_probes import (
     RuntimeReadinessDependencies,
     alembic_head_revision,
     build_runtime_checks,
-    check_persisted_law_graph,
 )
 from app.services.readiness_service import ReadinessService
 from app.services.session_service import ConversationTurn, SessionNotFoundError, SessionService
@@ -75,7 +75,6 @@ from app.services.statute_version_chain_service import StatuteVersionChainServic
 from app.services.usage_service import UsageService
 from app.tasks.document_tasks import process_document_task
 from config import get_project_root, settings, validate_security_settings
-from src.graph.law_graph import LawGraph
 from src.ingestion.annual_case_indexer import AnnualCaseIndexer
 from src.ingestion.case_ocr import count_pdf_pages
 from src.ingestion.index_identity import (
@@ -89,7 +88,11 @@ from src.retrieval.bm25_retriever import BM25Retriever
 from src.retrieval.case_retriever import CaseRetriever
 from src.retrieval.chroma_collection import ChromaCollectionGateway
 from src.retrieval.context_compressor import ContextCompressor
-from src.retrieval.graph_retriever import GraphRetriever
+from src.retrieval.ephemeral_vectorstore import (
+    build_ephemeral_vectorstore,
+    build_ephemeral_vectorstore_from_artifact,
+    has_verified_runtime_collection,
+)
 from src.retrieval.intent_router import IntentRouter
 from src.retrieval.knowledge_base_router import KnowledgeBaseRouter
 from src.retrieval.law_retriever import LawRetriever
@@ -243,6 +246,62 @@ def build_runtime_operation_llms(
     }
 
 
+def build_runtime_vectorstore(
+    collection_name: str, *, runtime_registry: QueryRuntimeRegistry | None
+) -> Any:
+    """Open a verified persisted payload, then query only its process-local mirror.
+
+    Windows Chroma persistent HNSW segments are not safe to reopen after the
+    local transformer embedding runtime has loaded.  Read the immutable stored
+    payload first and move query traffic to a non-persistent collection.
+    """
+    from chromadb import PersistentClient
+
+    embeddings_factory = lambda: create_embeddings(
+        provider=settings.embedding_provider,
+        model_path=settings.local_embedding_model_path,
+        local_model_id=settings.local_embedding_model_id,
+        zhipuai_api_key=settings.zhipuai_api_key,
+        zhipuai_model=settings.embedding_model,
+        dimensions=settings.embedding_dimensions,
+        normalize=settings.embedding_normalize,
+        index_schema_version=settings.index_schema_version,
+    )
+    if settings.runtime_vector_payload_path:
+        return build_ephemeral_vectorstore_from_artifact(
+            artifact_path=settings.runtime_vector_payload_path,
+            collection_name=collection_name,
+            embeddings_factory=embeddings_factory,
+        )
+    client = (
+        runtime_registry.get_or_create_chroma_client(
+            settings.chroma_persist_directory,
+            lambda: PersistentClient(path=settings.chroma_persist_directory),
+        )
+        if runtime_registry is not None
+        else PersistentClient(path=settings.chroma_persist_directory)
+    )
+    source = get_or_create_identity_collection(
+        client,
+        collection_name,
+        collection_identity_from_settings(settings, zhipu_model=settings.embedding_model),
+    )
+    return build_ephemeral_vectorstore(
+        source_collection=source,
+        collection_name=collection_name,
+        embeddings_factory=embeddings_factory,
+    )
+
+
+def runtime_collection_is_ready(collection_name: str) -> bool:
+    """Confirm a version collection through the immutable runtime payload, when configured."""
+    artifact_path = settings.runtime_vector_payload_path
+    return bool(
+        artifact_path
+        and has_verified_runtime_collection(artifact_path, collection_name)
+    )
+
+
 def route_evidence_workflow(question: str) -> RouteDecision:
     return query_execution_service.route_evidence_workflow(question)
 
@@ -262,16 +321,24 @@ def initialize_components():
             import redis
 
             redis_client = redis.Redis.from_url(settings.redis_url, decode_responses=True)
-            query_cache_service = QueryCacheService(
-                redis_client,
-                ttl_seconds=settings.query_cache_ttl_seconds,
-                semantic_threshold=settings.query_cache_semantic_threshold,
-            )
-            query_event_store = RedisQueryEventStore(redis_client)
+            query_event_store = create_query_event_store(redis_client)
+            if isinstance(query_event_store, RedisQueryEventStore):
+                query_cache_service = QueryCacheService(
+                    redis_client,
+                    ttl_seconds=settings.query_cache_ttl_seconds,
+                    semantic_threshold=settings.query_cache_semantic_threshold,
+                )
         except Exception as exc:
             logger.warning("查询 Redis 服务初始化失败 error_type=%s", type(exc).__name__)
         if db_session.SessionLocal is not None:
-            knowledge_base_service = KnowledgeBaseService(db_session.SessionLocal)
+            knowledge_base_service = KnowledgeBaseService(
+                db_session.SessionLocal,
+                collection_exists=(
+                    runtime_collection_is_ready
+                    if settings.runtime_vector_payload_path
+                    else None
+                ),
+            )
             query_version_service = QueryVersionService(
                 StatuteVersionChainService(db_session.SessionLocal), knowledge_base_service
             )
@@ -412,30 +479,20 @@ def initialize_components():
             except Exception as exc:
                 logger.warning("Context Compressor初始化失败 error_type=%s", type(exc).__name__)
 
-        # 初始化知识图谱
-        law_graph_path = get_project_root() / settings.law_graph_path
-        if law_graph_path.exists():
-            law_graph = LawGraph.from_json(str(law_graph_path))
-        else:
-            law_graph = LawGraph()
-
         # v3.0 的 LangGraph 工作流门面按请求装配依赖，以支持知识库和运行时模型配置。
         # 此处只保留就绪标记供健康检查和已有 API 契约使用，不保存请求状态或密钥。
         workflow = "evidence-v3.0"
-        graph_retriever = GraphRetriever(law_graph.graph)
 
         components.replace(
             **{
                 "workflow": workflow,
                 "law_indexer": law_indexer,
-                "law_graph": law_graph,
                 "intent_router": intent_router,
                 "law_retriever": law_retriever,
                 "case_retriever": case_retriever,
                 "bm25_retriever": bm25_retriever,
                 "reranker": reranker,
                 "query_rewriter": query_rewriter,
-                "graph_retriever": graph_retriever,
                 "knowledge_base_service": knowledge_base_service,
                 "query_version_service": query_version_service,
                 "document_ingestion_service": document_ingestion_service,
@@ -447,14 +504,6 @@ def initialize_components():
                 "query_runtime_registry": QueryRuntimeRegistry(),
             }
         )
-
-        def check_graph() -> None:
-            check_persisted_law_graph(law_graph_path)
-            if components.get("graph_retriever") is None:
-                raise RuntimeError("GRAPH_RETRIEVER_UNAVAILABLE")
-            if law_graph.graph.number_of_nodes() == 0:
-                raise RuntimeError("RUNTIME_GRAPH_EMPTY")
-            law_graph.get_statistics()
 
         def check_statutes() -> None:
             if knowledge_base_service is None:
@@ -493,7 +542,6 @@ def initialize_components():
             "migration": settings.readiness_migration_timeout_seconds,
             "redis": settings.readiness_redis_timeout_seconds,
             "embedding": settings.readiness_embedding_timeout_seconds,
-            "graph": settings.readiness_graph_timeout_seconds,
             "statutes": settings.readiness_statutes_timeout_seconds,
         }
         components["readiness_service"] = ReadinessService(
@@ -504,7 +552,6 @@ def initialize_components():
                     redis_client_factory=create_redis_client,
                     redis_url=settings.redis_url,
                     embedding_loader=load_embedding,
-                    graph_checker=check_graph,
                     statute_checker=check_statutes,
                     timeouts=readiness_timeouts,
                 )
@@ -953,11 +1000,12 @@ async def query(
         # 不再用全局锁串行化整条查询主链。
         runtime_registry = components.get("query_runtime_registry")
 
-        def build_indexer(collection_name: str) -> LawIndexer:
-            return LawIndexer(
-                persist_directory=settings.chroma_persist_directory,
-                embedding_model=settings.embedding_model,
-                collection_name=collection_name,
+        def build_indexer(collection_name: str) -> SimpleNamespace:
+            return SimpleNamespace(
+                vectorstore=build_runtime_vectorstore(
+                    collection_name,
+                    runtime_registry=runtime_registry,
+                )
             )
 
         with nullcontext():
@@ -1074,7 +1122,6 @@ async def query(
                 planner=build_evidence_planner(runtime_llms["planning"]),
                 router=route_evidence_workflow,
                 case_retriever=components.get("case_retriever"),
-                graph_retriever=components.get("graph_retriever"),
             )
             result = await invoke_workflow_in_worker(
                 workflow,

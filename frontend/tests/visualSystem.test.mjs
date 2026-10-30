@@ -12,7 +12,6 @@ test('modern SaaS visual foundation uses semantic tokens and no retired structur
   const appLayout = readSource('src', 'components', 'AppLayout.vue')
   const structuralViews = [
     'Chat.vue',
-    'Graph.vue',
     'Laws.vue',
     'Login.vue',
     'Register.vue',

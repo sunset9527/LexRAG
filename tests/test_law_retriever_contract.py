@@ -90,6 +90,7 @@ def test_optimized_retrieval_preserves_stored_article_id_for_inserted_article():
         "chunk_id": "criminal-17-1",
         "article_id": special,
         "article_number": "17-1",
+        "law_name": "中华人民共和国刑法",
         "chapter": "第一章",
     }
 
@@ -112,3 +113,4 @@ def test_optimized_retrieval_preserves_stored_article_id_for_inserted_article():
     results, _, _ = retriever.retrieve_optimized("刑事责任年龄", law_name="中华人民共和国刑法")
 
     assert [item.article_id for item in results] == [special]
+    assert results[0].law_name == "中华人民共和国刑法"

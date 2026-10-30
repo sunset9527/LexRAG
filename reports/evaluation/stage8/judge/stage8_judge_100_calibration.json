@@ -1,0 +1,548 @@
+{
+  "agreement_rate": null,
+  "confusion_matrix": {
+    "false_negative": 0,
+    "false_positive": 0,
+    "true_negative": 0,
+    "true_positive": 0
+  },
+  "counts": {
+    "evaluable": 0,
+    "execution_errors": 100,
+    "total": 100
+  },
+  "error_ids": [
+    "civil-002",
+    "civil-010",
+    "civil-011",
+    "civil-014",
+    "civil-017",
+    "civil-019",
+    "civil-020",
+    "civil-022",
+    "civil-028",
+    "company-002",
+    "company-006",
+    "company-009",
+    "copyright-003",
+    "copyright-004",
+    "copyright-010",
+    "criminal-003",
+    "criminal-004",
+    "criminal-007",
+    "criminal-011",
+    "criminal-012",
+    "hard-abstain-001",
+    "hard-abstain-003",
+    "hard-abstain-004",
+    "hard-abstain-005",
+    "hard-abstain-010",
+    "hard-abstain-014",
+    "hard-abstain-015",
+    "hard-abstain-017",
+    "hard-abstain-019",
+    "hard-abstain-020",
+    "labor-001",
+    "labor-007",
+    "labor-010",
+    "labor-contract-001",
+    "labor-contract-002",
+    "labor-contract-010",
+    "patent-004",
+    "patent-005",
+    "round2-abstain-001",
+    "round2-abstain-002",
+    "round2-abstain-003",
+    "round2-abstain-004",
+    "round2-abstain-005",
+    "round2-abstain-006",
+    "round2-abstain-007",
+    "round2-abstain-008",
+    "round2-abstain-009",
+    "round2-abstain-010",
+    "round2-adjacent-004",
+    "round2-adjacent-007",
+    "round2-adjacent-012",
+    "round2-adjacent-014",
+    "round2-adjacent-020",
+    "round2-adjacent-024",
+    "round2-adjacent-025",
+    "round2-adjacent-027",
+    "round2-adjacent-028",
+    "round2-adjacent-031",
+    "round2-adjacent-033",
+    "round2-adjacent-038",
+    "round2-cross-001",
+    "round2-cross-003",
+    "round2-cross-009",
+    "round2-cross-011",
+    "round2-cross-013",
+    "round2-cross-018",
+    "round2-cross-023",
+    "round2-cross-024",
+    "round2-cross-025",
+    "round2-cross-031",
+    "round2-cross-032",
+    "round2-cross-038",
+    "round2-multihop-009",
+    "round2-multihop-011",
+    "round2-multihop-013",
+    "round2-multihop-014",
+    "round2-multihop-016",
+    "round2-multihop-018",
+    "round2-multihop-020",
+    "round2-multihop-026",
+    "round2-multihop-028",
+    "round2-multihop-029",
+    "round2-oral-003",
+    "round2-oral-004",
+    "round2-oral-007",
+    "round2-oral-008",
+    "round2-oral-011",
+    "round2-oral-012",
+    "round2-oral-020",
+    "round2-oral-025",
+    "round2-oral-026",
+    "round2-oral-039",
+    "round2-oral-040",
+    "round2-oral-041",
+    "round2-oral-045",
+    "round2-oral-049",
+    "round2-oral-050",
+    "trademark-005",
+    "trademark-006",
+    "trademark-009"
+  ],
+  "evaluator": {
+    "base_url": "https://api.deepseek.com",
+    "kind": "judge",
+    "model": "deepseek-chat",
+    "prompt_version": "stage8-diagnostic-judge-v1",
+    "provider": "openai-compatible",
+    "temperature": 0.0,
+    "timeout_seconds": 45
+  },
+  "inputs": {
+    "evaluator_config": {
+      "path": "stage8_judge_100.config.json",
+      "sha256": "11db26f3e91e5ad3a4feda4e2ce81463e7e256783e3a7a228934e2253b41a5a4"
+    },
+    "evaluator_results": {
+      "path": "stage8_judge_100.jsonl",
+      "sha256": "e21ee868d966dea08f1a9b3b3383841333ff1b2b40962c09a6a802d11ba82857"
+    },
+    "review": {
+      "path": "stage8_answer_review_merged_100.jsonl",
+      "sha256": "69d3d4670fb9f748f9cab90b489d7368ffc21ec2c43144f074f3fad8fb99fae1"
+    },
+    "review_manifest": {
+      "path": "stage8_answer_review_merged_100.review_manifest.json",
+      "sha256": "0bb026d088575b8c1e572f0adfd5cdc164e4185789b175f27e7850982c069a50"
+    }
+  },
+  "items": [
+    {
+      "id": "civil-002",
+      "status": "execution_error"
+    },
+    {
+      "id": "civil-010",
+      "status": "execution_error"
+    },
+    {
+      "id": "civil-011",
+      "status": "execution_error"
+    },
+    {
+      "id": "civil-014",
+      "status": "execution_error"
+    },
+    {
+      "id": "civil-017",
+      "status": "execution_error"
+    },
+    {
+      "id": "civil-019",
+      "status": "execution_error"
+    },
+    {
+      "id": "civil-020",
+      "status": "execution_error"
+    },
+    {
+      "id": "civil-022",
+      "status": "execution_error"
+    },
+    {
+      "id": "civil-028",
+      "status": "execution_error"
+    },
+    {
+      "id": "company-002",
+      "status": "execution_error"
+    },
+    {
+      "id": "company-006",
+      "status": "execution_error"
+    },
+    {
+      "id": "company-009",
+      "status": "execution_error"
+    },
+    {
+      "id": "copyright-003",
+      "status": "execution_error"
+    },
+    {
+      "id": "copyright-004",
+      "status": "execution_error"
+    },
+    {
+      "id": "copyright-010",
+      "status": "execution_error"
+    },
+    {
+      "id": "criminal-003",
+      "status": "execution_error"
+    },
+    {
+      "id": "criminal-004",
+      "status": "execution_error"
+    },
+    {
+      "id": "criminal-007",
+      "status": "execution_error"
+    },
+    {
+      "id": "criminal-011",
+      "status": "execution_error"
+    },
+    {
+      "id": "criminal-012",
+      "status": "execution_error"
+    },
+    {
+      "id": "hard-abstain-001",
+      "status": "execution_error"
+    },
+    {
+      "id": "hard-abstain-003",
+      "status": "execution_error"
+    },
+    {
+      "id": "hard-abstain-004",
+      "status": "execution_error"
+    },
+    {
+      "id": "hard-abstain-005",
+      "status": "execution_error"
+    },
+    {
+      "id": "hard-abstain-010",
+      "status": "execution_error"
+    },
+    {
+      "id": "hard-abstain-014",
+      "status": "execution_error"
+    },
+    {
+      "id": "hard-abstain-015",
+      "status": "execution_error"
+    },
+    {
+      "id": "hard-abstain-017",
+      "status": "execution_error"
+    },
+    {
+      "id": "hard-abstain-019",
+      "status": "execution_error"
+    },
+    {
+      "id": "hard-abstain-020",
+      "status": "execution_error"
+    },
+    {
+      "id": "labor-001",
+      "status": "execution_error"
+    },
+    {
+      "id": "labor-007",
+      "status": "execution_error"
+    },
+    {
+      "id": "labor-010",
+      "status": "execution_error"
+    },
+    {
+      "id": "labor-contract-001",
+      "status": "execution_error"
+    },
+    {
+      "id": "labor-contract-002",
+      "status": "execution_error"
+    },
+    {
+      "id": "labor-contract-010",
+      "status": "execution_error"
+    },
+    {
+      "id": "patent-004",
+      "status": "execution_error"
+    },
+    {
+      "id": "patent-005",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-abstain-001",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-abstain-002",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-abstain-003",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-abstain-004",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-abstain-005",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-abstain-006",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-abstain-007",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-abstain-008",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-abstain-009",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-abstain-010",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-adjacent-004",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-adjacent-007",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-adjacent-012",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-adjacent-014",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-adjacent-020",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-adjacent-024",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-adjacent-025",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-adjacent-027",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-adjacent-028",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-adjacent-031",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-adjacent-033",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-adjacent-038",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-cross-001",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-cross-003",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-cross-009",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-cross-011",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-cross-013",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-cross-018",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-cross-023",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-cross-024",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-cross-025",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-cross-031",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-cross-032",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-cross-038",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-multihop-009",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-multihop-011",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-multihop-013",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-multihop-014",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-multihop-016",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-multihop-018",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-multihop-020",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-multihop-026",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-multihop-028",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-multihop-029",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-003",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-004",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-007",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-008",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-011",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-012",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-020",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-025",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-026",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-039",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-040",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-041",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-045",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-049",
+      "status": "execution_error"
+    },
+    {
+      "id": "round2-oral-050",
+      "status": "execution_error"
+    },
+    {
+      "id": "trademark-005",
+      "status": "execution_error"
+    },
+    {
+      "id": "trademark-006",
+      "status": "execution_error"
+    },
+    {
+      "id": "trademark-009",
+      "status": "execution_error"
+    }
+  ],
+  "schema": "lexrag.stage8-diagnostic-calibration",
+  "status": "INCOMPLETE",
+  "version": 1
+}

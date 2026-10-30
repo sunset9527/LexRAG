@@ -39,7 +39,6 @@ def test_limiter_bounds_its_in_memory_key_space():
         ("POST", "/document-libraries/contracts/documents", "upload"),
         ("POST", "/documents/job-1/retry", "retry"),
         ("PUT", "/admin/agent-config", "admin_write"),
-        ("GET", "/graph", None),
     ],
 )
 def test_sensitive_route_classification(method, path, expected):

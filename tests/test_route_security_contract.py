@@ -22,10 +22,8 @@ def _dependency_calls(route) -> set[object]:
     return {dependency.call for dependency in route.dependant.dependencies}
 
 
-def test_graph_and_case_routes_require_authorization_context():
+def test_case_routes_require_authorization_context():
     for path, method in [
-        ("/graph", "GET"),
-        ("/graph/query", "POST"),
         ("/cases", "GET"),
         ("/case-sources", "GET"),
         ("/cases/{case_id}", "GET"),

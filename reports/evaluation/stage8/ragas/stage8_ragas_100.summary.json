@@ -1,0 +1,96 @@
+{
+  "counts": {
+    "completed": 50,
+    "execution_errors": 50,
+    "selected": 100,
+    "total_reviewed": 100
+  },
+  "error_ids": [
+    "civil-010",
+    "civil-014",
+    "civil-019",
+    "civil-022",
+    "company-002",
+    "company-009",
+    "copyright-004",
+    "criminal-003",
+    "criminal-007",
+    "criminal-012",
+    "hard-abstain-003",
+    "hard-abstain-005",
+    "hard-abstain-014",
+    "hard-abstain-017",
+    "hard-abstain-020",
+    "labor-007",
+    "labor-contract-001",
+    "labor-contract-010",
+    "patent-005",
+    "round2-abstain-002",
+    "round2-abstain-004",
+    "round2-abstain-006",
+    "round2-abstain-008",
+    "round2-abstain-010",
+    "round2-adjacent-007",
+    "round2-adjacent-014",
+    "round2-adjacent-024",
+    "round2-adjacent-027",
+    "round2-adjacent-031",
+    "round2-adjacent-038",
+    "round2-cross-003",
+    "round2-cross-011",
+    "round2-cross-018",
+    "round2-cross-024",
+    "round2-cross-031",
+    "round2-cross-038",
+    "round2-multihop-011",
+    "round2-multihop-014",
+    "round2-multihop-018",
+    "round2-multihop-026",
+    "round2-multihop-029",
+    "round2-oral-004",
+    "round2-oral-008",
+    "round2-oral-012",
+    "round2-oral-025",
+    "round2-oral-039",
+    "round2-oral-041",
+    "round2-oral-049",
+    "trademark-005",
+    "trademark-009"
+  ],
+  "inputs": {
+    "results": {
+      "path": "stage8_ragas_100.jsonl",
+      "sha256": "f647dab2daabb11991b9e3308994c6aecb3440c4a9fb94fc77131703f060c534"
+    },
+    "review": {
+      "path": "stage8_answer_review_merged_100.jsonl",
+      "sha256": "69d3d4670fb9f748f9cab90b489d7368ffc21ec2c43144f074f3fad8fb99fae1"
+    },
+    "review_manifest": {
+      "path": "stage8_answer_review_merged_100.review_manifest.json",
+      "sha256": "0bb026d088575b8c1e572f0adfd5cdc164e4185789b175f27e7850982c069a50"
+    }
+  },
+  "metric_means": {
+    "context_precision_without_reference": 0.8727777777130047,
+    "faithfulness": 0.7496812082669259
+  },
+  "schema": "lexrag.stage8-ragas-diagnostic",
+  "status": "INCOMPLETE",
+  "supported_metrics": [
+    "context_precision_without_reference",
+    "faithfulness"
+  ],
+  "unsupported_metric_reasons": {
+    "answer_correctness": "reference_answer_missing",
+    "answer_relevancy": "embedding_configuration_missing",
+    "context_recall": "reference_answer_missing",
+    "factual_correctness": "reference_answer_missing"
+  },
+  "unsupported_metrics": [
+    "answer_correctness",
+    "context_recall",
+    "factual_correctness"
+  ],
+  "version": 1
+}

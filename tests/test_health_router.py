@@ -7,14 +7,13 @@ from app.services.readiness_service import ReadinessService
 
 def test_health_router_reports_runtime_status_with_utc_timestamp() -> None:
     payload = health_check(
-        RuntimeContainer(workflow=object(), law_indexer=None, law_graph=object())
+        RuntimeContainer(workflow=object(), law_indexer=None)
     )
 
     assert payload.status == "healthy"
     assert payload.components == {
         "workflow": "ready",
         "law_indexer": "not_ready",
-        "law_graph": "ready",
     }
     assert payload.timestamp.endswith("+00:00")
 

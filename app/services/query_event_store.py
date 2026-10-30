@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass
 from threading import Lock
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 _APPEND_EVENT_SCRIPT = """
 if redis.call('EXISTS', KEYS[1]) == 0 then
@@ -167,3 +170,20 @@ class RedisQueryEventStore:
     def is_cancel_requested(self, query_id: str) -> bool:
         metadata = self._redis.hgetall(self._meta_key(query_id)) or {}
         return str(metadata.get("cancel_requested")) == "1"
+
+
+def create_query_event_store(redis_client: Any) -> RedisQueryEventStore | InMemoryQueryEventStore:
+    """Return Redis-backed SSE storage, or the safe single-process fallback.
+
+    ``Redis.from_url`` is lazy: constructing a client does not prove that a
+    server is reachable.  Probe it here so local development can serve query
+    runs without Redis instead of failing on the first ``create_run`` call.
+    """
+
+    try:
+        if redis_client.ping() is not True:
+            raise RuntimeError("REDIS_PING_FAILED")
+    except Exception as exc:
+        logger.warning("查询 Redis 不可用，SSE 已降级为单进程内存存储 error_type=%s", type(exc).__name__)
+        return InMemoryQueryEventStore()
+    return RedisQueryEventStore(redis_client)

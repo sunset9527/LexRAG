@@ -27,10 +27,6 @@
           <el-icon><Search /></el-icon>
           <span>法律检索</span>
         </el-menu-item>
-        <el-menu-item index="/graph">
-          <el-icon><Connection /></el-icon>
-          <span>知识图谱</span>
-        </el-menu-item>
         <el-menu-item index="/laws">
           <el-icon><Reading /></el-icon>
           <span>法规浏览</span>

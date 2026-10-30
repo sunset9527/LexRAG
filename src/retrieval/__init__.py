@@ -13,12 +13,6 @@ except ImportError:
     CaseRetrievalResult = None
 
 try:
-    from .graph_retriever import GraphRetrievalResult, GraphRetriever
-except ImportError:
-    GraphRetriever = None
-    GraphRetrievalResult = None
-
-try:
     from .bm25_retriever import BM25Result, BM25Retriever
 except ImportError:
     BM25Retriever = None
@@ -55,8 +49,6 @@ __all__ = [
     "RetrievalResult",
     "CaseRetriever",
     "CaseRetrievalResult",
-    "GraphRetriever",
-    "GraphRetrievalResult",
     "BM25Retriever",
     "BM25Result",
     "reciprocal_rank_fusion",

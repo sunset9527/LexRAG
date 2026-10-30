@@ -88,7 +88,6 @@ def test_runtime_probe_builder_checks_all_required_dependencies_with_injection()
         redis_client_factory=lambda _url: FakeRedis(),
         redis_url="redis://safe",
         embedding_loader=lambda: calls.append("embedding"),
-        graph_checker=lambda: calls.append("graph"),
         statute_checker=lambda: calls.append("statutes"),
     )
 
@@ -100,10 +99,9 @@ def test_runtime_probe_builder_checks_all_required_dependencies_with_injection()
         "migration": "ready",
         "redis": "ready",
         "embedding": "ready",
-        "graph": "ready",
         "statutes": "ready",
     }
-    assert calls == ["database", "migration", "redis", "embedding", "graph", "statutes"]
+    assert calls == ["database", "migration", "redis", "embedding", "statutes"]
 
 
 def test_runtime_migration_probe_rejects_a_database_not_at_alembic_head() -> None:
@@ -129,7 +127,6 @@ def test_runtime_migration_probe_rejects_a_database_not_at_alembic_head() -> Non
         redis_client_factory=lambda _url: type("Redis", (), {"ping": lambda self: True})(),
         redis_url="redis://safe",
         embedding_loader=lambda: None,
-        graph_checker=lambda: None,
         statute_checker=lambda: None,
     )
 
@@ -137,45 +134,6 @@ def test_runtime_migration_probe_rejects_a_database_not_at_alembic_head() -> Non
 
     assert report.components["database"] == "ready"
     assert report.components["migration"] == "not_ready"
-
-
-def test_graph_readiness_reports_safe_not_ready_when_persisted_artifact_is_missing(
-    tmp_path: Path,
-) -> None:
-    """The API fallback graph must never make a missing persisted graph ready."""
-
-    from app.services.readiness_probes import check_persisted_law_graph
-
-    missing_graph = tmp_path / "law_graph.json"
-    report = ReadinessService({"graph": lambda: check_persisted_law_graph(missing_graph)}).check()
-
-    assert report.ready is False
-    assert report.components == {"graph": "not_ready"}
-    assert str(missing_graph) not in str(report)
-
-
-def test_graph_readiness_reports_safe_not_ready_when_persisted_artifact_is_empty(
-    tmp_path: Path,
-) -> None:
-    """Syntactically valid JSON without graph data is not a usable graph artifact."""
-
-    from app.services.readiness_probes import check_persisted_law_graph
-
-    graph_path = tmp_path / "law_graph.json"
-    graph_path.write_text('{"metadata": {}, "nodes": [], "edges": []}', encoding="utf-8")
-    report = ReadinessService({"graph": lambda: check_persisted_law_graph(graph_path)}).check()
-
-    assert report.ready is False
-    assert report.components == {"graph": "not_ready"}
-    assert str(graph_path) not in str(report)
-
-
-def test_api_graph_readiness_checker_reads_the_persisted_artifact() -> None:
-    """Readiness must not inspect the in-memory empty fallback graph."""
-
-    source = (Path(__file__).parent.parent / "api.py").read_text(encoding="utf-8")
-
-    assert "check_persisted_law_graph(law_graph_path)" in source
 
 
 def test_api_declares_separate_live_and_readiness_routes() -> None:
@@ -223,5 +181,4 @@ def test_api_wires_all_runtime_readiness_probes_without_startup_mutations() -> N
     assert '"migration"' in source
     assert '"redis"' in source
     assert '"embedding"' in source
-    assert '"graph"' in source
     assert '"statutes"' in source

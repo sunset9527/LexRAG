@@ -268,7 +268,7 @@ class IntentRouter:
             IntentType.CASE_QUERY: "case_retriever",
             IntentType.LEGAL_APPLICATION: "law_retriever",
             IntentType.COMPARISON: "law_retriever",
-            IntentType.ANALYSIS: "graph_retriever",
+            IntentType.ANALYSIS: "law_retriever",
             IntentType.CLARIFICATION: "law_retriever",
             IntentType.UNKNOWN: "law_retriever",
         }

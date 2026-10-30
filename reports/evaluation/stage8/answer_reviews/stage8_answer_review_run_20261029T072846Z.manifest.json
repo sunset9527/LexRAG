@@ -1,0 +1,21 @@
+{
+  "counts": {
+    "completed": 15,
+    "execution_error": 85,
+    "total": 100
+  },
+  "result": {
+    "path": "stage8_answer_review_run_20261029T072846Z.jsonl",
+    "sha256": "560f4772c13aceab642586c3e1f3a74b7d7643c59c0a41fff3b0bd4a71b87e71"
+  },
+  "run": {
+    "api_base_url": "http://127.0.0.1:8000",
+    "max_attempts": 2,
+    "minimum_interval_seconds": 1.1,
+    "record_limit": null,
+    "sample_sha256": "822c07f2d65b24f1e28bc35a4a885f638f772b90dbf8f908adc59d5c7afb3322",
+    "timeout_seconds": 90.0
+  },
+  "schema": "lexrag.stage8-answer-review-run",
+  "version": 1
+}

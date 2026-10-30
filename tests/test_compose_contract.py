@@ -63,7 +63,7 @@ def test_model_seed_and_runtime_data_mounts_are_isolated():
     assert "${LEXRAG_LOCAL_EMBEDDING_MODEL_PATH:?set LEXRAG_LOCAL_EMBEDDING_MODEL_PATH}:/models/bge-m3:ro" in runtime_volumes
     assert "lexrag_chroma:/app/data/chroma_db" in runtime_volumes
     assert "lexrag_uploads:/app/data/uploads" in runtime_volumes
-    assert "lexrag_graphs:/app/data/runtime_graphs" in runtime_volumes
+    assert all("graph" not in volume for volume in runtime_volumes)
     assert ":/app/data" not in runtime_volumes
     assert "./data/laws:/app/data/laws" not in runtime_volumes
 
@@ -90,7 +90,6 @@ def test_volume_permissions_are_initialized_before_non_root_bootstrap():
     assert set(volume_init["volumes"]) == {
         "lexrag_chroma:/app/data/chroma_db",
         "lexrag_uploads:/app/data/uploads",
-        "lexrag_graphs:/app/data/runtime_graphs",
         "lexrag_law_snapshots:/app/data/law_snapshots",
     }
     assert services["bootstrap"]["depends_on"]["volume-init"]["condition"] == (

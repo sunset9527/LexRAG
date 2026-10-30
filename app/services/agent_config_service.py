@@ -11,7 +11,6 @@ from app.models.agent_config import AgentConfig
 class AgentConfigService:
     _DEFAULTS = {
         "case_search_enabled": True,
-        "graph_search_enabled": True,
         "top_k": 5,
         "timeout_seconds": 30,
         "model_alias": "browser-configured",
@@ -62,7 +61,7 @@ class AgentConfigService:
             or not 5 <= values["timeout_seconds"] <= 120
         ):
             raise ValueError("timeout_seconds 必须是 5 到 120 的整数")
-        for key in ("case_search_enabled", "graph_search_enabled"):
+        for key in ("case_search_enabled",):
             if not isinstance(values[key], bool):
                 raise ValueError(f"{key} 必须为布尔值")
         if not isinstance(values["model_alias"], str) or not 1 <= len(values["model_alias"]) <= 64:

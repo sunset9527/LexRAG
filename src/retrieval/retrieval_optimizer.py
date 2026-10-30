@@ -205,7 +205,7 @@ def build_references_map(metadatas: list[dict[str, Any]]) -> dict[str, set[str]]
     从全部 chunk metadata 构建 条号 -> 被引用条号集合 映射（多 chunk 取并集）。
 
     与 build_chapter_article_map 同源（整库 metadata 懒加载一次），
-    作为 expand_by_references 的引用图边集合（等价于 law_graph 的 cites 边）。
+    作为 expand_by_references 的轻量引用关系集合。
     """
     ref_map: dict[str, set[str]] = {}
     for md in metadatas:
@@ -236,12 +236,12 @@ def expand_by_references(
     max_add: int = 3,
 ) -> set[int]:
     """
-    引用图增强召回：对检索命中的条文，沿引用边做受限 BFS 扩展。
+    引用关系增强召回：对检索命中的条文，沿 metadata 引用关系做受限扩展。
 
     边来源：metadata.referenced_articles（如 第402条 -> ['第395条']），
     双向扩展（命中条文引用他条 / 他条引用命中条文），最多 max_hops 跳、
     最多补充 max_add 条，且只保留知识库中真实存在的条文。
-    与 graph_retriever 的 BFS 同构，此处直接用 metadata 边，无需预构建图谱。
+    此处直接读取 metadata，无需构建独立图数据或维护额外运行时依赖。
 
     Args:
         article_numbers: 检索命中的条号列表（字符串或数字均可）

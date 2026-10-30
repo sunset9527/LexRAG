@@ -1,0 +1,72 @@
+{
+  "schema": "lexrag.stage8-answer-review-reviewed",
+  "version": 1,
+  "reviewed_file": {
+    "path": "stage8_answer_review_merged_100.jsonl",
+    "sha256": "69d3d4670fb9f748f9cab90b489d7368ffc21ec2c43144f074f3fad8fb99fae1"
+  },
+  "pre_review_file": {
+    "path": "stage8_answer_review_merged_100.pending.bak.jsonl",
+    "sha256": "881ab4f9f56170d4d46589fbf458063ebc65296f49302ea17e9387bd834c9511"
+  },
+  "superseded_manifest": {
+    "path": "stage8_answer_review_merged_100.manifest.json",
+    "result_sha256_before_review": "881ab4f9f56170d4d46589fbf458063ebc65296f49302ea17e9387bd834c9511",
+    "action_required": "update result.sha256 to reviewed_file.sha256, or regenerate via merge CLI (which would overwrite human review fields)"
+  },
+  "reviewer": "高志远",
+  "reviewed_at": "2026-10-29T22:31:04+08:00",
+  "review_criteria": "true when the answer's material legal claims are supported by the cited current text and the answer addresses the question; false otherwise (including non-answers caused by retrieval failure).",
+  "counts": {
+    "total": 100,
+    "human_review_true": 97,
+    "human_review_false": 3,
+    "approved": 97,
+    "rejected": 3,
+    "abstain_approved": 20,
+    "answerable_approved": 77
+  },
+  "by_question_type": {
+    "adjacent_or_confusable|approved": 11,
+    "adjacent_or_confusable|rejected": 1,
+    "baseline_direct_lookup|approved": 31,
+    "cross_law|approved": 12,
+    "insufficient_facts_abstention|approved": 20,
+    "multi_hop|approved": 8,
+    "multi_hop|rejected": 2,
+    "oral_without_law_name|approved": 15
+  },
+  "rejected_ids": [
+    "round2-adjacent-038",
+    "round2-multihop-009",
+    "round2-multihop-020"
+  ],
+  "findings": {
+    "retrieval_failure_non_answers": [
+      "round2-multihop-009",
+      "round2-adjacent-038",
+      "round2-multihop-020"
+    ],
+    "dataset_expected_article_version_drift": [
+      "company-002",
+      "company-006",
+      "company-009",
+      "copyright-010",
+      "patent-005"
+    ],
+    "citation_deviation_but_correct": [
+      "round2-oral-026",
+      "round2-oral-045",
+      "round2-oral-050",
+      "round2-adjacent-004",
+      "round2-multihop-011",
+      "round2-multihop-013",
+      "round2-multihop-014",
+      "round2-multihop-016",
+      "round2-multihop-029",
+      "round2-cross-011",
+      "round2-cross-024"
+    ]
+  },
+  "report": "STAGE8_ANSWER_REVIEW_20261029.md"
+}

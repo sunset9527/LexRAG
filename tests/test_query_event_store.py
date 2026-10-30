@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from threading import Barrier, Event, Lock, Thread, local
 
+from app.services import query_event_store
 from app.services.query_event_store import InMemoryQueryEventStore, RedisQueryEventStore
 
 
@@ -38,6 +39,18 @@ def test_event_store_marks_a_run_cancelled_once_and_emits_the_terminal_event():
     assert store.request_cancel("run-1") is False
     assert store.is_cancel_requested("run-1") is True
     assert [event.type for event in store.events_after("run-1")] == ["cancelled"]
+
+
+def test_event_store_factory_falls_back_to_in_memory_when_redis_is_unreachable():
+    """本地单进程开发没有 Redis 时，SSE 查询仍应可受理。"""
+
+    class UnreachableRedis:
+        def ping(self):
+            raise ConnectionError("connection refused")
+
+    factory = getattr(query_event_store, "create_query_event_store", lambda _client: None)
+
+    assert isinstance(factory(UnreachableRedis()), InMemoryQueryEventStore)
 
 
 class FakeRedis:

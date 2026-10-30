@@ -34,7 +34,6 @@ class RetrievalContext:
 
     law_results: list[dict[str, Any]] = field(default_factory=list)
     case_results: list[dict[str, Any]] = field(default_factory=list)
-    graph_results: list[dict[str, Any]] = field(default_factory=list)
     context_text: str = ""
 
 

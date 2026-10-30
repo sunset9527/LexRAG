@@ -27,7 +27,6 @@ class MemberRoleRequest(BaseModel):
 
 class AgentConfigRequest(BaseModel):
     case_search_enabled: bool | None = None
-    graph_search_enabled: bool | None = None
     top_k: int | None = Field(default=None, ge=1, le=20)
     timeout_seconds: int | None = Field(default=None, ge=5, le=120)
     model_alias: str | None = Field(default=None, min_length=1, max_length=64)

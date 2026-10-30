@@ -250,8 +250,8 @@ def test_query_rejects_invalid_runtime_base_url_before_cache_or_llm(monkeypatch)
     assert "Base URL" in response.json()["detail"]
 
 
-def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypatch):
-    """缓存未命中时应调用 Graph 入口，并显式传入非敏感请求上下文。"""
+def test_query_invokes_evidence_workflow_with_scoped_collection_and_request_context(monkeypatch):
+    """缓存未命中时调用证据工作流，并显式传入非敏感请求上下文。"""
 
     memory_turns = [
         {
@@ -319,7 +319,7 @@ def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypa
                         source_url=None,
                         content_hash=None,
                         source_type="statute",
-                        retrieval_paths=["vector", "graph"],
+                        retrieval_paths=["vector"],
                     )
                 ],
                 verification_status="pass",
@@ -337,12 +337,15 @@ def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypa
             "knowledge_base_service": FakeKnowledgeBaseService(),
             "query_cache_service": None,
             "case_retriever": None,
-            "graph_retriever": None,
             "query_rewriter": None,
             "query_runtime_registry": runtime_registry,
         },
     )
-    monkeypatch.setattr(api, "LawIndexer", FakeIndexer)
+    monkeypatch.setattr(
+        api,
+        "build_runtime_vectorstore",
+        lambda _collection_name, **_kwargs: FakeIndexer().vectorstore,
+    )
     monkeypatch.setattr(api, "LawRetriever", lambda **_kwargs: object())
     monkeypatch.setattr(api, "create_llm", lambda **_kwargs: object())
     monkeypatch.setattr(api, "LegalEvidenceWorkflow", FakeWorkflow)
@@ -368,7 +371,7 @@ def test_query_invokes_graph_with_scoped_collection_and_request_context(monkeypa
     assert response.status_code == 200
     assert response.json()["answer"] == "合同成立需符合要约与承诺等条件。"
     assert response.json()["citations"][0]["source_type"] == "statute"
-    assert response.json()["citations"][0]["retrieval_paths"] == ["vector", "graph"]
+    assert response.json()["citations"][0]["retrieval_paths"] == ["vector"]
     assert observed == {
         "question": "合同成立需要满足哪些条件？",
         "knowledge_base_slugs": ["civil-code"],
@@ -389,12 +392,13 @@ def test_api_constructs_operation_llms_with_stage_budgets(monkeypatch):
     created = []
     monkeypatch.setattr(api, "create_llm", lambda **kwargs: created.append(kwargs) or object())
 
-    api.build_runtime_operation_llms(
+    operations = api.build_runtime_operation_llms(
         api_key="test-key",
         base_url="https://api.example.test/v1",
         model="test-model",
     )
 
+    assert set(operations) == {"answer", "planning", "repair"}
     assert {(item["request_timeout"], item["max_retries"]) for item in created} == {
         (
             api.settings.runtime_llm_planning_timeout_seconds,
@@ -409,6 +413,42 @@ def test_api_constructs_operation_llms_with_stage_budgets(monkeypatch):
             api.settings.runtime_llm_repair_max_retries,
         ),
     }
+
+
+def test_runtime_vectorstore_uses_configured_payload_without_opening_persistent_source(monkeypatch):
+    observed = {}
+
+    class Registry:
+        def get_or_create_chroma_client(self, *_args, **_kwargs):
+            pytest.fail("payload mode must not open persistent Chroma")
+
+    monkeypatch.setattr(api.settings, "runtime_vector_payload_path", "runtime-payload.json.gz")
+    monkeypatch.setattr(
+        api,
+        "build_ephemeral_vectorstore_from_artifact",
+        lambda **kwargs: observed.update(kwargs) or object(),
+    )
+
+    result = api.build_runtime_vectorstore("kb_civil_code_v_test", runtime_registry=Registry())
+
+    assert result is not None
+    assert observed["artifact_path"] == "runtime-payload.json.gz"
+    assert observed["collection_name"] == "kb_civil_code_v_test"
+
+
+def test_runtime_payload_mode_uses_verified_artifact_for_version_collection_readiness(monkeypatch):
+    monkeypatch.setattr(api.settings, "runtime_vector_payload_path", "runtime-payload.json.gz")
+    monkeypatch.setattr(
+        api,
+        "has_verified_runtime_collection",
+        lambda artifact_path, collection_name: (
+            artifact_path == "runtime-payload.json.gz"
+            and collection_name == "kb_civil_code_v_test"
+        ),
+    )
+
+    assert api.runtime_collection_is_ready("kb_civil_code_v_test") is True
+    assert api.runtime_collection_is_ready("kb_civil_code_v_unknown") is False
 
 
 def test_only_verified_evidence_workflow_results_are_cacheable():

@@ -184,6 +184,27 @@ def test_new_collection_is_created_with_identity_metadata_and_existing_one_is_va
     ]
 
 
+def test_existing_collection_is_read_without_recreating_it():
+    identity = EmbeddingIndexIdentity("local", "BAAI/bge-m3", 1024, True, 1)
+
+    class Client:
+        def __init__(self):
+            self.collection = SimpleNamespace(metadata=identity.collection_metadata())
+            self.created = False
+
+        def get_collection(self, *, name):
+            assert name == "law_articles"
+            return self.collection
+
+        def get_or_create_collection(self, *_args, **_kwargs):
+            self.created = True
+            raise AssertionError("must not recreate existing collection")
+
+    client = Client()
+    assert get_or_create_identity_collection(client, "law_articles", identity) is client.collection
+    assert client.created is False
+
+
 def test_local_provider_missing_directory_fails_without_zhipu_fallback(tmp_path):
     clear_embedding_cache()
 

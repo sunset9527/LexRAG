@@ -143,8 +143,14 @@ def test_nginx_preserves_api_rewrite_and_proxy_operational_contracts():
     nginx = (ROOT / "frontend" / "nginx.conf").read_text(encoding="utf-8")
 
     assert "location /api/ {" in nginx
-    # The trailing slash deliberately maps browser /api/query to backend /query.
-    assert "proxy_pass http://api:8000/;" in nginx
+    # Docker can recreate the API container with a new IP. Resolve the service
+    # name at request time rather than caching the startup address in Nginx.
+    assert "resolver 127.0.0.11 ipv6=off valid=10s;" in nginx
+    assert "set $api_upstream api;" in nginx
+    # The rewrite deliberately maps browser /api/query to backend /query.
+    assert "rewrite ^/api/(.*)$ /$1 break;" in nginx
+    assert "proxy_pass http://$api_upstream:8000;" in nginx
+    assert "proxy_pass http://api:8000/;" not in nginx
     assert "client_max_body_size 50m;" in nginx
     assert "proxy_connect_timeout 10s;" in nginx
     assert "proxy_read_timeout 120s;" in nginx

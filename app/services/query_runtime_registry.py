@@ -12,6 +12,7 @@ class QueryRuntimeRegistry:
 
     def __init__(self) -> None:
         self._items: dict[str, Any] = {}
+        self._chroma_clients: dict[str, Any] = {}
         self._lock = Lock()
 
     def get_or_create(self, collection_name: str, factory: Callable[[], Any]) -> Any:
@@ -26,3 +27,13 @@ class QueryRuntimeRegistry:
     def invalidate(self, collection_name: str) -> None:
         with self._lock:
             self._items.pop(collection_name, None)
+
+    def get_or_create_chroma_client(self, directory: str, factory: Callable[[], Any]) -> Any:
+        """Reuse one embedded Chroma client per persistent directory."""
+        with self._lock:
+            existing = self._chroma_clients.get(directory)
+            if existing is not None:
+                return existing
+            created = factory()
+            self._chroma_clients[directory] = created
+            return created

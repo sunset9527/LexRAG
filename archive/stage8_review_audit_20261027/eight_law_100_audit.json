@@ -1,0 +1,4964 @@
+{
+  "summary": {
+    "input_rows": 100,
+    "readable_rows": 100,
+    "ready_rows": 0,
+    "not_ready_rows": 100,
+    "malformed_rows": 0,
+    "issue_counts": {
+      "approved_pending_evidence": 85,
+      "invalid_reviewed_at": 100,
+      "missing_difficulty": 100,
+      "missing_expected_knowledge_base_slugs": 100,
+      "missing_question": 100,
+      "missing_question_type": 100,
+      "missing_review_note": 100,
+      "missing_reviewer": 100,
+      "missing_should_abstain": 100,
+      "missing_source_url": 100,
+      "missing_source_version": 100
+    }
+  },
+  "rows": [
+    {
+      "line_number": 1,
+      "id": "civil-001",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 2,
+      "id": "civil-002",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 3,
+      "id": "civil-003",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 4,
+      "id": "civil-004",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 5,
+      "id": "civil-005",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 6,
+      "id": "civil-006",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 7,
+      "id": "civil-007",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 8,
+      "id": "civil-008",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 9,
+      "id": "civil-009",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 10,
+      "id": "civil-010",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 11,
+      "id": "civil-011",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 12,
+      "id": "civil-012",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 13,
+      "id": "civil-013",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 14,
+      "id": "civil-014",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 15,
+      "id": "civil-015",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        }
+      ]
+    },
+    {
+      "line_number": 16,
+      "id": "civil-016",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 17,
+      "id": "civil-017",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 18,
+      "id": "civil-018",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 19,
+      "id": "civil-019",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 20,
+      "id": "civil-020",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 21,
+      "id": "civil-021",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 22,
+      "id": "civil-022",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 23,
+      "id": "civil-023",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 24,
+      "id": "civil-024",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 25,
+      "id": "civil-025",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 26,
+      "id": "civil-026",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 27,
+      "id": "civil-027",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 28,
+      "id": "civil-028",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 29,
+      "id": "civil-029",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 30,
+      "id": "civil-030",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 31,
+      "id": "criminal-001",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 32,
+      "id": "criminal-002",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 33,
+      "id": "criminal-003",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 34,
+      "id": "criminal-004",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 35,
+      "id": "criminal-005",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 36,
+      "id": "criminal-006",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 37,
+      "id": "criminal-007",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 38,
+      "id": "criminal-008",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 39,
+      "id": "criminal-009",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 40,
+      "id": "criminal-010",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 41,
+      "id": "criminal-011",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 42,
+      "id": "criminal-012",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 43,
+      "id": "criminal-013",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 44,
+      "id": "criminal-014",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 45,
+      "id": "criminal-015",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 46,
+      "id": "labor-001",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 47,
+      "id": "labor-002",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 48,
+      "id": "labor-003",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 49,
+      "id": "labor-004",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 50,
+      "id": "labor-005",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 51,
+      "id": "labor-006",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 52,
+      "id": "labor-007",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 53,
+      "id": "labor-008",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 54,
+      "id": "labor-009",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 55,
+      "id": "labor-010",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 56,
+      "id": "labor-contract-001",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 57,
+      "id": "labor-contract-002",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 58,
+      "id": "labor-contract-003",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 59,
+      "id": "labor-contract-004",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 60,
+      "id": "labor-contract-005",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 61,
+      "id": "labor-contract-006",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 62,
+      "id": "labor-contract-007",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 63,
+      "id": "labor-contract-008",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 64,
+      "id": "labor-contract-009",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 65,
+      "id": "labor-contract-010",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 66,
+      "id": "company-001",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 67,
+      "id": "company-002",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 68,
+      "id": "company-003",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 69,
+      "id": "company-004",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 70,
+      "id": "company-005",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 71,
+      "id": "company-006",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 72,
+      "id": "company-007",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 73,
+      "id": "company-008",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 74,
+      "id": "company-009",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 75,
+      "id": "company-010",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 76,
+      "id": "patent-001",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 77,
+      "id": "patent-002",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 78,
+      "id": "patent-003",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 79,
+      "id": "patent-004",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 80,
+      "id": "patent-005",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 81,
+      "id": "trademark-001",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 82,
+      "id": "trademark-002",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 83,
+      "id": "trademark-003",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 84,
+      "id": "trademark-004",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 85,
+      "id": "trademark-005",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 86,
+      "id": "trademark-006",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 87,
+      "id": "trademark-007",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 88,
+      "id": "trademark-008",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 89,
+      "id": "trademark-009",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 90,
+      "id": "trademark-010",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 91,
+      "id": "copyright-001",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 92,
+      "id": "copyright-002",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 93,
+      "id": "copyright-003",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 94,
+      "id": "copyright-004",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 95,
+      "id": "copyright-005",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 96,
+      "id": "copyright-006",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 97,
+      "id": "copyright-007",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 98,
+      "id": "copyright-008",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 99,
+      "id": "copyright-009",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    },
+    {
+      "line_number": 100,
+      "id": "copyright-010",
+      "issues": [
+        {
+          "code": "missing_difficulty",
+          "message": "缺少 Stage 8 必填字段 difficulty"
+        },
+        {
+          "code": "missing_expected_knowledge_base_slugs",
+          "message": "缺少 Stage 8 必填字段 expected_knowledge_base_slugs"
+        },
+        {
+          "code": "missing_question",
+          "message": "缺少 Stage 8 必填字段 question"
+        },
+        {
+          "code": "missing_question_type",
+          "message": "缺少 Stage 8 必填字段 question_type"
+        },
+        {
+          "code": "missing_review_note",
+          "message": "缺少 Stage 8 必填字段 review_note"
+        },
+        {
+          "code": "missing_reviewer",
+          "message": "缺少 Stage 8 必填字段 reviewer"
+        },
+        {
+          "code": "missing_should_abstain",
+          "message": "缺少 Stage 8 必填字段 should_abstain"
+        },
+        {
+          "code": "missing_source_url",
+          "message": "缺少 Stage 8 必填字段 source_url"
+        },
+        {
+          "code": "missing_source_version",
+          "message": "缺少 Stage 8 必填字段 source_version"
+        },
+        {
+          "code": "invalid_reviewed_at",
+          "message": "字段 reviewed_at 尚未满足 Stage 8 要求"
+        },
+        {
+          "code": "approved_pending_evidence",
+          "message": "approved 样本的来源或审核记录包含待人工核验标记"
+        }
+      ]
+    }
+  ]
+}

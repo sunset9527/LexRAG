@@ -1,0 +1,9 @@
+{
+  "base_url": "https://api.deepseek.com",
+  "kind": "judge",
+  "model": "deepseek-chat",
+  "prompt_version": "stage8-diagnostic-judge-v2",
+  "provider": "openai-compatible",
+  "temperature": 0.0,
+  "timeout_seconds": 45
+}

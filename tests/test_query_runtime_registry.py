@@ -25,6 +25,17 @@ def test_registry_reuses_one_runtime_per_collection_and_invalidates_only_that_co
     assert built == ["v1", "criminal", "v1-refresh"]
 
 
+def test_registry_reuses_one_chroma_client_for_multiple_collections():
+    registry = QueryRuntimeRegistry()
+    built = []
+
+    first = registry.get_or_create_chroma_client("C:/indexes", lambda: built.append("client") or object())
+    again = registry.get_or_create_chroma_client("C:/indexes", lambda: built.append("unexpected") or object())
+
+    assert first is again
+    assert built == ["client"]
+
+
 def test_rebuild_invalidates_only_its_collection_runtime(monkeypatch):
     invalidated = []
 

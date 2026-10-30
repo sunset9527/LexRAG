@@ -1,0 +1,51 @@
+{
+  "counts": {
+    "completed": 99,
+    "execution_errors": 1,
+    "selected": 100,
+    "total_reviewed": 100
+  },
+  "error_ids": [
+    "round2-cross-038"
+  ],
+  "inputs": {
+    "results": {
+      "path": "stage8_ragas_100_recovered.jsonl",
+      "sha256": "73e8239772a6e4bfdf40a5f9680d31facb875030cb619355770a37c122c7c833"
+    },
+    "review": {
+      "path": "stage8_answer_review_merged_100.jsonl",
+      "sha256": "69d3d4670fb9f748f9cab90b489d7368ffc21ec2c43144f074f3fad8fb99fae1"
+    },
+    "review_manifest": {
+      "path": "stage8_answer_review_merged_100.review_manifest.json",
+      "sha256": "0bb026d088575b8c1e572f0adfd5cdc164e4185789b175f27e7850982c069a50"
+    }
+  },
+  "metric_means": {
+    "context_precision_without_reference": 0.8869809202479663,
+    "faithfulness": 0.738720864725651
+  },
+  "recovery": {
+    "retried": 50,
+    "reused_completed": 50
+  },
+  "schema": "lexrag.stage8-ragas-diagnostic",
+  "status": "INCOMPLETE",
+  "supported_metrics": [
+    "context_precision_without_reference",
+    "faithfulness"
+  ],
+  "unsupported_metric_reasons": {
+    "answer_correctness": "reference_answer_missing",
+    "answer_relevancy": "embedding_configuration_missing",
+    "context_recall": "reference_answer_missing",
+    "factual_correctness": "reference_answer_missing"
+  },
+  "unsupported_metrics": [
+    "answer_correctness",
+    "context_recall",
+    "factual_correctness"
+  ],
+  "version": 1
+}

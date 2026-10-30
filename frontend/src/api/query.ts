@@ -118,12 +118,6 @@ export interface LawDocument {
   version?: string
 }
 
-export interface GraphData {
-  statistics: Record<string, any>
-  most_cited: Array<{ article: string; count: number }>
-  visualization_data: any
-}
-
 export const queryApi = {
   ask(data: QueryRequest): Promise<QueryResponse> {
     return client.post('/query', data).then((r) => r.data)
@@ -157,14 +151,6 @@ export const queryApi = {
 
   uploadLaw(data: LawDocument): Promise<any> {
     return client.post('/upload', data).then((r) => r.data)
-  },
-
-  getGraph(lawName?: string): Promise<GraphData & { available_laws?: string[] }> {
-    return client.get('/graph', { params: lawName ? { law_name: lawName } : undefined }).then((r) => r.data)
-  },
-
-  queryGraph(params: { article_id?: string; source?: string; target?: string }): Promise<any> {
-    return client.post('/graph/query', params).then((r) => r.data)
   },
 
   getHealth(): Promise<any> {

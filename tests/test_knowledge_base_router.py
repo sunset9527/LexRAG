@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 from app.api.knowledge_bases import list_knowledge_bases
 from app.runtime import RuntimeContainer
+from src.retrieval.knowledge_base_router import KnowledgeBaseRouter
 
 
 class FakeKnowledgeBaseService:
@@ -21,3 +22,13 @@ def test_knowledge_base_router_reads_visible_libraries_from_runtime() -> None:
     assert response.model_dump() == {
         "items": [{"slug": "civil-code", "status": "READY"}],
     }
+
+
+def test_knowledge_base_router_routes_adult_age_question_to_civil_code() -> None:
+    decision = KnowledgeBaseRouter().route(
+        "成年人是指年满多少周岁？",
+        [{"slug": "civil-code"}, {"slug": "criminal-law"}],
+    )
+
+    assert decision.mode == "automatic"
+    assert decision.selected_slugs == ["civil-code"]

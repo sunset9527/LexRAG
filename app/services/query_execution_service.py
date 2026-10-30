@@ -227,7 +227,6 @@ def route_evidence_workflow(question: str) -> RouteDecision:
     comparative = any(word in normalized for word in ("区别", "对比", "不同", "分别"))
     procedural = any(word in normalized for word in ("怎么办", "流程", "仲裁", "起诉", "维权"))
     include_case = any(word in normalized for word in ("案例", "判例", "法院怎么判"))
-    include_graph = comparative or any(word in normalized for word in ("依据", "关联", "适用"))
     intent = (
         "comparative"
         if comparative
@@ -237,4 +236,4 @@ def route_evidence_workflow(question: str) -> RouteDecision:
         if include_case
         else "factual"
     )
-    return RouteDecision(intent=intent, include_case=include_case, include_graph=include_graph)
+    return RouteDecision(intent=intent, include_case=include_case)

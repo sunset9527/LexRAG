@@ -281,7 +281,6 @@ function workflowNodeLabel(node: string): string {
     routing: '检索路由',
     statute_retrieval: '法条检索',
     case_retrieval: '案例检索',
-    graph_retrieval: '图谱检索',
     evidence_ledger: '证据汇总',
     answer: '回答生成',
     citation_verifier: '引用校验',

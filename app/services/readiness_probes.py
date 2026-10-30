@@ -10,9 +10,6 @@ from typing import Any
 from sqlalchemy import text
 
 from app.services.readiness_service import ReadinessProbe
-from src.graph.law_graph import LawGraph
-
-
 @dataclass(frozen=True)
 class RuntimeReadinessDependencies:
     """Injectable dependency surface so probes remain fast unit-test contracts."""
@@ -22,7 +19,6 @@ class RuntimeReadinessDependencies:
     redis_client_factory: Callable[[str], Any]
     redis_url: str
     embedding_loader: Callable[[], object]
-    graph_checker: Callable[[], None]
     statute_checker: Callable[[], None]
     timeouts: Mapping[str, float] = field(default_factory=dict)
 
@@ -37,25 +33,6 @@ def alembic_head_revision(project_root: Path) -> str:
 
     config = Config(str(project_root / "alembic.ini"))
     return ScriptDirectory.from_config(config).get_current_head()
-
-
-def check_persisted_law_graph(graph_path: Path) -> None:
-    """Fail closed unless the configured graph artifact is readable and useful.
-
-    API request handling may deliberately retain an empty in-memory graph when a
-    graph artifact is unavailable.  That compatibility fallback is not evidence
-    that graph retrieval can serve production traffic, so readiness validates the
-    persisted artifact independently.
-    """
-    if not graph_path.is_file():
-        raise RuntimeError("GRAPH_ARTIFACT_MISSING")
-
-    try:
-        graph = LawGraph.from_json(str(graph_path))
-        if graph.graph.number_of_nodes() == 0:
-            raise ValueError("GRAPH_ARTIFACT_EMPTY")
-    except Exception as exc:
-        raise RuntimeError("GRAPH_ARTIFACT_INVALID") from exc
 
 
 def build_runtime_checks(
@@ -94,6 +71,5 @@ def build_runtime_checks(
         "migration": with_timeout("migration", check_migration),
         "redis": with_timeout("redis", check_redis),
         "embedding": with_timeout("embedding", check_embedding),
-        "graph": with_timeout("graph", dependencies.graph_checker),
         "statutes": with_timeout("statutes", dependencies.statute_checker),
     }

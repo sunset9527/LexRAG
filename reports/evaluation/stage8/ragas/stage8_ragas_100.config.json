@@ -1,0 +1,8 @@
+{
+  "base_url": "https://api.deepseek.com",
+  "kind": "ragas",
+  "model": "deepseek-chat",
+  "ragas_version": "0.3.9",
+  "temperature": 0.0,
+  "timeout_seconds": 45
+}

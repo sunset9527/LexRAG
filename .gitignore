@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.docker.stage3
+.env.docker.stage8
 SECRET.md
 
 # Python

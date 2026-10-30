@@ -104,12 +104,30 @@ def get_or_create_identity_collection(
     expected_metadata = identity.collection_metadata()
     if additional_metadata:
         expected_metadata.update(additional_metadata)
-    collection = client.get_or_create_collection(name=collection_name, metadata=expected_metadata)
+    # Opening an existing persistent collection through Chroma's
+    # ``get_or_create_collection`` can trigger a write/backfill path.  That is
+    # unnecessary for immutable verified indexes and has proven incompatible
+    # with some legacy HNSW segments.  Read and validate first; create only
+    # when the collection is genuinely absent.
+    try:
+        collection = client.get_collection(name=collection_name)
+    except (AttributeError, ValueError, _collection_not_found_error()):
+        collection = client.get_or_create_collection(name=collection_name, metadata=expected_metadata)
     assert_collection_identity(collection, identity)
     metadata: Mapping[str, Any] = getattr(collection, "metadata", None) or {}
     if any(metadata.get(key) != value for key, value in (additional_metadata or {}).items()):
         raise IndexIdentityMismatchError()
     return collection
+
+
+def _collection_not_found_error() -> type[Exception]:
+    """Keep identity helpers importable in test-only environments without Chroma."""
+    try:
+        from chromadb.errors import NotFoundError
+
+        return NotFoundError
+    except ImportError:
+        return ValueError
 
 
 def collection_identity_from_settings(settings: Any, *, zhipu_model: str | None = None) -> EmbeddingIndexIdentity:

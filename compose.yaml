@@ -14,14 +14,12 @@ x-runtime-environment: &runtime-environment
   LOCAL_EMBEDDING_MODEL_PATH: /models/bge-m3
   CHROMA_PERSIST_DIRECTORY: /app/data/chroma_db
   DOCUMENT_UPLOADS_PATH: /app/data/uploads
-  LAW_GRAPH_PATH: /app/data/runtime_graphs/law_graph.json
   LAW_UPDATE_SNAPSHOT_DIR: /app/data/law_snapshots
   RUNTIME_LLM_TRUSTED_BASE_URLS: ${RUNTIME_LLM_TRUSTED_BASE_URLS:-https://api.deepseek.com}
 
 x-runtime-volumes: &runtime-volumes
   - lexrag_chroma:/app/data/chroma_db
   - lexrag_uploads:/app/data/uploads
-  - lexrag_graphs:/app/data/runtime_graphs
   - lexrag_law_snapshots:/app/data/law_snapshots
   - ${LEXRAG_LOCAL_EMBEDDING_MODEL_PATH:?set LEXRAG_LOCAL_EMBEDDING_MODEL_PATH}:/models/bge-m3:ro
 
@@ -64,11 +62,10 @@ services:
     user: "0:0"
     command: >-
       sh -c "chown -R appuser:appuser /app/data/chroma_db /app/data/uploads
-      /app/data/runtime_graphs /app/data/law_snapshots"
+      /app/data/law_snapshots"
     volumes:
       - lexrag_chroma:/app/data/chroma_db
       - lexrag_uploads:/app/data/uploads
-      - lexrag_graphs:/app/data/runtime_graphs
       - lexrag_law_snapshots:/app/data/law_snapshots
     restart: "no"
     networks: [lexrag_private]
@@ -209,7 +206,6 @@ volumes:
   lexrag_redis: {}
   lexrag_chroma: {}
   lexrag_uploads: {}
-  lexrag_graphs: {}
   lexrag_law_snapshots: {}
 
 networks:

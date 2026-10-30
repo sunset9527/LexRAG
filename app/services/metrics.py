@@ -21,7 +21,6 @@ _WORKFLOW_NODES = frozenset(
         "routing",
         "statute_retrieval",
         "case_retrieval",
-        "graph_retrieval",
         "evidence_ledger",
         "answer",
         "citation_verifier",

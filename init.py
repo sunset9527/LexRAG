@@ -16,8 +16,6 @@ from config import settings, get_project_root, ensure_directories
 from src.ingestion.law_parser import LawParser
 from src.ingestion.chunker import StructuredLawChunker
 from src.ingestion.indexer import LawIndexer
-from src.graph.builder import GraphBuilder
-from src.graph.law_graph import LawGraph
 
 # 配置日志
 logging.basicConfig(
@@ -86,25 +84,6 @@ def initialize_index():
     return True
 
 
-def initialize_graph():
-    """初始化知识图谱"""
-    logger.info("开始初始化知识图谱...")
-    
-    # 检查预构建的图谱文件
-    graph_file = get_project_root() / "data" / "law_graph.json"
-    
-    if graph_file.exists():
-        # 加载现有图谱
-        logger.info(f"加载已有图谱: {graph_file}")
-        graph = LawGraph.from_json(str(graph_file))
-        stats = graph.get_statistics()
-        logger.info(f"图谱统计: {stats}")
-    else:
-        logger.warning(f"图谱文件不存在: {graph_file}")
-    
-    return True
-
-
 def main():
     """主函数"""
     logger.info("=" * 50)
@@ -120,12 +99,6 @@ def main():
         logger.info("✅ 向量索引初始化成功")
     else:
         logger.error("❌ 向量索引初始化失败")
-    
-    # 初始化图谱
-    if initialize_graph():
-        logger.info("✅ 知识图谱初始化成功")
-    else:
-        logger.error("❌ 知识图谱初始化失败")
     
     logger.info("=" * 50)
     logger.info("初始化完成")

@@ -17,7 +17,6 @@ class AgentConfig(Base):
         Integer, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True
     )
     case_search_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    graph_search_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     top_k: Mapped[int] = mapped_column(Integer, nullable=False, default=5)
     timeout_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=30)
     model_alias: Mapped[str] = mapped_column(

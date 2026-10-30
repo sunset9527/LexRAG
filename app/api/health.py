@@ -32,7 +32,6 @@ def health_check(runtime: RuntimeContainer = Depends(get_runtime)) -> HealthResp
         components={
             "workflow": "ready" if runtime.get("workflow") else "not_ready",
             "law_indexer": "ready" if runtime.get("law_indexer") else "not_ready",
-            "law_graph": "ready" if runtime.get("law_graph") else "not_ready",
         },
     )
 

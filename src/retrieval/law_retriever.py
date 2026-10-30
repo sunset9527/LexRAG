@@ -349,6 +349,7 @@ class LawRetriever:
                 info[key] = {
                     "article_id": str(md.get("article_id", "")),
                     "article": str(md.get("article_number", "?")),
+                    "law_name": str(md.get("law_name", "")),
                     "chapter": str(md.get("chapter", "")),
                     "content": r.content or "",
                     "full": md.get("full_article_content", r.content or ""),
@@ -361,6 +362,7 @@ class LawRetriever:
                 info[key] = {
                     "article_id": str(md.get("article_id", "")),
                     "article": str(md.get("article_number", "?")),
+                    "law_name": str(md.get("law_name", "")),
                     "chapter": str(md.get("chapter", "")),
                     "content": d.page_content or "",
                     "full": md.get("full_article_content", d.page_content or ""),
@@ -391,7 +393,11 @@ class LawRetriever:
                     article_id=val["article_id"]
                     or f"{law_name or '中华人民共和国民法典'}第{art}条",
                     article_number=art,
-                    law_name=law_name or "",
+                    # Runtime multi-knowledge-base retrieval calls this method
+                    # without an externally supplied law name. The persisted
+                    # result metadata remains authoritative; leaving this blank
+                    # makes otherwise valid statutes fail the evidence ledger.
+                    law_name=val["law_name"] or law_name or "",
                     content=val["content"],
                     full_content=val["full"],
                     chapter=val["chapter"],

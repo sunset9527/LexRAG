@@ -15,7 +15,6 @@ from app.services.langfuse_helper import create_llm
 from ..reasoning.multi_hop import MultiHopReasoner
 from ..reasoning.self_verify import SelfVerifier, VerificationStatus
 from ..retrieval.case_retriever import CaseRetriever
-from ..retrieval.graph_retriever import GraphRetriever
 from ..retrieval.intent_router import IntentRouter, IntentType
 from ..retrieval.law_retriever import LawRetriever
 from .state import WorkflowState, WorkflowStatus
@@ -52,7 +51,6 @@ class WorkflowNodes:
         intent_router: IntentRouter,
         law_retriever: LawRetriever,
         case_retriever: CaseRetriever | None = None,
-        graph_retriever: GraphRetriever | None = None,
         multi_hop_reasoner: MultiHopReasoner | None = None,
         self_verifier: SelfVerifier | None = None,
         api_key: str | None = None,
@@ -66,7 +64,6 @@ class WorkflowNodes:
             intent_router: 意图路由器
             law_retriever: 法条检索器
             case_retriever: 案例检索器（可选）
-            graph_retriever: 图谱检索器（可选）
             multi_hop_reasoner: 多跳推理器（可选）
             self_verifier: 自校验器（可选）
             api_key: API密钥
@@ -76,7 +73,6 @@ class WorkflowNodes:
         self.intent_router = intent_router
         self.law_retriever = law_retriever
         self.case_retriever = case_retriever
-        self.graph_retriever = graph_retriever
         self.multi_hop_reasoner = multi_hop_reasoner or MultiHopReasoner(
             api_key=api_key, base_url=base_url, model=model
         )
@@ -153,15 +149,6 @@ class WorkflowNodes:
                     retrieved_docs.extend(
                         [{"content": r.summary, "type": "case"} for r in case_results]
                     )
-
-            elif intent.intent_type == IntentType.ANALYSIS:
-                # 使用图谱检索进行多跳推理
-                if self.graph_retriever and intent.key_entities:
-                    # 从关键实体中提取法条ID
-                    for entity in intent.key_entities[:3]:
-                        if "第" in entity and "条" in entity:
-                            result = self.graph_retriever.retrieve(entity, max_hops=2)
-                            state.retrieval_context.graph_results = result.retrieved_articles
 
             # 默认使用法条检索（v2.0 优化模式：加权RRF + 条号置顶 + 条款组聚合）
             law_results, grouped_context, _ = self.law_retriever.retrieve_optimized(

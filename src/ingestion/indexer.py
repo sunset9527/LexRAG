@@ -40,6 +40,7 @@ class LawIndexer:
         collection_name: str = "law_articles",
         source_hash: str | None = None,
         provenance_metadata: Mapping[str, str] | None = None,
+        client: Any | None = None,
     ):
         """
         初始化索引器
@@ -53,6 +54,7 @@ class LawIndexer:
         self.collection_name = collection_name
         self.source_hash = source_hash
         self.provenance_metadata = dict(provenance_metadata or {})
+        self._provided_client = client
 
         self.index_identity = collection_identity_from_settings(
             settings, zhipu_model=embedding_model
@@ -81,7 +83,7 @@ class LawIndexer:
 
         from chromadb import PersistentClient
 
-        client = PersistentClient(path=self.persist_directory)
+        client = self._provided_client or PersistentClient(path=self.persist_directory)
         extra_metadata = (
             {"lexrag_statute_source_sha256": self.source_hash}
             if self.source_hash is not None
@@ -94,14 +96,10 @@ class LawIndexer:
             additional_metadata=extra_metadata,
         )
         self.vectorstore = Chroma(
-            persist_directory=self.persist_directory,
-            embedding_function=self.embeddings,
             collection_name=self.collection_name,
+            embedding_function=self.embeddings,
+            persist_directory=self.persist_directory,
             client=client,
-            collection_metadata={
-                **self.index_identity.collection_metadata(),
-                **(extra_metadata or {}),
-            },
         )
         logger.info(f"向量存储已初始化: {self.persist_directory}")
 

@@ -15,7 +15,6 @@ from app.api.cases import router as cases_router
 from app.api.dashboard import router as dashboard_router
 from app.api.documents import router as documents_router
 from app.api.favorites import router as favorites_router
-from app.api.graph import router as graph_router
 from app.api.health import router as health_router
 from app.api.intent import router as intent_router
 from app.api.knowledge_bases import router as knowledge_bases_router
@@ -67,7 +66,6 @@ def create_application(*, lifespan: Callable[..., Any]) -> FastAPI:
         sessions_router,
         health_router,
         intent_router,
-        graph_router,
         dashboard_router,
         documents_router,
         knowledge_bases_router,

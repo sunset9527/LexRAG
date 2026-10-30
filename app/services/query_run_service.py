@@ -100,6 +100,11 @@ class QueryRunService:
                 authorization_context=authorization_context,
             )
         except HTTPException as exc:
+            logger.warning(
+                "流式查询被请求层拒绝 query_id=%s http_status=%s",
+                query_id,
+                exc.status_code,
+            )
             if not store.is_cancel_requested(query_id):
                 store.append(query_id, "failed", {"code": f"HTTP_{exc.status_code}"})
             return
