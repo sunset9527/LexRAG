@@ -1,8 +1,17 @@
 # Stage 8 release readiness — 2026-10-29
 
-This report records only evidence produced from the isolated Stage 8 candidate.
+This report records only evidence produced from the isolated Stage 8 candidate
+and its post-merge local verification.
 It does not turn unreviewed answers, diagnostic runs, or environment-limited
 checks into release passes.
+
+## Local integration status (2026-10-30)
+
+The scoped candidate was fast-forward merged into the original repository's
+local `main` branch at commit `6f5f8be`. The merged-main core Stage 8 suite
+then passed 43 tests. This is a local integration record only: no remote push,
+production deployment, full real-stack browser workflow, or credentialed
+Docker runtime query is claimed.
 
 | Gate | Status | Evidence / limitation |
 | --- | --- | --- |
@@ -18,7 +27,7 @@ checks into release passes.
 | SSE/cancellation API suite | passed locally | The user ran `python -m pytest tests\\test_query_run_api.py tests\\test_query_run_service.py tests\\test_query_runtime_registry.py -q` in the project PowerShell: 11/11 passed in 29.26 seconds. Two third-party deprecation warnings were emitted; neither is a test failure. |
 | Browser E2E | smoke passed; full workflow suite pending | The user ran `npm.cmd run test:e2e` locally: Playwright Chromium login entry passed 1/1 in 28.4 seconds. The test intercepts `/api/auth/me`, so it proves browser rendering/routing only—not the documented real backend login, query streaming/citations, session/favorites, upload/task, or RBAC workflows. |
 | Empty-volume Docker cold start/recovery | partially complete | A new, isolated `lexrag-stage8-acceptance` Compose project and five project-named volumes completed config, build, up, migration, bootstrap and readiness checks. API/worker/web were healthy; a real login, authenticated version-chain GET, and document upload task succeeded. A discovered stale-upstream `502` following API recreation was fixed and regression-tested without restarting Web. A credentialed runtime query was not run because no runtime LLM key was supplied to this isolated environment, so the full restart/re-query gate is not a release pass. |
-| Final candidate commit / merge to original repository | pending | Keep isolated worktree changes intact until the above release gates and human review are complete, then review and merge deliberately into `E:\python\LLM\Legal_RAG_Agent`. |
+| Final candidate commit / merge to original repository | complete, scoped local integration | Candidate commit `6f5f8be` was fast-forward merged into local `main`; merged-main Stage 8 core suite passed 43 tests. No remote push is claimed. |
 
 ## Completed human review
 
@@ -27,18 +36,14 @@ human decisions. The three rejected answers must remain visible in follow-up
 diagnostics and release triage; neither the source questions nor their workflow
 outputs may be rewritten to improve the reported rate.
 
-## Local-only commands still needed
+## Non-blocking follow-ups outside the approved local close
 
-Run these from `E:\个人发展\002职业\Legal_RAG_Agent-stage8-freeze` after the
-normal local runtime configuration is present:
-
-```powershell
-# Browser E2E passed locally on 2026-10-30.
-```
-
-The Docker cold-start/recovery command must be chosen only after the real
-`.env` values, the model mount, and the disposable Docker-volume target have
-been verified. It must not reuse this report's placeholders.
+- Run the full real-stack browser workflow: authenticated login, query
+  progress/citations, session/favorites, upload/task entry, and cross-org RBAC.
+- Run one authenticated Docker runtime query with a process-local runtime LLM
+  credential. The Ragas key must not be copied into Docker configuration.
+- Push the local `main` result to a reviewed remote and perform any production
+  release procedure separately.
 
 ## 2026-10-30 follow-up evidence
 
@@ -46,8 +51,8 @@ been verified. It must not reuse this report's placeholders.
 | --- | --- | --- |
 | Runtime-registry contracts | passed | `python -m pytest tests\\test_query_runtime_registry.py -q -o faulthandler_timeout=10 --basetemp=.pytest_stage8_sse_registry` completed 3/3. The run emitted two third-party deprecation warnings. |
 | Query-run service contracts | local acceptance still required | `tests\\test_query_run_service.py` reproduced the Python 3.13 Windows event-loop block. Faulthandler shows `asyncio.run()` stuck in `socket._fallback_socketpair` before LexRAG service code executes. This is neither an SSE pass nor a product failure. |
-| Judge diagnostic plumbing | implemented, diagnostics not run | A strict SHA-bound calibration loader/reducer, credential-free report CLI, and blind OpenAI-compatible Judge runner now exist. A live run still requires a process-local `STAGE8_JUDGE_API_KEY`; Ragas remains unavailable because it is not installed in the verified environment. |
-| Ragas environment | not installed | Ragas 0.4.3 was selected from official installation/PyPI guidance. The shared project environment hit a Windows `huggingface_hub` file lock, while the isolated executor terminated dedicated-environment dependency resolution before completion. No Ragas score is claimed. |
+| Judge diagnostic plumbing | completed later | The strict SHA-bound calibration loader/reducer and blind OpenAI-compatible Judge runner later completed a 100/100 recovery run; the authoritative details appear in the completed Judge section below. |
+| Ragas environment | completed later | The initial shared-environment attempt was abandoned. Ragas 0.3.9 was installed in a dedicated environment and the final 100-row diagnostic is recorded below. |
 
 The historical isolated-runner observations above are superseded for SSE by
 the local PowerShell evidence: the combined API/service/runtime-registry suite
@@ -57,10 +62,12 @@ browser E2E, not backend SSE acceptance.
 ## 2026-10-30 Ragas environment correction and runner evidence
 
 The previous table records the isolated-runner installation attempt only. The
-user subsequently verified the separate evaluation environment
-`E:\\python\\LexRAG-stage8-ragas`: `ragas==0.3.9` imports successfully and
-`pip check` reports no broken requirements. This makes the environment ready;
-it does **not** create a score or close the Judge/Ragas calibration gate.
+user subsequently verified a dedicated evaluation environment with
+`ragas==0.3.9` and a clean `pip check`. It was later recreated in the main
+repository as `.venv-stage8-ragas`; the former external environment was
+removed after that verification. At this point in the chronology the
+environment was ready; it did **not** yet create a score or close the
+Judge/Ragas calibration gate.
 
 `scripts/run_stage8_ragas.py` is now available for the live diagnostic. It
 uses only `STAGE8_RAGAS_API_KEY` from the invoking process, stores no

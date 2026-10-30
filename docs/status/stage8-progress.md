@@ -32,7 +32,7 @@
 
 ### Phase 4: Verification and live evaluation
 
-- **Status:** in_progress
+- **Status:** complete for the approved local integration scope.
 - Actions taken:
   - Ran 234 focused Stage 8/manifest tests: all passed; one pre-existing `pkg_resources` deprecation warning.
   - Ran Ruff, formatting and compilation checks: passed.
@@ -47,7 +47,7 @@
 
 ### Phase 5: Full-answer review preparation
 
-- **Status:** sample ready; awaiting real workflow output and human decisions.
+- **Status:** complete; 100 workflow outputs, human review, and secondary diagnostic calibration are all recorded below.
 - Added the deterministic 100-row review sample at commit `215d4e3`: all 20 abstention rows plus 80 answerable rows allocated as 31 baseline, 15 oral, 12 adjacent/confusable, 12 cross-law, and 10 multi-hop. The sample manifest binds source and sample SHA-256 values; every review field is blank/pending.
 - Implemented a local-only Stage 8 answer-review runner. It reads `STAGE8_LLM_API_KEY` and `STAGE8_AUTH_TOKEN` only from the invoking PowerShell process, posts sequential cache-bypassed `/query` requests, and writes credential-free JSONL plus a SHA-256-bound manifest. Test-first verification: 5 passed. A missing-token preflight fails before making any request.
 - First real run at `20261029T053351Z` produced 0 completed and 100 explicit execution errors; it is retained only as a failed execution artifact, not answer-quality evidence. Root cause: the initial runner sent 100 requests without respecting the API's 60 requests/60 seconds query limit, and its error record lacked the HTTP status code. The runner now spaces requests by 1.1 seconds and preserves safe transport codes such as `HTTP_429`; 7 focused tests pass.
@@ -57,7 +57,7 @@
 - Core security/route contracts passed: 32 authentication, rate-limit, request-security, route-security and security-settings tests; document/upload/Compose contracts added 21 passing tests after removing obsolete graph-volume expectations. The full asynchronous query-run API test cannot run to completion in this isolated runner: Python 3.13 blocks in its own `asyncio` local socket-pair creation before entering an API route. It remains a required local acceptance command, not a pass claim.
 - Final automated release evidence: the consolidated targeted backend suite passed 56 tests, frozen-data/evaluator/runner contracts passed 82 tests, frontend unit tests passed 5/5, and a fresh frontend production build produced `frontend/dist/index.html`. Docker Compose interpolation/configuration validation passed only with process-local placeholder values; no container lifecycle claim is made. Playwright discovered the one login E2E test but could not start its local Vite server in the isolated runner, so E2E remains pending local acceptance.
 - Published `reports/evaluation/stage8/STAGE8_RELEASE_READINESS_20261029.md`, which distinguishes completed evidence from human legal review, Judge/Ragas calibration, SSE/local-browser acceptance, Docker recovery, and final integration.
-- Human answer review is now complete: all 100 merged records have reviewer, timestamp, note and boolean `human_review`; 97 are approved and 3 rejected. This is an observed human assertion-support result, not a substitute for the still-pending diagnostic Judge/Ragas calibration.
+- Human answer review is complete: all 100 merged records have reviewer, timestamp, note and boolean `human_review`; 97 are approved and 3 rejected. This is an observed human assertion-support result, not a substitute for the completed secondary Judge/Ragas diagnostics.
 
 ## Test Results
 
@@ -102,13 +102,13 @@
 
 ### Phase 7: Gate A Judge/Ragas diagnostic calibration
 
-- **Status:** in_progress
+- **Status:** complete; the final Ragas diagnostic and Judge recovery calibration are recorded below.
 - Confirmed the design-approved gate scope and immutable human-review input contract.
 - Confirmed the current candidate does not declare Ragas or a Judge SDK, so their runtime integration will be explicitly optional and cannot silently fabricate a score.
 - Recorded the candidate-local virtual-environment absence; the next test run will use the existing verified project virtual environment explicitly.
 - Added a test-first pure calibration contract. Its first run failed exactly because `src.evaluation.stage8_diagnostic_calibration` did not exist; the minimal loader/reducer implementation now passes 3 focused tests.
 - Added test-first, credential-free calibration CLI and blind optional Judge runner. The focused regression now has 8 passing tests and Ruff passes for all new Gate A files. The Judge validates real provider URLs with the existing SSRF policy before making a network request; the injected test path performs no network I/O.
-- Ragas remains pending as a diagnostic result, not as a dependency: its dedicated environment is now verified separately, but no framework score has been run or invented.
+- Ragas is optional diagnostic tooling rather than a production dependency. Its final supported run and score boundaries are recorded below; it does not establish legal-answer correctness.
 
 ### Phase 8: Gate B local SSE/browser acceptance
 
@@ -152,3 +152,9 @@
 - Root cause: DeepSeek JSON mode requires an explicit `json` instruction and an output-shape example in the prompt. Added a test-first JSON-mode message contract, bumped prompt provenance to `stage8-diagnostic-judge-v2`, and verified the Judge/calibration suite 10/10 with a project-local pytest base temp directory.
 - The recovery Judge run completed 100/100 with zero execution errors. The hash-bound calibration result has agreement rate `0.97`, `true_positive=97`, `true_negative=0`, `false_positive=3`, and `false_negative=0`.
 - Interpretation: Judge agreed with all human-approved rows but accepted all three human-rejected retrieval-failure non-answers (`round2-adjacent-038`, `round2-multihop-009`, `round2-multihop-020`). Its apparent 97% agreement is driven by the positive-heavy sample; negative-case sensitivity is 0/3. Human review remains the authoritative legal-quality evidence.
+
+### Scoped local integration and environment consolidation
+
+- The Stage 8 candidate was merged locally into `main` at `6f5f8be`; the merged-main core Stage 8 suite then passed 43 tests. No remote push or production-release claim is made.
+- The former external Ragas environment was recreated inside the main repository as `.venv-stage8-ragas`, where `ragas==0.3.9` imports and `pip check` reports no broken requirements. The old external evaluation environment was then removed.
+- The unrun full real-stack browser workflow and authenticated Docker runtime query remain documented limitations, not failed or implied passes.

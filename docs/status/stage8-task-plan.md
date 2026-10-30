@@ -6,7 +6,7 @@ Implement a reproducible evaluator for the reviewed 280-row Stage 8 dataset that
 
 ## Current Phase
 
-Phase 4 — verification and live evaluation.
+Completed — Stage 8 evidence was merged locally into `main` on 2026-10-30.
 
 ## Phases
 
@@ -33,8 +33,8 @@ Phase 4 — verification and live evaluation.
 - [x] Rebuild and validate HNSW segments in a new isolated evaluation copy.
 - [x] Re-run BM25, Vector and RRF formal reports against the immutable runtime payload; earlier persistent-HNSW reports are retained only as diagnostics.
 - [x] Record results in the immutable report set.
-- [ ] Create the final scoped release commit after all acceptance gates have evidence.
-- **Status:** in_progress
+- [x] Create the final scoped release commit after all acceptance gates have evidence (`6f5f8be`).
+- **Status:** complete for the user-approved local integration scope.
 
 ### Phase 5: Full-answer review preparation
 
@@ -44,8 +44,8 @@ Phase 4 — verification and live evaluation.
 - [x] Run the selected rows through a real authenticated workflow and collect responses (15 initial successes + 85 successful resume rows; 100/100 covered).
 - [x] Merge the two successful answer-review runs into one manifest-bound 100-row review file.
 - [x] Complete the evidence-located human answer review (97 approved, 3 rejected).
-- [ ] Calibrate diagnostic Judge/Ragas outputs against the completed human review.
-- **Status:** in_progress
+- [x] Calibrate diagnostic Judge/Ragas outputs against the completed human review.
+- **Status:** complete; Judge/Ragas remain secondary diagnostics rather than legal-quality authority.
 
 ### Phase 6: Knowledge-graph removal
 
@@ -103,7 +103,7 @@ Phase 4 — verification and live evaluation.
 - [x] Re-run query-run service/API suites in the local Windows PowerShell environment (11/11 passed).
 - [x] Run the existing Playwright browser-entry smoke test against the local frontend stack (Chromium login render passed 1/1).
 - [ ] Extend and run real-stack browser E2E for the remaining documented workflows: authenticated login, query progress/citations, session/favorites, upload/task entry, and RBAC/cross-organization rejection.
-- **Status:** in_progress; backend SSE/cancellation contracts and the current deterministic browser entry path are accepted locally, but the full documented browser-workflow scope is still pending.
+- **Status:** complete for scoped local acceptance; backend SSE/cancellation contracts and the deterministic browser entry path are accepted locally. Full real-stack browser workflows remain a non-blocking follow-up, not a completed release claim.
 
 ### Phase 9: Gate C isolated Docker acceptance
 
@@ -113,4 +113,15 @@ Phase 4 — verification and live evaluation.
 - [x] Preserve the named volumes across a service restart and re-check readiness.
 - [x] Repair and regression-test the observed Web gateway stale-upstream `502` following API recreation.
 - [ ] Run a real authenticated runtime query with a process-local LLM credential supplied at execution time; do not store the key in `.env.docker.stage8`.
-- **Status:** in_progress; cold start, upload, and gateway/API recovery are evidenced, but a real runtime query is still required before this is a full release gate.
+- **Status:** complete for scoped local acceptance; cold start, upload, and gateway/API recovery are evidenced. A credentialed Docker runtime query remains a non-blocking follow-up and is not claimed as complete.
+
+### Scoped local integration and close (2026-10-30)
+
+- [x] Commit the scoped Stage 8 implementation and evidence as `6f5f8be`.
+- [x] Fast-forward the original repository's local `main` branch to that commit.
+- [x] Re-run the merged-main Stage 8 core suite: 43 passed (one third-party deprecation warning).
+- [x] Preserve the pre-existing root-level Stage 7 planning files and keep Stage 8 planning files under `docs/status/`.
+- [x] Recreate the dedicated Ragas 0.3.9 environment inside the main repository as `.venv-stage8-ragas`; it imports successfully and `pip check` reports no broken requirements.
+- [ ] Push to a remote repository or claim a production deployment (not requested).
+- [ ] Run the full real-stack browser workflow or an authenticated Docker runtime query (not required by the approved local close).
+- **Close status:** complete in the approved local scope. Outstanding checks above remain explicitly unexecuted rather than silently treated as passes.
